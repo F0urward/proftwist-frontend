@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useCallback, useRef } from "react";
 import {
   ReactFlow,
   applyNodeChanges,
@@ -14,10 +14,9 @@ import "@xyflow/react/dist/style.css";
 import { v4 as uuidv4 } from "uuid";
 import { DottedEdge } from "../components/Edges";
 import { CustomNode } from "../components/CustomNode";
-import { Button, Stack } from "@mui/material";
+import { Stack } from "@mui/material";
 import { Sidebar } from "../components/Sidebar";
-import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "../store";
+import { RootState, useAppDispatch, useAppSelector } from "../store";
 import { editorSliceActions } from "../store/slices/editorSlice";
 import { Edge, Node } from "../types";
 
@@ -30,11 +29,11 @@ const nodeTypes = {
 };
 
 export const CreatorPage = () => {
-  const { nodes, edges, selectedElementId } = useSelector(
+  const { nodes, edges, selectedElementId } = useAppSelector(
     (state: RootState) => state.editor
   );
 
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useAppDispatch();
 
   const { screenToFlowPosition } = useReactFlow();
 

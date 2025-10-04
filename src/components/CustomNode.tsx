@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Box, InputBase, Typography } from "@mui/material";
 import { Handle, Position, useEdges } from "@xyflow/react";
-import { AppDispatch } from "../store";
-import { useDispatch } from "react-redux";
 import { editorSliceActions } from "../store/slices/editorSlice";
+import { useAppDispatch } from "../store";
 
 type NodeType = "primary" | "secondary" | "root";
 
@@ -23,7 +22,7 @@ export const CustomNode = ({
   const [isEditing, setIsEditing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useAppDispatch();
 
   const background = useMemo(() => {
     switch (type) {
