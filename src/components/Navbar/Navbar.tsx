@@ -9,10 +9,8 @@ const Navbar = ({ isAuth }: NavbarProps) => {
   return (
     <AppBar 
         position="static" 
-        elevation={0} 
         sx={{ 
             bgcolor: "background.paper",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.08)"
         }}
     >
         <Toolbar 

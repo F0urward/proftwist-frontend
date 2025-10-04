@@ -17,5 +17,68 @@ export const theme = createTheme({
         },
       },
     },
+    MuiPaper: {
+      defaultProps: {
+        elevation: 0,
+      },
+      styleOverrides: {
+        root: {
+          backgroundColor: "#212121",
+          color: "#ffffff",
+          borderRadius: 20,
+          width: "100%",
+          maxWidth: 900,
+        },
+      },
+    },
+    MuiAppBar: {
+      defaultProps: { elevation: 0 },
+      styleOverrides: {
+        root: {
+          boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+          borderRadius: 0,
+          border: 0,
+          width: "100%",
+          margin: 0,
+          maxWidth: "100%",
+        },
+      },
+    },
+    MuiFormLabel: {
+      styleOverrides: {
+        root: {
+          color: "#ffffff",
+          "&.Mui-focused": {
+            color: "#BC57FF",
+          },
+        },
+      },
+    },
+    MuiOutlinedInput: {
+      styleOverrides: {
+        root: {
+          borderRadius: 10,
+          "& .MuiOutlinedInput-notchedOutline": {
+            borderColor: "#848484",
+          },
+          "&:hover .MuiOutlinedInput-notchedOutline": {
+            borderColor: "#BC57FF",
+          },
+          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+            borderColor: "#BC57FF",
+          },
+        },
+        input: {
+          color: "#ffffff",
+        },
+      },
+    },
+    MuiLink: {
+      styleOverrides: {
+        root: {
+          color: "#BC57FF",
+        }
+      }
+    }
   },
 });
