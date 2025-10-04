@@ -19,6 +19,7 @@ import { Sidebar } from "../components/Sidebar";
 import { RootState, useAppDispatch, useAppSelector } from "../store";
 import { editorSliceActions } from "../store/slices/editorSlice";
 import { Edge, Node } from "../types";
+import { TextNode } from "../components/TextNode";
 
 const edgeTypes = {
   dotted: DottedEdge,
@@ -26,6 +27,7 @@ const edgeTypes = {
 
 const nodeTypes = {
   custom: CustomNode,
+  text: TextNode,
 };
 
 export const CreatorPage = () => {
@@ -72,7 +74,7 @@ export const CreatorPage = () => {
     [editorSliceActions]
   );
 
-  const addNode = (type: "primary" | "secondary") => {
+  const addNode = (type: "primary" | "secondary" | "text") => {
     if (!containerRef.current) return;
 
     const rect = containerRef.current.getBoundingClientRect();
@@ -83,7 +85,7 @@ export const CreatorPage = () => {
 
     const newNode = {
       id: uuidv4(),
-      type: "custom",
+      type: type === "text" ? "text" : "custom",
       position: flowPosition,
       data: { label: `Нода новая`, type },
     };
