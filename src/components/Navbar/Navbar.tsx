@@ -24,7 +24,7 @@ const Navbar = ({ isAuth }: NavbarProps) => {
             <Typography
                 variant="h6"
                 component={RouterLink}
-                to="/"
+                to="/roadmaps"
                 sx={{ 
                     fontFamily: '"TDAText"',
                     textDecoration: "none", 
@@ -49,6 +49,9 @@ const Navbar = ({ isAuth }: NavbarProps) => {
                         gap: 3,
                     }}
                 >
+                    <Button color="inherit" component={RouterLink} to="/roadmaps" sx={{ textTransform: "none" }}>
+                        Roadmaps
+                    </Button>
                     <Button color="inherit" component={RouterLink} to="/" sx={{ textTransform: "none" }}>
                         Create
                     </Button>
