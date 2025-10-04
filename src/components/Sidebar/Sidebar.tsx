@@ -38,7 +38,12 @@ export const Sidebar = ({ addNode }: SidebarProps) => {
       sx={{ width: "300px", padding: "10px", background: "#000" }}
     >
       {actions.map(({ Icon, title, handleClick }) => (
-        <Button startIcon={<Icon />} variant="contained" onClick={handleClick}>
+        <Button
+          key={title}
+          startIcon={<Icon />}
+          variant="contained"
+          onClick={handleClick}
+        >
           {title}
         </Button>
       ))}
