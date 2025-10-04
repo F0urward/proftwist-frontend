@@ -6,7 +6,7 @@ import DownloadIcon from "@mui/icons-material/Download";
 import { RootState, useAppSelector } from "../../store";
 
 interface SidebarProps {
-  addNode: (nodeType: "primary" | "secondary" | "text") => void;
+  addNode: (nodeType: "root" | "primary" | "secondary" | "text") => void;
 }
 
 interface Actions {
@@ -25,6 +25,11 @@ export const Sidebar = ({ addNode }: SidebarProps) => {
   };
 
   const actions: Actions[] = [
+    {
+      Icon: Crop75Icon,
+      title: "Root Node",
+      handleClick: () => addNode("root"),
+    },
     {
       Icon: Crop75Icon,
       title: "Topic",
