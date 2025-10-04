@@ -5,26 +5,30 @@ import { ThemeProvider } from "@mui/material/styles";
 import { theme } from "./theme.ts";
 import CssBaseline from "@mui/material/CssBaseline";
 import { ReactFlowProvider } from "@xyflow/react";
+import { Provider } from "react-redux";
+import store from "./store";
 
-function App() {
+const App = () => {
   return (
-    <ReactFlowProvider>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Router>
-          <div>
-            <nav>
-              <Link to="/">Creator</Link> | <Link to="/view">Viewer</Link>
-            </nav>
-            <Routes>
-              <Route path="/" element={<CreatorPage />} />
-              <Route path="/view" element={<ViewerPage />} />
-            </Routes>
-          </div>
-        </Router>
-      </ThemeProvider>
-    </ReactFlowProvider>
+    <Provider store={store}>
+      <ReactFlowProvider>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <Router>
+            <div>
+              <nav>
+                <Link to="/">Creator</Link> | <Link to="/view">Viewer</Link>
+              </nav>
+              <Routes>
+                <Route path="/" element={<CreatorPage />} />
+                <Route path="/view" element={<ViewerPage />} />
+              </Routes>
+            </div>
+          </Router>
+        </ThemeProvider>
+      </ReactFlowProvider>
+    </Provider>
   );
-}
+};
 
 export default App;

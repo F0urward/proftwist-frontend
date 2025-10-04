@@ -1,10 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Box, InputBase, Typography } from "@mui/material";
 import { Handle, Position, useEdges } from "@xyflow/react";
+import { AppDispatch } from "../store";
+import { useDispatch } from "react-redux";
+import { editorSliceActions } from "../store/slices/editorSlice";
 
 type NodeType = "primary" | "secondary" | "root";
 
 interface NodeProps {
+  id: string;
   data: {
     isSelected: boolean;
     label: string;
@@ -13,10 +17,13 @@ interface NodeProps {
 }
 
 export const CustomNode = ({
+  id,
   data: { label, type, isSelected },
 }: NodeProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const dispatch = useDispatch<AppDispatch>();
 
   const background = useMemo(() => {
     switch (type) {
@@ -38,6 +45,17 @@ export const CustomNode = ({
 
   const handleInputBlur = () => {
     setIsEditing(false);
+  };
+
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    dispatch(
+      editorSliceActions.updateNode({
+        id,
+        data: {
+          label: event.target.value,
+        },
+      })
+    );
   };
 
   useEffect(() => {
@@ -66,6 +84,7 @@ export const CustomNode = ({
             multiline
             value={label}
             onBlur={handleInputBlur}
+            onChange={handleInputChange}
           />
         ) : (
           <Typography>{label}</Typography>
