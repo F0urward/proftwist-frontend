@@ -26,6 +26,7 @@ const Navbar = ({ isAuth }: NavbarProps) => {
                 component={RouterLink}
                 to="/"
                 sx={{ 
+                    fontFamily: '"TDAText"',
                     textDecoration: "none", 
                     fontWeight: 700,
                     backgroundImage: "linear-gradient(90deg, #BC57FF 0%, #FF4DCA 100%)",

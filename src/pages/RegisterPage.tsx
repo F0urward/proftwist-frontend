@@ -55,6 +55,7 @@ const RegisterPage = () => {
                 <Typography
                     variant="h3"
                     sx={{
+                        fontFamily: '"TDAText"',
                         fontWeight: 900,
                         letterSpacing: 0.5,
                         mb: 1.5,
