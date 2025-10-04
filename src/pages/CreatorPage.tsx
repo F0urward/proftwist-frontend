@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import {
   ReactFlow,
   applyNodeChanges,
@@ -10,15 +10,14 @@ import {
   ReactFlowProvider,
   Controls,
   ControlButton,
+  useReactFlow,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { v4 as uuidv4 } from "uuid";
 import { DottedEdge } from "../components/Edges";
 import { CustomNode } from "../components/CustomNode";
 import { Button, Stack } from "@mui/material";
-
-import Crop75Icon from "@mui/icons-material/Crop75";
-import AddIcon from "@mui/icons-material/Add";
+import { Sidebar } from "../components/Sidebar";
 
 const edgeTypes = {
   dotted: DottedEdge,
@@ -58,10 +57,14 @@ const initialEdges = [
   },
 ];
 
-export default function App() {
+export const CreatorPage = () => {
   const [nodes, setNodes] = useState(initialNodes);
   const [edges, setEdges] = useState(initialEdges);
   const [selectedElementId, setSelectedElementId] = useState(null);
+
+  const { screenToFlowPosition } = useReactFlow();
+
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const onNodesChange = useCallback(
     (changes) =>
@@ -115,13 +118,18 @@ export default function App() {
   }));
 
   const addNode = (type: "primary" | "secondary") => {
+    if (!containerRef.current) return;
+
+    const rect = containerRef.current.getBoundingClientRect();
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+
+    const flowPosition = screenToFlowPosition({ x: centerX, y: centerY });
+
     const newNode = {
       id: uuidv4(),
       type: "custom",
-      position: {
-        x: Math.random() * 100, // случайная позиция по X
-        y: Math.random() * 100, // случайная позиция по Y
-      },
+      position: flowPosition,
       data: { label: `Нода новая`, type },
       onUpdateLabel: updateNodeLabel,
     };
@@ -131,48 +139,29 @@ export default function App() {
 
   return (
     <Stack direction="row">
-      <Stack
-        gap="10px"
-        sx={{ width: "300px", padding: "10px", background: "#000" }}
+      <Sidebar addNode={addNode} />
+      <div
+        style={{ width: "100vw", height: "100vh", color: "#000" }}
+        ref={containerRef}
       >
-        <Button
-          startIcon={<Crop75Icon />}
-          variant="contained"
-          onClick={() => addNode("primary")}
+        <ReactFlow
+          nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+          nodes={nodesWithSelection}
+          edges={edgesWithSelection}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onNodeClick={handleNodeClick}
+          onEdgeClick={handleEdgeClick}
+          onConnect={onConnect}
+          onPaneClick={() => setSelectedElementId(null)}
+          fitView
         >
-          Topic
-        </Button>
+          <Controls position="center-left" showZoom={false}></Controls>
 
-        <Button
-          startIcon={<Crop75Icon />}
-          variant="contained"
-          onClick={() => addNode("secondary")}
-        >
-          Sub Topic
-        </Button>
-      </Stack>
-
-      <div style={{ width: "100vw", height: "100vh", color: "#000" }}>
-        <ReactFlowProvider>
-          <ReactFlow
-            nodeTypes={nodeTypes}
-            edgeTypes={edgeTypes}
-            nodes={nodesWithSelection}
-            edges={edgesWithSelection}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onNodeClick={handleNodeClick}
-            onEdgeClick={handleEdgeClick}
-            onConnect={onConnect}
-            onPaneClick={() => setSelectedElementId(null)}
-            fitView
-          >
-            <Controls position="center-left" showZoom={false}></Controls>
-
-            <Background color="#fff" bgColor="#000" />
-          </ReactFlow>
-        </ReactFlowProvider>
+          <Background color="#fff" bgColor="#000" />
+        </ReactFlow>
       </div>
     </Stack>
   );
-}
+};

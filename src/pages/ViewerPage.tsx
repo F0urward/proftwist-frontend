@@ -6,7 +6,7 @@ const nodeTypes = {
   custom: Node,
 };
 
-const ViewerPage = () => {
+export const ViewerPage = () => {
   return (
     <div style={{ width: "100%", height: "100vh" }}>
       <ReactFlow
@@ -21,5 +21,3 @@ const ViewerPage = () => {
     </div>
   );
 };
-
-export default ViewerPage;
