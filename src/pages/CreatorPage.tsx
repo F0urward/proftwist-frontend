@@ -1,4 +1,4 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import {
   ReactFlow,
   applyNodeChanges,
@@ -12,28 +12,27 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { v4 as uuidv4 } from "uuid";
-import { DottedEdge } from "../components/Edges";
-import { CustomNode } from "../components/CustomNode";
+
 import { Stack } from "@mui/material";
 import { Sidebar } from "../components/Sidebar";
 import { RootState, useAppDispatch, useAppSelector } from "../store";
 import { editorSliceActions } from "../store/slices/editorSlice";
 import { Edge, Node } from "../types";
-import { TextNode } from "../components/TextNode";
-
-const edgeTypes = {
-  dotted: DottedEdge,
-};
-
-const nodeTypes = {
-  custom: CustomNode,
-  text: TextNode,
-};
+import { edgeTypes, nodeTypes } from "../consts";
 
 export const CreatorPage = () => {
-  const { nodes, edges, selectedElementId } = useAppSelector(
-    (state: RootState) => state.editor
-  );
+  const { nodes, edges } = useAppSelector((state: RootState) => state.editor);
+
+  useEffect(() => {
+    const data = localStorage.getItem("flow");
+    if (!data) return;
+
+    console.log(data);
+
+    const { nodes, edges } = JSON.parse(data);
+    dispatch(editorSliceActions.setNodes(nodes));
+    dispatch(editorSliceActions.setEdges(edges));
+  }, []);
 
   const dispatch = useAppDispatch();
 
