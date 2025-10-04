@@ -12,10 +12,13 @@ import {
   ControlButton,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import AddIcon from "@mui/icons-material/Add";
 import { v4 as uuidv4 } from "uuid";
 import { DottedEdge } from "../components/Edges";
 import { CustomNode } from "../components/CustomNode";
+import { Button, Stack } from "@mui/material";
+
+import Crop75Icon from "@mui/icons-material/Crop75";
+import AddIcon from "@mui/icons-material/Add";
 
 const edgeTypes = {
   dotted: DottedEdge,
@@ -111,15 +114,15 @@ export default function App() {
     },
   }));
 
-  const addNode = () => {
+  const addNode = (type: "primary" | "secondary") => {
     const newNode = {
       id: uuidv4(),
-      type: "customNode",
+      type: "custom",
       position: {
-        x: Math.random() * 400, // случайная позиция по X
-        y: Math.random() * 400, // случайная позиция по Y
+        x: Math.random() * 100, // случайная позиция по X
+        y: Math.random() * 100, // случайная позиция по Y
       },
-      data: { label: `Нода новая` },
+      data: { label: `Нода новая`, type },
       onUpdateLabel: updateNodeLabel,
     };
 
@@ -127,30 +130,49 @@ export default function App() {
   };
 
   return (
-    <div style={{ width: "100vw", height: "100vh", color: "#000" }}>
-      <ReactFlowProvider>
-        <ReactFlow
-          nodeTypes={nodeTypes}
-          edgeTypes={edgeTypes}
-          nodes={nodesWithSelection}
-          edges={edgesWithSelection}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onNodeClick={handleNodeClick}
-          onEdgeClick={handleEdgeClick}
-          onConnect={onConnect}
-          onPaneClick={() => setSelectedElementId(null)}
-          fitView
+    <Stack direction="row">
+      <Stack
+        gap="10px"
+        sx={{ width: "300px", padding: "10px", background: "#000" }}
+      >
+        <Button
+          startIcon={<Crop75Icon />}
+          variant="contained"
+          onClick={() => addNode("primary")}
         >
-          <Controls position="center-left" showZoom={false}>
-            <ControlButton onClick={addNode}>
-              <AddIcon />
-            </ControlButton>
-          </Controls>
-        </ReactFlow>
+          Topic
+        </Button>
 
-        <Background color="#fff" bgColor="#000" />
-      </ReactFlowProvider>
-    </div>
+        <Button
+          startIcon={<Crop75Icon />}
+          variant="contained"
+          onClick={() => addNode("secondary")}
+        >
+          Sub Topic
+        </Button>
+      </Stack>
+
+      <div style={{ width: "100vw", height: "100vh", color: "#000" }}>
+        <ReactFlowProvider>
+          <ReactFlow
+            nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
+            nodes={nodesWithSelection}
+            edges={edgesWithSelection}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onNodeClick={handleNodeClick}
+            onEdgeClick={handleEdgeClick}
+            onConnect={onConnect}
+            onPaneClick={() => setSelectedElementId(null)}
+            fitView
+          >
+            <Controls position="center-left" showZoom={false}></Controls>
+
+            <Background color="#fff" bgColor="#000" />
+          </ReactFlow>
+        </ReactFlowProvider>
+      </div>
+    </Stack>
   );
 }
