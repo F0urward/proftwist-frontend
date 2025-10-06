@@ -1,8 +1,4 @@
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-import { CreatorPage } from "./pages/CreatorPage.tsx";
-import { ViewerPage } from "./pages/ViewerPage.tsx";
-import RegisterPage from "./pages/RegisterPage.tsx";
-import RoadmapsPage from "./pages/RoadmapsPage.tsx";
 import { ThemeProvider } from "@mui/material/styles";
 import { theme } from "./theme.ts";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -10,6 +6,12 @@ import { ReactFlowProvider } from "@xyflow/react";
 import { Provider } from "react-redux";
 import store from "./store";
 import Navbar from "./components/Navbar/Navbar.tsx";
+
+import { CreatorPage } from "./pages/CreatorPage.tsx";
+import { ViewerPage } from "./pages/ViewerPage.tsx";
+import RegisterPage from "./pages/RegisterPage.tsx";
+import RoadmapsPage from "./pages/RoadmapsPage.tsx";
+import LoginPage from "./pages/LoginPage.tsx";    
 
 const App = () => {
   return (
@@ -22,8 +24,9 @@ const App = () => {
               <Navbar isAuth={false} />
               <Routes>
                 <Route path="/" element={<CreatorPage />} />
-                <Route path="/view" element={<ViewerPage />} />
                 <Route path="/signup" element={<RegisterPage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/view" element={<ViewerPage />} />
                 <Route path="/roadmaps" element={<RoadmapsPage />} />
               </Routes>
             </div>

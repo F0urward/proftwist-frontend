@@ -1,19 +1,39 @@
 import { createTheme } from "@mui/material";
 
+const colors = {
+  accent1: "#BC57FF",
+  accent2: "#FF4DCA",
+  backgroundDark: "#181818",
+  backgroundPaper: "#212121",
+  gradientDark: "linear-gradient(90deg, #5C0099 0%, #BE0085 100%)",
+  gradientLight: "linear-gradient(90deg, #BC57FF 0%, #FF4DCA 100%)",
+  border: "#848484",
+  white: "#ffffff",
+};
+
 export const theme = createTheme({
   palette: {
     background: {
-      default: "#181818",
-      paper: "#212121",
+      default: colors.backgroundDark,
+      paper: colors.backgroundPaper,
     },
+    text: {
+      primary: colors.white,
+    }
   },
   components: {
     MuiButton: {
       styleOverrides: {
         contained: {
-          background: "linear-gradient(90deg, #BC57FF 0%, #FF4DCA 100%)",
+          background: colors.gradientDark,
+          border: 0,
+          boxShadow: "none",
           textTransform: "none",
           borderRadius: 10,
+          "&:hover": {
+            background: colors.gradientLight,
+            boxShadow: "none",
+          }
         },
       },
     },
@@ -23,8 +43,8 @@ export const theme = createTheme({
       },
       styleOverrides: {
         root: {
-          backgroundColor: "#212121",
-          color: "#ffffff",
+          backgroundColor: colors.backgroundPaper,
+          color: colors.white,
           borderRadius: 20,
           width: "100%",
           maxWidth: 900,
@@ -47,9 +67,9 @@ export const theme = createTheme({
     MuiFormLabel: {
       styleOverrides: {
         root: {
-          color: "#ffffff",
+          color: colors.white,
           "&.Mui-focused": {
-            color: "#BC57FF",
+            color: colors.accent1,
           },
         },
       },
@@ -59,24 +79,24 @@ export const theme = createTheme({
         root: {
           borderRadius: 10,
           "& .MuiOutlinedInput-notchedOutline": {
-            borderColor: "#848484",
+            borderColor: colors.border,
           },
           "&:hover .MuiOutlinedInput-notchedOutline": {
-            borderColor: "#BC57FF",
+            borderColor: colors.accent1,
           },
           "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-            borderColor: "#BC57FF",
+            borderColor: colors.accent1,
           },
         },
         input: {
-          color: "#ffffff",
+          color: colors.white,
         },
       },
     },
     MuiLink: {
       styleOverrides: {
         root: {
-          color: "#BC57FF",
+          color: colors.accent1,
         }
       }
     }
