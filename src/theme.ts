@@ -12,6 +12,9 @@ const colors = {
 };
 
 export const theme = createTheme({
+  typography: {
+    fontFamily: '"Lato", "Inter", sans-serif',
+  },
   palette: {
     background: {
       default: colors.backgroundDark,
