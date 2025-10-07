@@ -1,27 +1,11 @@
 import { Box, Paper, Typography, Stack } from "@mui/material";
 import RoadmapCard from "../components/RoadmapCard/RoadmapCard.tsx";
 import CategoryList from "../components/CategoryList/CategoryList.tsx";
+import BaseLayout from "../components/BaseLayout/BaseLayout.tsx";
 
 const RoadmapsPage = () => {
     return (
-        <Box
-            sx={{
-                minHeight: { xs: "calc(100svh - 56px)", sm: "calc(100svh - 64px)" },
-                bgcolor: "background.default",
-                overflow: "hidden",
-                backgroundImage: "url(/assets/bg-glow.svg), url(/assets/bg-glow.svg)",
-                backgroundRepeat: "no-repeat, no-repeat",
-                backgroundPosition: "right -25vw top -50vh, left -25vw bottom -50vh",
-                backgroundSize: "clamp(520px, 65vw, 1000px), clamp(520px, 65vw, 1000px)",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: { xs: 3, md: 4 },
-                py: { xs: 3, md: 4 },
-                px: 2,
-            }}
-        >
+        <BaseLayout>
             <Paper
                 sx={{
                     p: { xs: 3, md: 4 },
@@ -73,7 +57,7 @@ const RoadmapsPage = () => {
                     </Stack>
                 </Paper>
             </Box>
-        </Box>
+        </BaseLayout>
     );
 };
 

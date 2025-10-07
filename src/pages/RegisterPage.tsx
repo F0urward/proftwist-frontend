@@ -1,6 +1,9 @@
-import { Box, Paper, Typography, Stack, TextField, Button, Link } from "@mui/material";
+import { Paper, Typography, Stack, TextField, Button, Link } from "@mui/material";
 import { useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
+import TitlePaper from "../components/TitlePaper/TitlePaper";
+import BaseLayout from "../components/BaseLayout/BaseLayout";
+import TextInput from "../components/TextInput/TextInput";
 
 type Form = {
   nickname: string;
@@ -25,53 +28,11 @@ const RegisterPage = () => {
     };
 
     return (
-        <Box
-            sx={{
-                minHeight: { xs: "calc(100svh - 56px)", sm: "calc(100svh - 64px)" },
-                bgcolor: "background.default",
-                overflow: "hidden",
-                backgroundImage: "url(/assets/bg-glow.svg), url(/assets/bg-glow.svg)",
-                backgroundRepeat: "no-repeat, no-repeat",
-                backgroundPosition: "right -25vw top -50vh, left -25vw bottom -50vh",
-                backgroundSize: "clamp(520px, 65vw, 1000px), clamp(520px, 65vw, 1000px)",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: { xs: 3, md: 4 },
-                py: { xs: 3, md: 4 },
-                px: 2,
-            }}
-        >
-            <Paper
-                sx={{
-                    p: { xs: 3, md: 4 },
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    textAlign: "center",
-                }}
-            >
-                <Typography
-                    variant="h3"
-                    sx={{
-                        fontFamily: '"TDAText"',
-                        fontWeight: 900,
-                        letterSpacing: 0.5,
-                        mb: 1.5,
-                        backgroundImage: "linear-gradient(90deg, #BC57FF, #FF4DCA)",
-                        backgroundClip: "text",
-                        color: "transparent",
-                        WebkitBackgroundClip: "text",
-                        WebkitTextFillColor: "transparent",
-                    }}
-                >
-                    Создайте аккаунт
-                </Typography>
-                <Typography variant="body2">
-                    Начните свой карьерный путь вместе с нами
-                </Typography>
-            </Paper>
+        <BaseLayout>
+            <TitlePaper
+                title="Создайте аккаунт"
+                subtitle="Начните свой карьерный путь вместе с нами"
+            ></TitlePaper>
             <Paper
                 sx={{
                     p: { xs: 3, md: 4 },
@@ -81,38 +42,43 @@ const RegisterPage = () => {
             >
 
                 <Stack spacing={3}>
-                    <TextField
+                    <TextInput
                         label="Никнейм"
                         value={form.nickname}
                         onChange={onChange("nickname")}
-                        placeholder="Придумайте ник"
+                        placeholder="Придумайте свой ник"
+                        autoComplete="username"
                     />
-                    <TextField
+                    <TextInput
                         label="Email"
                         type="email"
                         value={form.email}
                         onChange={onChange("email")}
-                        placeholder="name@email.com"
+                        placeholder="example@email.com"
+                        autoComplete="email"
                     />
-                    <TextField
+                    <TextInput
                         label="Пароль"
                         type="password"
                         value={form.password}
                         onChange={onChange("password")}
-                        placeholder="Минимум 6 символов"
+                        placeholder="Придумайте пароль"
+                        autoComplete="new-password"
                     />
-                    <TextField
+                    <TextInput
                         label="Повторите пароль"
                         type="password"
                         value={form.repeatedPassword}
                         onChange={onChange("repeatedPassword")}
+                        placeholder="Повторите пароль"
+                        autoComplete="new-password"
                     />
 
-                    <Button type="submit" variant="contained" size="large" sx={{ mt: 1 }}>
+                    <Button type="submit" variant="contained" sx={{ mt: 1 }}>
                         Зарегистрироваться
                     </Button>
 
-                    <Typography variant="body2" sx={{ textAlign: "center" }}>
+                    <Typography variant="body1" sx={{ textAlign: "center" }}>
                         Уже есть аккаунт?{" "}
                         <Link
                             component={RouterLink}
@@ -125,7 +91,7 @@ const RegisterPage = () => {
                     </Typography>
                 </Stack>
             </Paper>
-        </Box>
+        </BaseLayout>
     );
 };
 

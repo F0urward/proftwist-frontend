@@ -14,6 +14,10 @@ const colors = {
 export const theme = createTheme({
   typography: {
     fontFamily: '"Lato", "Inter", sans-serif',
+    button: {
+      fontSize: "1rem",
+      fontWeight: 500,
+    }
   },
   palette: {
     background: {
