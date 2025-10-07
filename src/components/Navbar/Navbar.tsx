@@ -59,14 +59,29 @@ const Navbar = ({ isAuth }: NavbarProps) => {
                         View
                     </Button>
                 </Box>
-
-                <Button
-                    variant="contained"
-                    component={RouterLink}
-                    to="/signup"
+                
+                <Box
+                    sx={{
+                        display: "flex",
+                        gap: 3,
+                    }}
                 >
-                    Зарегистрироваться
-                </Button>
+                    <Button
+                        variant="text"
+                        component={RouterLink}
+                        to="/login"
+                    >
+                        Войти
+                    </Button>
+
+                    <Button
+                        variant="contained"
+                        component={RouterLink}
+                        to="/signup"
+                    >
+                        Зарегистрироваться
+                    </Button>
+                </Box>
             </>
         )}
       </Toolbar>

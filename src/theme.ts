@@ -3,6 +3,7 @@ import { createTheme } from "@mui/material";
 const colors = {
   accent1: "#BC57FF",
   accent2: "#FF4DCA",
+  hover: "#2B1631",
   backgroundDark: "#181818",
   backgroundPaper: "#212121",
   gradientDark: "linear-gradient(90deg, #5C0099 0%, #BE0085 100%)",
@@ -42,6 +43,15 @@ export const theme = createTheme({
             boxShadow: "none",
           }
         },
+        text: {
+          textTransform: "none",
+          color: colors.white,
+          borderRadius: 10,
+          "&:hover": {
+            background: "rgba(188, 87, 255, 0.53)",
+            boxShadow: "none",
+          }
+        }
       },
     },
     MuiPaper: {
