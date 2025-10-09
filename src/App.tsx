@@ -11,7 +11,8 @@ import { CreatorPage } from "./pages/CreatorPage.tsx";
 import { ViewerPage } from "./pages/ViewerPage.tsx";
 import RegisterPage from "./pages/RegisterPage.tsx";
 import RoadmapsPage from "./pages/RoadmapsPage.tsx";
-import LoginPage from "./pages/LoginPage.tsx";    
+import LoginPage from "./pages/LoginPage.tsx";
+import MaterialsPage from "./pages/MaterialsPage.tsx";
 
 const App = () => {
   return (
@@ -28,6 +29,7 @@ const App = () => {
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/view" element={<ViewerPage />} />
                 <Route path="/roadmaps" element={<RoadmapsPage />} />
+                <Route path="/materials" element={<MaterialsPage />} />
               </Routes>
             </div>
           </Router>

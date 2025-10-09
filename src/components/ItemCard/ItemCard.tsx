@@ -4,10 +4,11 @@ import { Link as RouterLink } from "react-router-dom";
 
 type Props = {
     title: string;
+    description?: string;
     to?: string;
 };
 
-const RoadmapCard = ({ title, to = "#" }: Props) => {
+const ItemCard = ({ title, description, to = "#" }: Props) => {
   return (
     <Paper
         variant="outlined"
@@ -32,7 +33,20 @@ const RoadmapCard = ({ title, to = "#" }: Props) => {
             },
         }}
     >
-        <Typography variant="body1">{title}</Typography>
+        <Box>
+            <Typography variant="body1">{title}</Typography>
+
+            {description && (
+            <Typography
+                variant="body2"
+                sx={{
+                    color: "#BFBFBF",
+                }}
+            >
+                {description}
+            </Typography>
+            )} 
+        </Box>
 
         <Box 
             className="arrow-box"
@@ -50,4 +64,4 @@ const RoadmapCard = ({ title, to = "#" }: Props) => {
   );
 };
 
-export default RoadmapCard;
+export default ItemCard;

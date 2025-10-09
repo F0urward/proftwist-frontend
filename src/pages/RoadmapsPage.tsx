@@ -1,40 +1,16 @@
-import { Box, Paper, Typography, Stack } from "@mui/material";
-import RoadmapCard from "../components/RoadmapCard/RoadmapCard.tsx";
+import { Box, Paper, Stack } from "@mui/material";
+import ItemCard from "../components/ItemCard/ItemCard.tsx";
 import CategoryList from "../components/CategoryList/CategoryList.tsx";
 import BaseLayout from "../components/BaseLayout/BaseLayout.tsx";
+import TitlePaper from "../components/TitlePaper/TitlePaper.tsx";
 
 const RoadmapsPage = () => {
     return (
         <BaseLayout>
-            <Paper
-                sx={{
-                    p: { xs: 3, md: 4 },
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    textAlign: "center",
-                }}
-            >
-                <Typography
-                    variant="h3"
-                    sx={{
-                        fontFamily: '"TDAText"',
-                        fontWeight: 900,
-                        letterSpacing: 0.5,
-                        mb: 1.5,
-                        backgroundImage: "linear-gradient(90deg, #BC57FF, #FF4DCA)",
-                        backgroundClip: "text",
-                        color: "transparent",
-                        WebkitBackgroundClip: "text",
-                        WebkitTextFillColor: "transparent",
-                    }}
-                >
-                    Roadmaps
-                </Typography>
-                <Typography variant="body2">
-                    Начните свой карьерный путь вместе с нами
-                </Typography>
-            </Paper>
+            <TitlePaper
+                title="Roadmaps"
+                subtitle="Начните свой карьерный путь вместе с нами"
+            ></TitlePaper>
 
             <Box
                 sx={{
@@ -52,8 +28,8 @@ const RoadmapsPage = () => {
 
                 <Paper variant="outlined" sx={{ p: { xs: 2, md: 3 } }}>
                     <Stack spacing={2}>
-                        <RoadmapCard title="Backend Beginner" to="/" />
-                        <RoadmapCard title="Frontend Beginner" to="/" />
+                        <ItemCard title="Backend Beginner" description="Это крутой роадмап" to="/" />
+                        <ItemCard title="Frontend Beginner" description="Это крутой роадмап" to="/" />
                     </Stack>
                 </Paper>
             </Box>

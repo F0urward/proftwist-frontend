@@ -48,7 +48,7 @@ export const theme = createTheme({
           color: colors.white,
           borderRadius: 10,
           "&:hover": {
-            background: "rgba(188, 87, 255, 0.53)",
+            background: "#733E97",
             boxShadow: "none",
           }
         }
