@@ -4,12 +4,12 @@ import CategoryList from "../components/CategoryList/CategoryList.tsx";
 import BaseLayout from "../components/BaseLayout/BaseLayout.tsx";
 import TitlePaper from "../components/TitlePaper/TitlePaper.tsx";
 
-const RoadmapsPage = () => {
+const PersonalRoadmapsPage = () => {
     return (
         <BaseLayout>
             <TitlePaper
-                title="Roadmaps"
-                subtitle="Начните свой карьерный путь вместе с нами"
+                title="Мои Roadmaps"
+                subtitle="Изучите свою профессию быстрее вместе с нами"
             ></TitlePaper>
 
             <Box
@@ -22,14 +22,14 @@ const RoadmapsPage = () => {
                 }}
             >
                 <CategoryList
-                    items={["Все roadmaps", "Веб разработка", "Мобильная разработка", "Аналитика", "Дизайн", "Тестирование", "Безопасность"]}
+                    items={["Все roadmaps", "Сохраненные roadmaps", "Созданные roadmaps"]}
                     selected={0}
                 />
 
                 <Paper variant="outlined" sx={{ p: { xs: 2, md: 3 } }}>
                     <Stack spacing={2}>
-                        <ItemCard title="Backend Beginner" description="Это крутой роадмап" to="/view" />
-                        <ItemCard title="Frontend Beginner" description="Это крутой роадмап" to="/view" />
+                        <ItemCard title="Мой Backend Beginner" description="Это крутой роадмап" to="/" />
+                        <ItemCard title="Мой Frontend Beginner" description="Это крутой роадмап" to="/" />
                     </Stack>
                 </Paper>
             </Box>
@@ -37,4 +37,4 @@ const RoadmapsPage = () => {
     );
 };
 
-export default RoadmapsPage;
+export default PersonalRoadmapsPage;
