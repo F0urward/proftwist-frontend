@@ -6,18 +6,14 @@ import BaseLayout from "../components/BaseLayout/BaseLayout";
 import TextInput from "../components/TextInput/TextInput";
 
 type Form = {
-  nickname: string;
   email: string;
   password: string;
-  repeatedPassword: string;
 };
 
-const RegisterPage = () => {
+const LoginPage = () => {
     const [form, setForm] = useState<Form>({
-        nickname: "",
         email: "",
         password: "",
-        repeatedPassword: "",
     });
 
     const onChange = (key: keyof Form) => (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -30,8 +26,8 @@ const RegisterPage = () => {
     return (
         <BaseLayout>
             <TitlePaper
-                title="Создайте аккаунт"
-                subtitle="Начните свой карьерный путь вместе с нами"
+                title="Войдите в аккаунт"
+                subtitle="Продолжите освоение профессии вместе с нами"
             ></TitlePaper>
             <Paper
                 sx={{
@@ -42,13 +38,6 @@ const RegisterPage = () => {
             >
 
                 <Stack spacing={3}>
-                    <TextInput
-                        label="Никнейм"
-                        value={form.nickname}
-                        onChange={onChange("nickname")}
-                        placeholder="Придумайте свой ник"
-                        autoComplete="username"
-                    />
                     <TextInput
                         label="Email"
                         type="email"
@@ -62,31 +51,23 @@ const RegisterPage = () => {
                         type="password"
                         value={form.password}
                         onChange={onChange("password")}
-                        placeholder="Придумайте пароль"
-                        autoComplete="new-password"
-                    />
-                    <TextInput
-                        label="Повторите пароль"
-                        type="password"
-                        value={form.repeatedPassword}
-                        onChange={onChange("repeatedPassword")}
-                        placeholder="Повторите пароль"
-                        autoComplete="new-password"
+                        placeholder="Введите ваш пароль"
+                        autoComplete="current-password"
                     />
 
                     <Button type="submit" variant="contained" sx={{ mt: 1 }}>
-                        Зарегистрироваться
+                        Войти в аккаунт
                     </Button>
 
                     <Typography variant="body1" sx={{ textAlign: "center" }}>
-                        Уже есть аккаунт?{" "}
+                        Еще нет аккаунта?{" "}
                         <Link
                             component={RouterLink}
-                            to="/login"
+                            to="/signup"
                             underline="hover"
                             sx={{ fontWeight: 600 }}
                         >
-                            Войти
+                            Зарегистрирутесь
                         </Link>
                     </Typography>
                 </Stack>
@@ -95,4 +76,4 @@ const RegisterPage = () => {
     );
 };
 
-export default RegisterPage;
+export default LoginPage;

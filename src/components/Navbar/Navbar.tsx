@@ -49,24 +49,58 @@ const Navbar = ({ isAuth }: NavbarProps) => {
                         gap: 3,
                     }}
                 >
-                    <Button color="inherit" component={RouterLink} to="/roadmaps" sx={{ textTransform: "none" }}>
+                    <Button
+                        variant="text"
+                        component={RouterLink} 
+                        to="/roadmaps" 
+                    >
                         Roadmaps
                     </Button>
-                    <Button color="inherit" component={RouterLink} to="/" sx={{ textTransform: "none" }}>
+                    <Button
+                        variant="text"
+                        component={RouterLink} 
+                        to="/materials" 
+                    >
+                        Материалы
+                    </Button>
+                    <Button
+                        variant="text"
+                        component={RouterLink} 
+                        to="/"
+                    >
                         Create
                     </Button>
-                    <Button color="inherit" component={RouterLink} to="/view" sx={{ textTransform: "none" }}>
+                    <Button 
+                        variant="text"
+                        component={RouterLink}
+                        to="/view"
+                    >
                         View
                     </Button>
                 </Box>
-
-                <Button
-                    variant="contained"
-                    component={RouterLink}
-                    to="/signup"
+                
+                <Box
+                    sx={{
+                        display: "flex",
+                        gap: 3,
+                    }}
                 >
-                    Зарегистрироваться
-                </Button>
+                    <Button
+                        variant="text"
+                        component={RouterLink}
+                        to="/login"
+                    >
+                        Войти
+                    </Button>
+
+                    <Button
+                        variant="contained"
+                        component={RouterLink}
+                        to="/signup"
+                    >
+                        Зарегистрироваться
+                    </Button>
+                </Box>
             </>
         )}
       </Toolbar>

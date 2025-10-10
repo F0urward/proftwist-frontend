@@ -14,7 +14,7 @@ const CategoryList = ({ items, selected = 0 }: Props) => {
             >
                 Категории
             </Typography>
-            <Divider sx={{ mb: 1.5, borderBottom: "1px solid #ffffff" }} />
+            <Divider sx={{ mb: 1.5, borderBottom: "1px solid #848484" }} />
             <List disablePadding sx={{ display: "grid", gap: 1 }}>
                 {items.map((label, i) => (
                 <ListItemButton 
@@ -22,13 +22,16 @@ const CategoryList = ({ items, selected = 0 }: Props) => {
                     selected={i === selected}
                     sx={{
                         position: "relative",
-                        borderRadius: 4,
+                        borderRadius: 3,
                         px: 2,
                         "&.Mui-selected": {
                             backgroundColor: "#2B1631",
                         },
                         "&.Mui-selected:hover": {
-                            backgroundColor: "rgba(188, 87, 255, 0.25)",
+                            backgroundColor: "#733E97",
+                        },
+                        "&:hover": {
+                            backgroundColor: "#733E97",
                         },
                     }}
                 >
