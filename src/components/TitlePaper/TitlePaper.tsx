@@ -7,7 +7,7 @@ type TitlePaperProps = {
   children?: React.ReactNode;
 };
 
-export const TitlePaper: React.FC<TitlePaperProps> = ({ title, subtitle, children }) => {
+const TitlePaper: React.FC<TitlePaperProps> = ({ title, subtitle, children }) => {
   return (
     <Paper
       sx={{
@@ -42,7 +42,7 @@ export const TitlePaper: React.FC<TitlePaperProps> = ({ title, subtitle, childre
         </Typography>
       )}
 
-      {children && <Box sx={{ mt: 1 }}>{children}</Box>}
+      {children && <Box sx={{ mt: 0.5 }}>{children}</Box>}
     </Paper>
   );
 };

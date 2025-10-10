@@ -1,16 +1,28 @@
-import { Box, Paper, Stack } from "@mui/material";
+import { Box, Paper, Stack, Button } from "@mui/material";
 import ItemCard from "../components/ItemCard/ItemCard.tsx";
 import CategoryList from "../components/CategoryList/CategoryList.tsx";
 import BaseLayout from "../components/BaseLayout/BaseLayout.tsx";
 import TitlePaper from "../components/TitlePaper/TitlePaper.tsx";
 
+import { useNavigate } from "react-router-dom";
+
 const PersonalRoadmapsPage = () => {
+    const navigate =useNavigate();
     return (
         <BaseLayout>
             <TitlePaper
                 title="Мои Roadmaps"
                 subtitle="Изучите свою профессию быстрее вместе с нами"
-            ></TitlePaper>
+            >
+                <>
+                    <Button 
+                        variant="contained"
+                        onClick={ () => navigate("/")}
+                    >
+                        Создать свой roadmap
+                    </Button>
+                </>
+            </TitlePaper>
 
             <Box
                 sx={{
