@@ -1,9 +1,11 @@
-import { Box, Paper, Stack } from "@mui/material";
+import { Box, Paper, Stack, Button } from "@mui/material";
 import ItemCard from "../components/ItemCard/ItemCard.tsx";
 import CategoryList from "../components/CategoryList/CategoryList.tsx";
 import BaseLayout from "../components/BaseLayout/BaseLayout.tsx";
 import TitlePaper from "../components/TitlePaper/TitlePaper.tsx";
-import { useEffect, useState, useMemo } from "react";
+
+import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 
 type Roadmap = {
     id: number;
@@ -12,9 +14,9 @@ type Roadmap = {
     description?: string;
 }
 
-const RoadmapsPage = () => {
+const PersonalRoadmapsPage = () => {
     const [items, setItems] = useState<Roadmap[]>([]);
-
+    
     useEffect(() => {
         setItems([
             { id: 1, title: "Frontend Developer", category: "Веб разработка", description: "HTML/CSS/JS/React" },
@@ -23,12 +25,23 @@ const RoadmapsPage = () => {
         ]);
     }, []);
 
+    const navigate =useNavigate();
+
     return (
         <BaseLayout>
             <TitlePaper
-                title="Roadmaps"
-                subtitle="Начните свой карьерный путь вместе с нами"
-            ></TitlePaper>
+                title="Мои Roadmaps"
+                subtitle="Изучите свою профессию быстрее вместе с нами"
+            >
+                <>
+                    <Button 
+                        variant="contained"
+                        onClick={ () => navigate("/")}
+                    >
+                        Создать свой roadmap
+                    </Button>
+                </>
+            </TitlePaper>
 
             <Box
                 sx={{
@@ -40,14 +53,14 @@ const RoadmapsPage = () => {
                 }}
             >
                 <CategoryList
-                    items={["Все roadmaps", "Веб разработка", "Мобильная разработка", "Аналитика", "Дизайн", "Тестирование", "Безопасность"]}
+                    items={["Все roadmaps", "Сохраненные roadmaps", "Созданные roadmaps"]}
                     selected={0}
                 />
 
                 <Paper variant="outlined" sx={{ p: { xs: 2, md: 3 } }}>
                     <Stack spacing={2}>
                         {items.map((roadmap) => (
-                            <ItemCard key={roadmap.id} title={roadmap.title} description={roadmap.description} to={`/roadmaps/${roadmap.id}`} state={{ type: "official" }} />
+                            <ItemCard title="Мой Backend Beginner" description="Это крутой роадмап" to={`/roadmaps/${roadmap.id}`} state={{ type: "owned" }}/>
                         ))}
                     </Stack>
                 </Paper>
@@ -56,4 +69,4 @@ const RoadmapsPage = () => {
     );
 };
 
-export default RoadmapsPage;
+export default PersonalRoadmapsPage;

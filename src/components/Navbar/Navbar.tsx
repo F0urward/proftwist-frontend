@@ -1,5 +1,6 @@
 import { AppBar, Toolbar, Typography, Button, Box } from "@mui/material";
 import { Link as RouterLink } from "react-router-dom";
+import RoadmapsDropdown from "../RoadmapsDropdown/RoadmapsDropdown";
 
 type NavbarProps = {
   isAuth: boolean;
@@ -49,13 +50,7 @@ const Navbar = ({ isAuth }: NavbarProps) => {
                         gap: 3,
                     }}
                 >
-                    <Button
-                        variant="text"
-                        component={RouterLink} 
-                        to="/roadmaps" 
-                    >
-                        Roadmaps
-                    </Button>
+                    <RoadmapsDropdown />
                     <Button
                         variant="text"
                         component={RouterLink} 
