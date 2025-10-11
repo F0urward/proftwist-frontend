@@ -5,9 +5,28 @@ import BaseLayout from "../components/BaseLayout/BaseLayout.tsx";
 import TitlePaper from "../components/TitlePaper/TitlePaper.tsx";
 
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+
+type Roadmap = {
+    id: number;
+    title: string;
+    category: string;
+    description?: string;
+}
 
 const PersonalRoadmapsPage = () => {
+    const [items, setItems] = useState<Roadmap[]>([]);
+    
+    useEffect(() => {
+        setItems([
+            { id: 1, title: "Frontend Developer", category: "Веб разработка", description: "HTML/CSS/JS/React" },
+            { id: 2, title: "Data Analyst", category: "Аналитика", description: "SQL, Python, BI" },
+            { id: 3, title: "Backend Developer", category: "Веб разработка", description: "Node.js, Databases" },
+        ]);
+    }, []);
+
     const navigate =useNavigate();
+
     return (
         <BaseLayout>
             <TitlePaper
@@ -40,8 +59,9 @@ const PersonalRoadmapsPage = () => {
 
                 <Paper variant="outlined" sx={{ p: { xs: 2, md: 3 } }}>
                     <Stack spacing={2}>
-                        <ItemCard title="Мой Backend Beginner" description="Это крутой роадмап" to="/" />
-                        <ItemCard title="Мой Frontend Beginner" description="Это крутой роадмап" to="/" />
+                        {items.map((roadmap) => (
+                            <ItemCard title="Мой Backend Beginner" description="Это крутой роадмап" to={`/roadmaps/${roadmap.id}`} state={{ type: "owned" }}/>
+                        ))}
                     </Stack>
                 </Paper>
             </Box>

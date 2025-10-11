@@ -4,16 +4,18 @@ import { Link as RouterLink } from "react-router-dom";
 
 type Props = {
     title: string;
-    description?: string;
+    description?: string | undefined;
     to?: string;
+    state?: any;
 };
 
-const ItemCard = ({ title, description, to = "#" }: Props) => {
+const ItemCard = ({ title, description, to = "#", state}: Props) => {
   return (
     <Paper
         variant="outlined"
         component={RouterLink}
         to={to}
+        state={state}
         style={{ textDecoration: "none" }}
         sx={{
             display: "flex",

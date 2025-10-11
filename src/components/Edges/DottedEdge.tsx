@@ -15,7 +15,6 @@ export const DottedEdge = ({ id, sourceX, sourceY, targetX, targetY }) => {
         path={edgePath}
         style={{
           top: 0,
-          background: "#000",
           stroke: "#fff",
           strokeDasharray: "5 5",
         }}

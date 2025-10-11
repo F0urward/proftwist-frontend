@@ -65,7 +65,8 @@ export const CustomNode = ({
     <div className="text-updater-node" onDoubleClick={handleDoubleClick}>
       <Box
         sx={{
-          borderRadius: "3px",
+          borderRadius: "10px",
+          padding: "10px",
           minWidth: "140px",
           minHeight: type === "root" ? "70px" : "30px",
           display: "flex",
