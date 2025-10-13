@@ -1,7 +1,7 @@
 import "@xyflow/react/dist/style.css";
 import { Box, Button, Stack, LinearProgress, Typography } from "@mui/material";
 import { ReactFlow } from "@xyflow/react";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useNavigate, useParams, useLocation, Link as RouterLink } from "react-router-dom";
 import { useAppDispatch, useAppSelector, RootState } from "../store";
 import { viewSliceActions } from "../store/slices/viewSlice";
@@ -9,6 +9,7 @@ import { edgeTypes, nodeTypes } from "../consts";
 import BaseLayout from "../components/BaseLayout/BaseLayout";
 import TitlePaper from "../components/TitlePaper/TitlePaper";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
+import NodeSidebar from "../components/NodeSidebar/NodeSidebar";
 
 type RoadmapType = "official" | "owned" | "saved";
 
@@ -44,6 +45,9 @@ const RoadmapPage = () => {
   const type: RoadmapType = routeKind ?? queryKind ?? "official";
 
   const { nodes, edges } = useAppSelector((s: RootState) => s.editor);
+  
+  const [selectedNode, setSelectedNode] = useState<any | null>(null);
+  const closeSidebar = useCallback(() => setSelectedNode(null), []);
 
   useEffect(() => {
     const raw = localStorage.getItem("flow");
@@ -184,7 +188,9 @@ const RoadmapPage = () => {
           elementsSelectable={false}
           connectOnClick={false}
           style={{ position: "absolute", inset: 0, background: "transparent" }}
+          onNodeClick={(_, node) => setSelectedNode(node)}
         ></ReactFlow>
+        <NodeSidebar open={!!selectedNode} node={selectedNode} onClose={closeSidebar} />
       </Box>
     </BaseLayout>
   );
