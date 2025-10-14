@@ -18,7 +18,7 @@ export const theme = createTheme({
     button: {
       fontSize: "1rem",
       fontWeight: 500,
-    }
+    },
   },
   palette: {
     background: {
@@ -27,7 +27,7 @@ export const theme = createTheme({
     },
     text: {
       primary: colors.white,
-    }
+    },
   },
   components: {
     MuiButton: {
@@ -41,7 +41,7 @@ export const theme = createTheme({
           "&:hover": {
             background: colors.gradientLight,
             boxShadow: "none",
-          }
+          },
         },
         text: {
           textTransform: "none",
@@ -50,8 +50,8 @@ export const theme = createTheme({
           "&:hover": {
             background: "#733E97",
             boxShadow: "none",
-          }
-        }
+          },
+        },
       },
     },
     MuiPaper: {
@@ -65,6 +65,13 @@ export const theme = createTheme({
           borderRadius: 20,
           width: "100%",
           maxWidth: 900,
+        },
+      },
+    },
+    MuiAlert: {
+      styleOverrides: {
+        root: {
+          borderRadius: 5,
         },
       },
     },
@@ -114,8 +121,8 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           color: colors.accent1,
-        }
-      }
-    }
+        },
+      },
+    },
   },
 });
