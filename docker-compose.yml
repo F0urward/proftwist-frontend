@@ -16,4 +16,6 @@ services:
     environment:
       - WATCHTOWER_CLEANUP=true
       - WATCHTOWER_SCHEDULE=0 */2 * * * *
+      - WATCHTOWER_INCLUDE_STOPPED=false
+      - WATCHTOWER_ONLY_INCLUDE=react-flow-roadmap
     restart: unless-stopped
