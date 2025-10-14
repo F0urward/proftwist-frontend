@@ -1,39 +1,21 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Box, InputBase, Typography } from "@mui/material";
-import { Handle, Position, useEdges } from "@xyflow/react";
 import { editorSliceActions } from "../store/slices/editorSlice";
 import { useAppDispatch } from "../store";
-
-type NodeType = "primary" | "secondary" | "root";
 
 interface NodeProps {
   id: string;
   data: {
     isSelected: boolean;
     label: string;
-    type: NodeType;
   };
 }
 
-export const CustomNode = ({
-  id,
-  data: { label, type, isSelected },
-}: NodeProps) => {
+export const TextNode = ({ id, data: { label, isSelected } }: NodeProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const dispatch = useAppDispatch();
-
-  const background = useMemo(() => {
-    switch (type) {
-      case "primary":
-        return "#FF89DC";
-      case "secondary":
-        return "#D596FF";
-      case "root":
-        return "linear-gradient(90deg, #D596FF 0%, #FF89DC 100%)";
-    }
-  }, [type]);
 
   const handleDoubleClick = () => {
     if (isEditing) return;
@@ -61,21 +43,21 @@ export const CustomNode = ({
     inputRef.current?.focus();
   }, [inputRef.current]);
 
+  // todo: fix styles
   return (
     <div className="text-updater-node" onDoubleClick={handleDoubleClick}>
       <Box
         sx={{
-          borderRadius: "10px",
-          padding: "10px",
-          minWidth: "140px",
-          minHeight: type === "root" ? "70px" : "30px",
+          borderRadius: "3px",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          background: background,
           border: isSelected ? "1px solid #FFF" : "none",
           boxSizing: "border-box",
+          color: "#FFF",
+          margin: 0,
+          padding: 0,
         }}
       >
         {isEditing ? (
@@ -85,13 +67,14 @@ export const CustomNode = ({
             value={label}
             onBlur={handleInputBlur}
             onChange={handleInputChange}
+            sx={{ color: "#FFF", margin: 0, padding: 0 }}
           />
         ) : (
-          <Typography>{label}</Typography>
+          <Typography sx={{ margin: 0, padding: 0 }}>
+            <pre style={{ fontFamily: "inherit" }}>{label}</pre>
+          </Typography>
         )}
       </Box>
-      {type !== "root" && <Handle type="target" position={Position.Top} />}
-      <Handle type="source" position={Position.Bottom} />
     </div>
   );
 };
