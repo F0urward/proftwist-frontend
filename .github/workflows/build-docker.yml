@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - feat/auto-deploy
 
 jobs:
   build-and-push:
