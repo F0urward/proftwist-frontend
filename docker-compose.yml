@@ -1,0 +1,22 @@
+services:
+  react-flow-roadmap:
+    image: rasulovarsen/react-flow-roadmap:latest
+    container_name: react-flow-roadmap
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - API_PROXY_URL=http://95.163.182.138:8080
+    restart: unless-stopped
+
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_SCHEDULE=0 */2 * * * *
+      - WATCHTOWER_INCLUDE_STOPPED=false
+      - WATCHTOWER_ONLY_INCLUDE=react-flow-roadmap
+    restart: unless-stopped

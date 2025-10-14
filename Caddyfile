@@ -1,0 +1,6 @@
+prof-twist.ru {
+  root * /usr/share/caddy
+  file_server
+  try_files {path} {path}/ /index.html
+  reverse_proxy /api/* {env.API_PROXY_URL}
+}
