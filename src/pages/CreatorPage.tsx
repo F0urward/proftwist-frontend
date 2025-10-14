@@ -108,6 +108,7 @@ export const CreatorPage = () => {
           onEdgesChange={onEdgesChange}
           onNodeClick={handleNodeClick}
           onEdgeClick={handleEdgeClick}
+          deleteKeyCode="Delete"
           onConnect={handleConnect}
           onPaneClick={() =>
             dispatch(editorSliceActions.markElementAsSelected(null))
