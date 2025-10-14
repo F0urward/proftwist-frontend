@@ -3,7 +3,7 @@ services:
     image: rasulovarsen/react-flow-roadmap:latest
     container_name: react-flow-roadmap
     ports:
-      - "8080:80"
+      - "80:80"
     environment:
       - API_PROXY_URL=http://95.163.182.138:8080
     restart: unless-stopped
