@@ -5,8 +5,6 @@ services:
     ports:
       - "80:80"
       - "443:443"
-    environment:
-      - API_PROXY_URL=http://95.163.182.138:8080
     volumes:
       - ./caddy_data:/data
       - ./caddy_config:/config
