@@ -1,6 +1,13 @@
 prof-twist.ru {
-  root * /usr/share/caddy
-  file_server
-  try_files {path} {path}/ /index.html
-  reverse_proxy /api/* {env.API_PROXY_URL}
+  # Handle requests starting with /api/ and pass them to the proxy.
+  handle /api/* {
+    reverse_proxy {env.API_PROXY_URL}
+  }
+
+  # Handle all other requests by serving static files.
+  handle {
+    root * /usr/share/caddy
+    file_server
+    try_files {path} {path}/ /index.html
+  }
 }
