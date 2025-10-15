@@ -13,7 +13,20 @@ const initialState: AuthState = {
   user: null,
   isLoading: false,
   error: null,
+  isLoggedIn: false,
 };
+
+export const checkIfAuthenticated = createAsyncThunk<{}, void>(
+  "auth/check",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await authService.isAuthorized();
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  },
+);
 
 export const signup = createAsyncThunk<
   { user: User; token: string },
@@ -25,8 +38,8 @@ export const signup = createAsyncThunk<
     try {
       const response = await authService.register(credentials);
       return response;
-    } catch (error: any) {
-      return rejectWithValue(error.message || "Signup failed");
+    } catch (error) {
+      return rejectWithValue(error.response.data.message || "Signup failed");
     }
   },
 );
@@ -37,8 +50,8 @@ export const login = createAsyncThunk<
   { rejectValue: string } // Reject value type
 >("auth/login", async (credentials: LoginCredentials, { rejectWithValue }) => {
   try {
-    const response = await authService.login(credentials); // Call API
-    return response;
+    const response = await authService.login(credentials);
+    return response.data;
   } catch (error: any) {
     return rejectWithValue(error.response.data.message || "Login failed");
   }
@@ -49,10 +62,9 @@ export const logout = createAsyncThunk<void, void, { rejectValue: string }>(
   "auth/logout",
   async (_, { rejectWithValue }) => {
     try {
-      // Optionally call logoutUser from auth.service if it exists
-      localStorage.removeItem("token");
+      await authService.logout();
     } catch (error: any) {
-      return rejectWithValue(error.message || "Logout failed");
+      return rejectWithValue(error.response.data.message || "Logout failed");
     }
   },
 );
@@ -75,9 +87,13 @@ const authSlice = createSlice({
     // Login fulfilled
     builder.addCase(
       login.fulfilled,
-      (state, action: PayloadAction<{ user: User; token: string }>) => {
+      (
+        state,
+        { payload: { user } }: PayloadAction<{ user: User; token: string }>,
+      ) => {
         state.isLoading = false;
-        state.user = action.payload.user;
+        state.user = user;
+        state.isLoggedIn = true;
         state.error = null;
       },
     );
@@ -93,6 +109,7 @@ const authSlice = createSlice({
     builder.addCase(logout.fulfilled, (state) => {
       state.user = null;
       state.isLoading = false;
+      state.isLoggedIn = false;
       state.error = null;
     });
     // Logout rejected
@@ -126,6 +143,20 @@ const authSlice = createSlice({
         state.error = action.payload || "Signup failed";
       },
     );
+
+    // IsLoggedIn fulfilled
+    builder.addCase(
+      checkIfAuthenticated.fulfilled,
+      (state, { payload: { user } }: PayloadAction<{ user: User }>) => {
+        state.isLoggedIn = true;
+        state.user = user;
+      },
+    );
+    // IsLoggedIn rejected
+    builder.addCase(checkIfAuthenticated.rejected, (state) => {
+      state.isLoggedIn = false;
+      state.user = null;
+    });
   },
 });
 

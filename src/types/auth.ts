@@ -1,7 +1,15 @@
+export interface User {
+  id: string;
+  username: string;
+  email: string;
+  image: string;
+}
+
 export interface AuthState {
-  user: string | null;
+  user: User | null;
   isLoading: boolean;
   error: string | null;
+  isLoggedIn: boolean;
 }
 
 export interface LoginCredentials {

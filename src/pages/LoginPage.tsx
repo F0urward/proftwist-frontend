@@ -3,7 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Paper, Typography, Stack, Button, Link, Alert } from "@mui/material";
 import { useState } from "react";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import TitlePaper from "../components/TitlePaper/TitlePaper";
 import BaseLayout from "../components/BaseLayout/BaseLayout";
 import TextInput from "../components/TextInput/TextInput";
@@ -31,6 +31,8 @@ const LoginPage = () => {
     resolver: zodResolver(loginSchema),
   });
 
+  const navigate = useNavigate();
+
   const error = useAppSelector((state: RootState) => state.auth.error);
   const loading = useAppSelector((state: RootState) => state.auth.isLoading);
 
@@ -38,7 +40,9 @@ const LoginPage = () => {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      await dispatch(login(data)).unwrap();
+      await dispatch(login(data));
+
+      navigate("/");
     } catch (error) {
       console.error("Login failed:", error);
     }

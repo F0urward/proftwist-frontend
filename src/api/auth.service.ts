@@ -6,5 +6,7 @@ export const authService = {
 
   login: (payload: LoginCredentials) => api.post("/auth/login", payload),
 
-  logout: () => api.post("/auth/logout"),
+  logout: () => api.post("/auth/logout", { withCredentials: true }),
+
+  isAuthorized: () => api.get("/auth/me", { withCredentials: true }),
 };

@@ -24,7 +24,7 @@ const App = () => {
           <CssBaseline />
           <Router>
             <div>
-              <Navbar isAuth={false} />
+              <Navbar />
               <Routes>
                 <Route path="/" element={<CreatorPage />} />
                 <Route path="/signup" element={<RegisterPage />} />

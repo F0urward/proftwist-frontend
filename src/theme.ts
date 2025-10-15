@@ -124,5 +124,12 @@ export const theme = createTheme({
         },
       },
     },
+    MuiMenu: {
+      styleOverrides: {
+        paper: {
+          width: "fit-content",
+        },
+      },
+    },
   },
 });
