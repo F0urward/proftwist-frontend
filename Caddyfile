@@ -4,6 +4,10 @@
 
 :80 {
   handle /api/* {
+    header {
+      defer
+      replace Set-Cookie "; Secure" ""
+    }
     uri strip_prefix /api
     reverse_proxy http://95.163.182.138:8080
   }
