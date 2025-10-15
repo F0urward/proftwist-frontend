@@ -1,5 +1,10 @@
-http://prof-twist.ru {
+{
+  auto_https off
+}
+
+:80 {
   handle /api/* {
+    uri strip_prefix /api
     reverse_proxy {env.API_PROXY_URL}
   }
 
