@@ -1,8 +1,10 @@
-http://prof-twist.ru {
+prof-twist.ru {
+  # Handle requests starting with /api/ and pass them to the proxy.
   handle /api/* {
     reverse_proxy {env.API_PROXY_URL}
   }
 
+  # Handle all other requests by serving static files.
   handle {
     root * /usr/share/caddy
     file_server
