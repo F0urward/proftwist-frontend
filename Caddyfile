@@ -1,12 +1,13 @@
 prof-twist.ru {
-  handle /api/* {
-    uri strip_prefix /api
-    reverse_proxy {env.API_PROXY_URL}
+  # API -> upstream
+  handle_path /api/* {
+    reverse_proxy 95.163.182.138:8080
   }
 
+  # Frontend (SPA)
   handle {
     root * /usr/share/caddy
-    file_server
     try_files {path} {path}/ /index.html
+    file_server
   }
 }
