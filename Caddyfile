@@ -1,15 +1,7 @@
-{
-  auto_https off
-}
-
-:80 {
+prof-twist.ru {
   handle /api/* {
-    header {
-      defer
-      replace Set-Cookie "; Secure" ""
-    }
     uri strip_prefix /api
-    reverse_proxy http://95.163.182.138:8080
+    reverse_proxy {env.API_PROXY_URL}
   }
 
   handle {
