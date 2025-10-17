@@ -1,9 +1,10 @@
-import { DottedEdge } from "./components/Edges";
+import { DashedEdge, SolidEdge } from "./components/Edges";
 import { CustomNode } from "./components/CustomNode";
 import { TextNode } from "./components/TextNode";
 
 export const edgeTypes = {
-  dotted: DottedEdge,
+  solid: SolidEdge,
+  dashed: DashedEdge,
 };
 
 export const nodeTypes = {

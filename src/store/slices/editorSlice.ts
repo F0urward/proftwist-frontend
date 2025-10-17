@@ -1,9 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit";
+import type { Edge as FlowEdge } from "@xyflow/react";
 import { Node } from "../../types";
 
 interface StateInterface {
   nodes: Node[];
-  edges: [];
+  edges: FlowEdge[];
   selectedElementId: string | null;
 }
 
@@ -11,7 +12,7 @@ const editorSlice = createSlice({
   name: "counter",
   initialState: {
     nodes: [],
-    edges: [],
+    edges: [] as FlowEdge[],
     selectedElementId: null,
   } as StateInterface,
   reducers: {
@@ -31,6 +32,22 @@ const editorSlice = createSlice({
 
     setEdges: (state, action) => {
       state.edges = action.payload;
+    },
+
+    updateEdgeType: (state, action) => {
+      const { id, type } = action.payload;
+      state.edges = state.edges.map((edge) =>
+        edge.id === id
+          ? {
+              ...edge,
+              type,
+              data: {
+                ...(edge.data ?? {}),
+                variant: type,
+              },
+            }
+          : edge
+      );
     },
 
     markElementAsSelected: (state, action) => {

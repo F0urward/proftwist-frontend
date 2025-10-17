@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef } from "react";
 import {
   ReactFlow,
   applyNodeChanges,
+  applyEdgeChanges,
   addEdge,
   Background,
   type EdgeChange,
@@ -29,9 +30,25 @@ export const CreatorPage = () => {
 
     console.log(data);
 
-    const { nodes, edges } = JSON.parse(data);
-    dispatch(editorSliceActions.setNodes(nodes));
-    dispatch(editorSliceActions.setEdges(edges));
+    const { nodes: storedNodes, edges: storedEdges } = JSON.parse(data);
+    dispatch(editorSliceActions.setNodes(storedNodes));
+    const normalizedEdges = Array.isArray(storedEdges)
+      ? storedEdges.map((edge: any) => {
+          const nextType =
+            edge?.type === "dotted"
+              ? "dashed"
+              : (edge?.type as string | undefined) ?? "solid";
+          return {
+            ...edge,
+            type: nextType,
+            data: {
+              ...(edge?.data ?? {}),
+              variant: nextType,
+            },
+          };
+        })
+      : [];
+    dispatch(editorSliceActions.setEdges(normalizedEdges));
   }, []);
 
   const dispatch = useAppDispatch();
@@ -48,13 +65,24 @@ export const CreatorPage = () => {
 
   const onEdgesChange = useCallback(
     (changes: EdgeChange[]) =>
-      dispatch(editorSliceActions.setEdges(applyNodeChanges(edges, nodes))),
-    [editorSliceActions, nodes, dispatch]
+      dispatch(editorSliceActions.setEdges(applyEdgeChanges(changes, edges))),
+    [dispatch, edges]
   );
 
   const handleConnect = useCallback(
     (connection: Connection) => {
-      dispatch(editorSliceActions.setEdges(addEdge(connection, edges)));
+      dispatch(
+        editorSliceActions.setEdges(
+          addEdge(
+            {
+              ...connection,
+              type: "solid",
+              data: { variant: "solid" },
+            },
+            edges
+          )
+        )
+      );
     },
     [dispatch, edges]
   );
