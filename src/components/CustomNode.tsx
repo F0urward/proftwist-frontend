@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Box, InputBase, Typography } from "@mui/material";
-import { Handle, Position, useEdges } from "@xyflow/react";
+import { useMemo, useCallback } from "react";
+import { Box, Typography } from "@mui/material";
+import { Handle, Position } from "@xyflow/react";
 import { editorSliceActions } from "../store/slices/editorSlice";
 import { useAppDispatch } from "../store";
 
@@ -19,9 +19,6 @@ export const CustomNode = ({
   id,
   data: { label, type, isSelected },
 }: NodeProps) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-
   const dispatch = useAppDispatch();
 
   const background = useMemo(() => {
@@ -35,31 +32,14 @@ export const CustomNode = ({
     }
   }, [type]);
 
-  const handleDoubleClick = () => {
-    if (isEditing) return;
-
-    setIsEditing(true);
-    inputRef.current?.focus();
-  };
-
-  const handleInputBlur = () => {
-    setIsEditing(false);
-  };
-
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    dispatch(
-      editorSliceActions.updateNode({
-        id,
-        data: {
-          label: event.target.value,
-        },
-      })
-    );
-  };
-
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, [inputRef.current]);
+  const handleDoubleClick = useCallback(
+    (event: React.MouseEvent<HTMLDivElement>) => {
+      event.stopPropagation();
+      dispatch(editorSliceActions.markElementAsSelected(id));
+      dispatch(editorSliceActions.openNodeEditor(id));
+    },
+    [dispatch, id]
+  );
 
   return (
     <div className="text-updater-node" onDoubleClick={handleDoubleClick}>
@@ -78,17 +58,7 @@ export const CustomNode = ({
           boxSizing: "border-box",
         }}
       >
-        {isEditing ? (
-          <InputBase
-            ref={inputRef}
-            multiline
-            value={label}
-            onBlur={handleInputBlur}
-            onChange={handleInputChange}
-          />
-        ) : (
-          <Typography>{label}</Typography>
-        )}
+        <Typography>{label}</Typography>
       </Box>
       {type !== "root" && <Handle type="target" position={Position.Top} />}
       <Handle type="source" position={Position.Bottom} />

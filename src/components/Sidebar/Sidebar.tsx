@@ -106,7 +106,7 @@ export const Sidebar = ({ addNode }: SidebarProps) => {
   return (
     <Stack
       gap="10px"
-      sx={{ width: "300px", padding: "10px", background: "#000" }}
+      sx={{ width: "300px", padding: "10px", background: "#000", height: "100%" }}
     >
       {actions.map(({ Icon, title, handleClick }) => (
         <Button

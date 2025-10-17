@@ -6,6 +6,7 @@ interface StateInterface {
   nodes: Node[];
   edges: FlowEdge[];
   selectedElementId: string | null;
+  editingNodeId: string | null;
 }
 
 const editorSlice = createSlice({
@@ -14,6 +15,7 @@ const editorSlice = createSlice({
     nodes: [],
     edges: [] as FlowEdge[],
     selectedElementId: null,
+    editingNodeId: null,
   } as StateInterface,
   reducers: {
     setNodes: (state, action) => {
@@ -50,10 +52,21 @@ const editorSlice = createSlice({
       );
     },
 
+    openNodeEditor: (state, action) => {
+      state.editingNodeId = action.payload;
+    },
+
+    closeNodeEditor: (state) => {
+      state.editingNodeId = null;
+    },
+
     markElementAsSelected: (state, action) => {
       const elementId = action.payload;
 
       state.selectedElementId = elementId;
+      if (elementId === null) {
+        state.editingNodeId = null;
+      }
       state.nodes.forEach((node) => {
         if (node.id === elementId) node.data.isSelected = true;
         else node.data.isSelected = false;
