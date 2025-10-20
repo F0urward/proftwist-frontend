@@ -8,7 +8,7 @@ import {
   Menu,
   MenuItem,
 } from "@mui/material";
-import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { Link as RouterLink, NavLink, useNavigate } from "react-router-dom";
 import RoadmapsDropdown from "../RoadmapsDropdown/RoadmapsDropdown";
 import { RootState, useAppDispatch, useAppSelector } from "../../store";
 import { useEffect, useState } from "react";
@@ -103,13 +103,16 @@ const Navbar = () => {
           }}
         >
           <RoadmapsDropdown />
-          <Button variant="text" component={RouterLink} to="/materials">
+          <Button variant="text" component={NavLink} to="/materials">
             Материалы
           </Button>
-          <Button variant="text" component={RouterLink} to="/">
+          <Button variant="text" component={NavLink} to="/chats">
+            Чаты
+          </Button>
+          <Button variant="text" component={NavLink} to="/">
             Create
           </Button>
-          <Button variant="text" component={RouterLink} to="/view">
+          <Button variant="text" component={NavLink} to="/view">
             View
           </Button>
         </Box>
