@@ -15,6 +15,7 @@ import RoadmapPage from "./pages/RoadmapPage.tsx";
 import LoginPage from "./pages/LoginPage.tsx";
 import MaterialsPage from "./pages/MaterialsPage.tsx";
 import PersonalRoadmapsPage from "./pages/PersonalRoadmapsPage.tsx";
+import ChatsPage from "./pages/ChatsPage.tsx";
 
 const App = () => {
   return (
@@ -34,6 +35,7 @@ const App = () => {
                 <Route path="/roadmaps/:id" element={<RoadmapPage />} />
                 <Route path="/personal" element={<PersonalRoadmapsPage />} />
                 <Route path="/materials" element={<MaterialsPage />} />
+                <Route path="/chats" element={<ChatsPage />} />
               </Routes>
             </div>
           </Router>

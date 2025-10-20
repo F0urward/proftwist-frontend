@@ -32,6 +32,12 @@ export const theme = createTheme({
   components: {
     MuiButton: {
       styleOverrides: {
+        root: {
+          "&.active": {
+            background: colors.gradientDark,
+            color: colors.white,
+          },
+        },
         contained: {
           background: colors.gradientDark,
           border: 0,
