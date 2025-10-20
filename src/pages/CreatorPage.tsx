@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import {
   ReactFlow,
   applyNodeChanges,
+  applyEdgeChanges,
   addEdge,
   Background,
   type EdgeChange,
@@ -13,15 +14,18 @@ import {
 import "@xyflow/react/dist/style.css";
 import { v4 as uuidv4 } from "uuid";
 
-import { Stack } from "@mui/material";
+import { Box, Stack } from "@mui/material";
 import { Sidebar } from "../components/Sidebar";
 import { RootState, useAppDispatch, useAppSelector } from "../store";
 import { editorSliceActions } from "../store/slices/editorSlice";
 import { Edge, Node } from "../types";
 import { edgeTypes, nodeTypes } from "../consts";
+import { NodeEditorSidebar } from "../components/NodeEditorSidebar";
 
 export const CreatorPage = () => {
-  const { nodes, edges } = useAppSelector((state: RootState) => state.editor);
+  const { nodes, edges, editingNodeId } = useAppSelector(
+    (state: RootState) => state.editor,
+  );
 
   useEffect(() => {
     const data = localStorage.getItem("flow");
@@ -29,9 +33,25 @@ export const CreatorPage = () => {
 
     console.log(data);
 
-    const { nodes, edges } = JSON.parse(data);
-    dispatch(editorSliceActions.setNodes(nodes));
-    dispatch(editorSliceActions.setEdges(edges));
+    const { nodes: storedNodes, edges: storedEdges } = JSON.parse(data);
+    dispatch(editorSliceActions.setNodes(storedNodes));
+    const normalizedEdges = Array.isArray(storedEdges)
+      ? storedEdges.map((edge: any) => {
+          const nextType =
+            edge?.type === "dotted"
+              ? "dashed"
+              : ((edge?.type as string | undefined) ?? "solid");
+          return {
+            ...edge,
+            type: nextType,
+            data: {
+              ...(edge?.data ?? {}),
+              variant: nextType,
+            },
+          };
+        })
+      : [];
+    dispatch(editorSliceActions.setEdges(normalizedEdges));
   }, []);
 
   const dispatch = useAppDispatch();
@@ -40,37 +60,53 @@ export const CreatorPage = () => {
 
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const editingNode = useMemo(
+    () => nodes.find((node) => node.id === editingNodeId) ?? null,
+    [nodes, editingNodeId],
+  );
+
   const onNodesChange = useCallback(
     (changes: NodeChange[]) =>
       dispatch(editorSliceActions.setNodes(applyNodeChanges(changes, nodes))),
-    [editorSliceActions, nodes, dispatch]
+    [editorSliceActions, nodes, dispatch],
   );
 
   const onEdgesChange = useCallback(
     (changes: EdgeChange[]) =>
-      dispatch(editorSliceActions.setEdges(applyNodeChanges(edges, nodes))),
-    [editorSliceActions, nodes, dispatch]
+      dispatch(editorSliceActions.setEdges(applyEdgeChanges(changes, edges))),
+    [dispatch, edges],
   );
 
   const handleConnect = useCallback(
     (connection: Connection) => {
-      dispatch(editorSliceActions.setEdges(addEdge(connection, edges)));
+      dispatch(
+        editorSliceActions.setEdges(
+          addEdge(
+            {
+              ...connection,
+              type: "solid",
+              data: { variant: "solid" },
+            },
+            edges,
+          ),
+        ),
+      );
     },
-    [dispatch, edges]
+    [dispatch, edges],
   );
 
   const handleNodeClick = useCallback(
     (event: MouseEvent, node: Node) => {
       dispatch(editorSliceActions.markElementAsSelected(node.id));
     },
-    [editorSliceActions]
+    [editorSliceActions],
   );
 
   const handleEdgeClick = useCallback(
     (event: MouseEvent, edge: Edge) => {
       dispatch(editorSliceActions.markElementAsSelected(edge.id));
     },
-    [editorSliceActions]
+    [editorSliceActions],
   );
 
   const addNode = (type: "primary" | "secondary" | "text") => {
@@ -92,11 +128,29 @@ export const CreatorPage = () => {
     dispatch(editorSliceActions.addNode(newNode));
   };
 
+  const handleCloseEditor = useCallback(() => {
+    dispatch(editorSliceActions.closeNodeEditor());
+    dispatch(editorSliceActions.markElementAsSelected(null));
+  }, [dispatch]);
+
+  const handleLabelChange = useCallback(
+    (value: string) => {
+      if (!editingNodeId) return;
+      dispatch(
+        editorSliceActions.updateNode({
+          id: editingNodeId,
+          data: { label: value },
+        }),
+      );
+    },
+    [dispatch, editingNodeId],
+  );
+
   return (
-    <Stack direction="row">
+    <Stack direction="row" sx={{ height: "100vh" }}>
       <Sidebar addNode={addNode} />
-      <div
-        style={{ width: "100vw", height: "100vh", color: "#000" }}
+      <Box
+        sx={{ flex: 1, height: "100%", color: "#000", minWidth: 0 }}
         ref={containerRef}
       >
         <ReactFlow
@@ -119,7 +173,13 @@ export const CreatorPage = () => {
 
           <Background color="#fff" bgColor="#000" />
         </ReactFlow>
-      </div>
+      </Box>
+      <NodeEditorSidebar
+        open={Boolean(editingNodeId)}
+        node={editingNode}
+        onClose={handleCloseEditor}
+        onLabelChange={handleLabelChange}
+      />
     </Stack>
   );
 };

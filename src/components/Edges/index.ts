@@ -1,1 +1,1 @@
-export * from "./DottedEdge";
+export * from "./SelectableEdge";
