@@ -61,6 +61,13 @@ const Navbar = ({ isAuth }: NavbarProps) => {
                     <Button
                         variant="text"
                         component={RouterLink} 
+                        to="/chats" 
+                    >
+                        Чаты
+                    </Button>
+                    <Button
+                        variant="text"
+                        component={RouterLink} 
                         to="/"
                     >
                         Create
