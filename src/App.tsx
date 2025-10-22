@@ -5,6 +5,7 @@ import CssBaseline from "@mui/material/CssBaseline";
 import { ReactFlowProvider } from "@xyflow/react";
 import { Provider } from "react-redux";
 import store from "./store";
+
 import Navbar from "./components/Navbar/Navbar.tsx";
 
 import { CreatorPage } from "./pages/CreatorPage.tsx";
@@ -16,6 +17,7 @@ import LoginPage from "./pages/LoginPage.tsx";
 import MaterialsPage from "./pages/MaterialsPage.tsx";
 import PersonalRoadmapsPage from "./pages/PersonalRoadmapsPage.tsx";
 import ChatsPage from "./pages/ChatsPage.tsx";
+import ProfilePage from "./pages/ProfilePage.tsx";
 
 const App = () => {
   return (
@@ -30,6 +32,7 @@ const App = () => {
                 <Route path="/" element={<CreatorPage />} />
                 <Route path="/signup" element={<RegisterPage />} />
                 <Route path="/login" element={<LoginPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/view" element={<ViewerPage />} />
                 <Route path="/roadmaps" element={<RoadmapsPage />} />
                 <Route path="/roadmaps/:id" element={<RoadmapPage />} />

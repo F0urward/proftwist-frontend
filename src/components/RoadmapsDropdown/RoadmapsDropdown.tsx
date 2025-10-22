@@ -31,23 +31,6 @@ const RoadmapsDropdown = () => {
         anchorEl={anchorEl}
         open={open}
         onClose={handleClose}
-        slotProps={{
-          paper: {
-            sx: {
-              mt: 1,
-              bgcolor: "#212121",
-              color: "#fff",
-              borderRadius: 2,
-              border: "1px solid #444",
-              width: "300px",
-            },
-          },
-          list: {
-            sx: {
-              py: 0.5,
-            },
-          },
-        }}
       >
         <MenuItem
           component={NavLink}
@@ -67,9 +50,6 @@ const RoadmapsDropdown = () => {
           component={NavLink}
           to="/personal"
           onClick={handleClose}
-          sx={{
-            "&:hover": { bgcolor: "#2B1631" },
-          }}
         >
           <ListItemIcon>
             <Person fontSize="small" sx={{ color: "#BC57FF" }} />

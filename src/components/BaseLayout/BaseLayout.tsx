@@ -20,7 +20,7 @@ const BaseLayout: React.FC<Props> = ({ children }) => {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        gap: { xs: 3, md: 4 },
+        gap: { xs: 2, md: 3 },
         py: { xs: 3, md: 4 },
         px: 2,
       }}
