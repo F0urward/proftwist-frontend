@@ -10,6 +10,8 @@ import BaseLayout from "../components/BaseLayout/BaseLayout";
 import TitlePaper from "../components/TitlePaper/TitlePaper";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import NodeSidebar from "../components/NodeSidebar/NodeSidebar";
+import { RoadmapInfo } from "../types/roadmapinfo";
+import { roadmapinfoService } from "../api/roadmapinfo.service";
 
 type RoadmapType = "official" | "owned" | "saved";
 
@@ -39,6 +41,9 @@ const RoadmapPage = () => {
   const { id } = useParams();
   const location = useLocation();
 
+  const incoming = (location.state as any)?.roadmap as RoadmapInfo | undefined;
+  const [info, setInfo] = useState<RoadmapInfo | null>(incoming ?? null);
+
   const searchParams = new URLSearchParams(location.search);
   const routeKind = (location.state as any)?.type as RoadmapType | undefined;
   const queryKind = (searchParams.get("type") as RoadmapType) || undefined;
@@ -48,6 +53,27 @@ const RoadmapPage = () => {
   
   const [selectedNode, setSelectedNode] = useState<any | null>(null);
   const closeSidebar = useCallback(() => setSelectedNode(null), []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      if (incoming) {
+        setInfo(incoming);
+        return;
+      }
+      try {
+        const data = await roadmapinfoService.getById(id!);
+        if (!cancelled) setInfo(data ?? null);
+      } catch {
+        if (!cancelled) setInfo(null);
+      } finally {
+      }
+    }
+
+    load();
+    return () => { cancelled = true; };
+  }, [id]);
 
   useEffect(() => {
     const raw = localStorage.getItem("flow");
@@ -128,6 +154,18 @@ const RoadmapPage = () => {
       ? { to: "/roadmaps", label: "Ко всем роадмапам" }
       : { to: "/personal", label: "К моим роадмапам" };
 
+  const titleText =
+    (info?.name && info.name.trim()) ||
+    (type === "official" ? "Официальный роадмап" : type === "owned" ? "Мой роадмап" : "Сохранённый роадмап");
+
+  const subtitleText =
+    (info?.description && info.description.trim()) ||
+    (type === "official"
+      ? "Изучите профессию по проверенному плану"
+      : type === "owned"
+      ? "Ваш персональный план: можно редактировать и отслеживать прогресс"
+      : "Вы сохранили этот роадмап и отслеживаете прогресс");
+
   return (
     <BaseLayout>
       <Box sx={{ position: "relative", display: "flex", width: "100%", justifyContent: "center" }}>
@@ -146,14 +184,8 @@ const RoadmapPage = () => {
           {backLink.label}
         </Button>
         <TitlePaper
-            title={type === "official" ? "Официальный роадмап" : type === "owned" ? "Мой роадмап" : "Сохранённый роадмап"}
-            subtitle={
-            type === "official"
-                ? "Изучите профессию по проверенному плану"
-                : type === "owned"
-                ? "Ваш персональный план: можно редактировать и отслеживать прогресс"
-                : "Вы сохранили этот роадмап и отслеживаете прогресс"
-            }
+            title={titleText}
+            subtitle={subtitleText}
         >
           <HeaderActions />
         </TitlePaper>

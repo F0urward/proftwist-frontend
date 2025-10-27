@@ -112,7 +112,13 @@ const RoadmapsPage = () => {
                     }
                     <Stack spacing={2}>
                         {items.map((roadmap) => (
-                            <ItemCard key={roadmap.id} title={roadmap.name} description={roadmap.description} to={`/roadmaps/${roadmap.id}`} state={{ type: "official" }} />
+                            <ItemCard 
+                                key={roadmap.id} 
+                                title={roadmap.name} 
+                                description={roadmap.description} 
+                                to={`/roadmaps/${roadmap.id}`} 
+                                state={{ type: "official", roadmap }}
+                            />
                         ))}
                     </Stack>
                 </Paper>
