@@ -43,6 +43,7 @@ const RoadmapPage = () => {
 
   const incoming = (location.state as any)?.roadmap as RoadmapInfo | undefined;
   const [info, setInfo] = useState<RoadmapInfo | null>(incoming ?? null);
+  const [notFound, setNotFound] = useState(false);
 
   const searchParams = new URLSearchParams(location.search);
   const routeKind = (location.state as any)?.type as RoadmapType | undefined;
@@ -59,14 +60,15 @@ const RoadmapPage = () => {
 
     async function load() {
       if (incoming) {
-        setInfo(incoming);
         return;
       }
       try {
+        setNotFound(false);
         const data = await roadmapinfoService.getById(id!);
         if (!cancelled) setInfo(data ?? null);
       } catch {
         if (!cancelled) setInfo(null);
+        setNotFound(true);
       } finally {
       }
     }
@@ -154,12 +156,14 @@ const RoadmapPage = () => {
       ? { to: "/roadmaps", label: "Ко всем роадмапам" }
       : { to: "/personal", label: "К моим роадмапам" };
 
-  const titleText =
-    (info?.name && info.name.trim()) ||
+  const titleText = notFound
+    ? "Роадмап не найден"
+    : (info?.name) ||
     (type === "official" ? "Официальный роадмап" : type === "owned" ? "Мой роадмап" : "Сохранённый роадмап");
 
-  const subtitleText =
-    (info?.description && info.description.trim()) ||
+  const subtitleText = notFound
+    ? "На странице роадмапов вы точно найдете то, что ищете"
+    : (info?.description) ||
     (type === "official"
       ? "Изучите профессию по проверенному плану"
       : type === "owned"
@@ -187,7 +191,9 @@ const RoadmapPage = () => {
             title={titleText}
             subtitle={subtitleText}
         >
-          <HeaderActions />
+          {!notFound && (
+            <HeaderActions />
+          )}
         </TitlePaper>
       </Box>
 

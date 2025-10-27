@@ -70,7 +70,6 @@ const RoadmapsPage = () => {
                 ? await roadmapinfoService.getByCategory(selectedCategoryId)
                 : await roadmapinfoService.getAllRoadmapsInfo();
                 if (!cancelled) setItems(data);
-                console.log(data)
             } catch (e) {
                 console.error("Load roadmapsinfo failed:", e);
                 if (!cancelled) setItems([]);
