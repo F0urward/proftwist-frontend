@@ -4,24 +4,85 @@ import CategoryList from "../components/CategoryList/CategoryList.tsx";
 import BaseLayout from "../components/BaseLayout/BaseLayout.tsx";
 import TitlePaper from "../components/TitlePaper/TitlePaper.tsx";
 import { useEffect, useState, useMemo } from "react";
+import { categoryService } from "../api/category.service.ts";
+import { roadmapinfoService } from "../api/roadmapinfo.service.ts";
+import { Category } from "../types/category.ts";
+import { RoadmapInfo } from "../types/roadmapinfo.ts";
+import EmptyState from "../components/EmptyState/EmptyState.tsx";
 
-type Roadmap = {
-    id: number;
-    title: string;
-    category: string;
-    description?: string;
-}
+const STORAGE_KEY = "selectedCategoryId";
 
 const RoadmapsPage = () => {
-    const [items, setItems] = useState<Roadmap[]>([]);
+    const [items, setItems] = useState<RoadmapInfo[]>([]);
+    const [categories, setCategories] = useState<Category[]>([]);
+
+    const [selected, setSelected] = useState(-1);
+    const [initialized, setInitialized] = useState(false);
 
     useEffect(() => {
-        setItems([
-            { id: 1, title: "Frontend Developer", category: "Веб разработка", description: "HTML/CSS/JS/React" },
-            { id: 2, title: "Data Analyst", category: "Аналитика", description: "SQL, Python, BI" },
-            { id: 3, title: "Backend Developer", category: "Веб разработка", description: "Node.js, Databases" },
-        ]);
+        categoryService.getCategories().then(setCategories).catch((e) => setCategories([]));
     }, []);
+
+    useEffect(() => {
+        if (categories.length === 0) {
+            setSelected(0);
+            return;
+        }
+
+        const savedId = localStorage.getItem(STORAGE_KEY);
+        if (!savedId) {
+            setSelected(0);
+            return;
+        }
+
+        const idx = categories.findIndex((c) => ((c as any).category_id) === savedId);
+        if (idx >= 0) setSelected(idx + 1); 
+    }, [categories]);
+
+    const categoryNames = useMemo(
+        () => ["Все roadmaps", ...categories.map((c) => c.name)],
+        [categories]
+    );
+
+    const selectedCategoryId = useMemo(() => {
+        if (selected <= 0) return null;
+        const idx = selected - 1;
+        return categories[idx]?.category_id ?? null;
+    }, [selected, categories]);
+
+    const handleSelect = (i: number) => {
+        setSelected(i);
+        if (i === 0) {
+            localStorage.removeItem(STORAGE_KEY);
+        } else {
+            const id =(categories[i - 1] as any)?.category_id;
+            if (id) localStorage.setItem(STORAGE_KEY, id);
+        }
+    };
+
+    useEffect(() => {
+        if (selected === -1) return;
+
+        let cancelled = false;
+        async function load() {
+            try {
+                const data = selectedCategoryId
+                ? await roadmapinfoService.getByCategory(selectedCategoryId)
+                : await roadmapinfoService.getAllRoadmapsInfo();
+                if (!cancelled) setItems(data);
+                console.log(data)
+            } catch (e) {
+                console.error("Load roadmapsinfo failed:", e);
+                if (!cancelled) setItems([]);
+            } finally {
+                if (!cancelled) {
+                    setInitialized(true);
+                }
+            }
+        }
+        load();
+        return () => { cancelled = true; };
+    }, [selectedCategoryId, selected]);
 
     return (
         <BaseLayout>
@@ -40,14 +101,18 @@ const RoadmapsPage = () => {
                 }}
             >
                 <CategoryList
-                    items={["Все roadmaps", "Веб разработка", "Мобильная разработка", "Аналитика", "Дизайн", "Тестирование", "Безопасность"]}
-                    selected={0}
+                    items={categoryNames}
+                    selected={selected}
+                    onSelect={handleSelect}
                 />
 
                 <Paper variant="outlined" sx={{ p: { xs: 2, md: 3 } }}>
+                    {!items.length && initialized &&
+                        <EmptyState></EmptyState>
+                    }
                     <Stack spacing={2}>
                         {items.map((roadmap) => (
-                            <ItemCard key={roadmap.id} title={roadmap.title} description={roadmap.description} to={`/roadmaps/${roadmap.id}`} state={{ type: "official" }} />
+                            <ItemCard key={roadmap.id} title={roadmap.name} description={roadmap.description} to={`/roadmaps/${roadmap.id}`} state={{ type: "official" }} />
                         ))}
                     </Stack>
                 </Paper>

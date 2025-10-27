@@ -3,9 +3,10 @@ import { Paper, Typography, List, ListItemButton, ListItemText, Divider } from "
 type Props = {
     items: string[];
     selected?: number;
+    onSelect?: (index: number) => void;
 };
 
-const CategoryList = ({ items, selected = 0 }: Props) => {
+const CategoryList = ({ items, selected = 0, onSelect }: Props) => {
     return (
         <Paper variant="outlined" sx={{ p: 2.5, width: "100%" }}>
             <Typography
@@ -20,6 +21,7 @@ const CategoryList = ({ items, selected = 0 }: Props) => {
                 <ListItemButton 
                     key={label}
                     selected={i === selected}
+                    onClick={() => onSelect?.(i)}
                     sx={{
                         position: "relative",
                         borderRadius: 3,
