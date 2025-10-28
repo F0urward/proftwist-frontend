@@ -3,13 +3,14 @@ import React from "react";
 
 type Props = {
     children: React.ReactNode;
+    justifyContent?: string;
 };
 
-const BaseLayout: React.FC<Props> = ({ children }) => {
+const BaseLayout: React.FC<Props> = ({ children, justifyContent = "center" }) => {
   return (
     <Box
       sx={{
-        minHeight: { xs: "calc(100svh - 56px)", sm: "calc(100svh - 64px)" },
+        minHeight: { xs: "calc(100vh - 56px)", sm: "calc(100vh - 64px)" },
         bgcolor: "background.default",
         overflow: "hidden",
         backgroundImage: "url(/assets/bg-glow.svg), url(/assets/bg-glow.svg)",
@@ -19,7 +20,7 @@ const BaseLayout: React.FC<Props> = ({ children }) => {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        justifyContent: "center",
+        justifyContent: justifyContent,
         gap: { xs: 2, md: 3 },
         py: { xs: 3, md: 4 },
         px: 2,

@@ -12,10 +12,11 @@ import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import NodeSidebar from "../components/NodeSidebar/NodeSidebar";
 import { RoadmapInfo } from "../types/roadmapinfo";
 import { roadmapinfoService } from "../api/roadmapinfo.service";
+import { roadmapService } from "../api/roadmap.service";
 
 type RoadmapType = "official" | "owned" | "saved";
 
-const estimateGraphHeight = (nodes: any[], fallback = 600) => {
+const estimateGraphHeight = (nodes: any[], fallback = 100) => {
   if (!nodes.length) return fallback;
   let minY = Infinity;
   let maxY = -Infinity;
@@ -78,12 +79,38 @@ const RoadmapPage = () => {
   }, [id]);
 
   useEffect(() => {
-    const raw = localStorage.getItem("flow");
-    if (!raw) return;
-    const { nodes, edges } = JSON.parse(raw);
-    dispatch(viewSliceActions.setNodes(nodes));
-    dispatch(viewSliceActions.setEdges(edges));
-  }, [dispatch, id]);
+    const roadmapId = info?.roadmap_id ?? incoming?.roadmap_id;
+    if (!roadmapId) return;
+
+    dispatch(viewSliceActions.setNodes([]));
+    dispatch(viewSliceActions.setEdges([]));
+
+    let cancelled = false;
+
+    async function loadFlow() {
+      try {
+        const flow = await roadmapService.getGraph(roadmapId);
+        if (cancelled) return;
+
+        if (!flow) {
+          setNotFound(true);
+          dispatch(viewSliceActions.setNodes([]));
+          dispatch(viewSliceActions.setEdges([]));
+          return;
+        }
+
+        dispatch(viewSliceActions.setNodes(flow.nodes ?? []));
+        dispatch(viewSliceActions.setEdges(flow.edges ?? []));
+      } catch {
+        if (cancelled) return;
+        dispatch(viewSliceActions.setNodes([]));
+        dispatch(viewSliceActions.setEdges([]));
+      }
+    }
+
+    loadFlow();
+    return () => { cancelled = true; };
+  }, [info?.roadmap_id, incoming?.roadmap_id, dispatch]);
 
   const defaultEdgeOptions = useMemo(
     () => ({
@@ -170,9 +197,11 @@ const RoadmapPage = () => {
       ? "Ваш персональный план: можно редактировать и отслеживать прогресс"
       : "Вы сохранили этот роадмап и отслеживаете прогресс");
 
+  const showFlow = !notFound && (nodes.length > 0 || edges.length > 0);
+
   return (
-    <BaseLayout>
-      <Box sx={{ position: "relative", display: "flex", width: "100%", justifyContent: "center" }}>
+    <BaseLayout justifyContent="flex-start">
+      <Box sx={{ position: "relative", display: "flex", width: "100%", justifyContent: "center", alignItems: "flex-start" }}>
         <Button
           component={RouterLink}
           to={backLink.to}
@@ -196,7 +225,7 @@ const RoadmapPage = () => {
           )}
         </TitlePaper>
       </Box>
-
+      
       <Box
         sx={{
           position: "relative",
@@ -205,29 +234,31 @@ const RoadmapPage = () => {
           overflow: "visible",
         }}
       >
-        <ReactFlow
-          nodes={styledNodes}
-          edges={edges}
-          nodeTypes={nodeTypes}
-          edgeTypes={edgeTypes}
-          defaultEdgeOptions={defaultEdgeOptions}
-          fitView
-          fitViewOptions={{ padding: 0.05 }}
-          minZoom={0.25}
-          maxZoom={1.5}
-          proOptions={{ hideAttribution: true }}
-          preventScrolling={false}
-          zoomOnScroll={false}
-          zoomOnPinch={true}
-          panOnScroll={false}
-          panOnDrag={false} 
-          nodesDraggable={false}
-          nodesConnectable={false}
-          elementsSelectable={false}
-          connectOnClick={false}
-          style={{ position: "absolute", inset: 0, background: "transparent" }}
-          onNodeClick={(_, node) => setSelectedNode(node)}
-        ></ReactFlow>
+        { showFlow && (
+          <ReactFlow
+            nodes={styledNodes}
+            edges={edges}
+            nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
+            defaultEdgeOptions={defaultEdgeOptions}
+            fitView
+            fitViewOptions={{ padding: 0.05 }}
+            minZoom={0.25}
+            maxZoom={1.5}
+            proOptions={{ hideAttribution: true }}
+            preventScrolling={false}
+            zoomOnScroll={false}
+            zoomOnPinch={true}
+            panOnScroll={false}
+            panOnDrag={false} 
+            nodesDraggable={false}
+            nodesConnectable={false}
+            elementsSelectable={false}
+            connectOnClick={false}
+            style={{ position: "absolute", inset: 0, background: "transparent" }}
+            onNodeClick={(_, node) => setSelectedNode(node)}
+          ></ReactFlow>
+        )}
         <NodeSidebar open={!!selectedNode} node={selectedNode} onClose={closeSidebar} />
       </Box>
     </BaseLayout>
