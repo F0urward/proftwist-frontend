@@ -36,7 +36,7 @@ const Navbar = () => {
 
   const menuOptions: MenuEntry[] = [
     {
-      title: "Profile",
+      title: "Профиль",
       icon: <AccountCircle fontSize="small" sx={{ color: "#BC57FF" }}/>,
       onClick() {
         navigate("/profile");
@@ -44,7 +44,7 @@ const Navbar = () => {
       },
     },
     {
-      title: "Logout",
+      title: "Выйти",
       icon: <Logout fontSize="small" sx={{ color: "#BC57FF" }}/>,
       onClick() {
         dispatch(logout()).unwrap();
@@ -108,19 +108,27 @@ const Navbar = () => {
             gap: 3,
           }}
         >
-          <RoadmapsDropdown />
+          {isLoggedIn ? (
+            <RoadmapsDropdown />
+          ) : (
+            <Button variant="text" component={NavLink} to="/roadmaps">
+              Roadmaps
+            </Button>
+          )}
           <Button variant="text" component={NavLink} to="/materials">
             Материалы
           </Button>
+
+        { isLoggedIn &&
           <Button variant="text" component={NavLink} to="/chats">
             Чаты
-          </Button>
+          </Button> 
+        }
+        { isLoggedIn &&
           <Button variant="text" component={NavLink} to="/">
-            Create
+            Создать роадмап
           </Button>
-          <Button variant="text" component={NavLink} to="/view">
-            View
-          </Button>
+        }
         </Box>
 
         {isLoggedIn ? (

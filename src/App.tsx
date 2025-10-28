@@ -18,6 +18,8 @@ import MaterialsPage from "./pages/MaterialsPage.tsx";
 import PersonalRoadmapsPage from "./pages/PersonalRoadmapsPage.tsx";
 import ChatsPage from "./pages/ChatsPage.tsx";
 import ProfilePage from "./pages/ProfilePage.tsx";
+import PrivateRoute from "./components/PrivateRoute/PrivateRoute.tsx";
+import GuestOnlyRoute from "./components/GuestOnlyRoute/GuestOnlyRoute.tsx";
 
 const App = () => {
   return (
@@ -29,16 +31,20 @@ const App = () => {
             <div>
               <Navbar />
               <Routes>
-                <Route path="/" element={<CreatorPage />} />
-                <Route path="/signup" element={<RegisterPage />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/profile" element={<ProfilePage />} />
+                <Route element={<PrivateRoute />}>
+                  <Route path="/" element={<CreatorPage />} />
+                  <Route path="/profile" element={<ProfilePage />} />
+                  <Route path="/personal" element={<PersonalRoadmapsPage />} />
+                  <Route path="/chats" element={<ChatsPage />} />
+                </Route>
+                <Route element={<GuestOnlyRoute />}>
+                  <Route path="/signup" element={<RegisterPage />} />
+                  <Route path="/login" element={<LoginPage />} />
+                </Route>
                 <Route path="/view" element={<ViewerPage />} />
                 <Route path="/roadmaps" element={<RoadmapsPage />} />
                 <Route path="/roadmaps/:id" element={<RoadmapPage />} />
-                <Route path="/personal" element={<PersonalRoadmapsPage />} />
                 <Route path="/materials" element={<MaterialsPage />} />
-                <Route path="/chats" element={<ChatsPage />} />
               </Routes>
             </div>
           </Router>
