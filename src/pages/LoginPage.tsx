@@ -2,13 +2,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Paper, Typography, Stack, Button, Link, Alert } from "@mui/material";
-import { useState } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import TitlePaper from "../components/TitlePaper/TitlePaper";
 import BaseLayout from "../components/BaseLayout/BaseLayout";
 import TextInput from "../components/TextInput/TextInput";
 import { RootState, useAppDispatch, useAppSelector } from "../store";
 import { login } from "../store/slices/authSlice";
+import axios from "axios";
 
 const loginSchema = z.object({
   email: z
@@ -45,6 +45,16 @@ const LoginPage = () => {
       navigate("/");
     } catch (error) {
       console.error("Login failed:", error);
+    }
+  };
+
+  const handleVKIDAuthClick = async () => {
+    try {
+      const response = await axios.get("/api/auth/vk/link");
+      const url = response.data["vk_oauth_url"];
+      window.open(url, "_self");
+    } catch (error) {
+      console.error("error", error);
     }
   };
 
@@ -88,6 +98,16 @@ const LoginPage = () => {
             disabled={loading}
           >
             Войти в аккаунт
+          </Button>
+          <Button
+            className=""
+            onClick={handleVKIDAuthClick}
+            sx={{
+              background: "#0077FF",
+              "&:hover": { background: "#0564d1ff" },
+            }}
+          >
+            Войти через VK
           </Button>
           <Typography variant="body1" sx={{ textAlign: "center" }}>
             Еще нет аккаунта?{" "}

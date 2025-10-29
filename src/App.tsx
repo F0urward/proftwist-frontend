@@ -20,6 +20,7 @@ import ChatsPage from "./pages/ChatsPage.tsx";
 import ProfilePage from "./pages/ProfilePage.tsx";
 import PrivateRoute from "./components/PrivateRoute/PrivateRoute.tsx";
 import GuestOnlyRoute from "./components/GuestOnlyRoute/GuestOnlyRoute.tsx";
+import AuthVKCallbackPage from "./pages/AuthVKCallback";
 
 const App = () => {
   return (
@@ -45,6 +46,10 @@ const App = () => {
                 <Route path="/roadmaps" element={<RoadmapsPage />} />
                 <Route path="/roadmaps/:id" element={<RoadmapPage />} />
                 <Route path="/materials" element={<MaterialsPage />} />
+                <Route
+                  path="/auth/vk/callback"
+                  element={<AuthVKCallbackPage />}
+                />
               </Routes>
             </div>
           </Router>
