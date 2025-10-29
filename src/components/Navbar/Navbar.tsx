@@ -7,15 +7,19 @@ import {
   Box,
   Menu,
   MenuItem,
+  ListItemIcon,
+  ListItemText
 } from "@mui/material";
-import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { Link as RouterLink, NavLink, useNavigate } from "react-router-dom";
 import RoadmapsDropdown from "../RoadmapsDropdown/RoadmapsDropdown";
 import { RootState, useAppDispatch, useAppSelector } from "../../store";
 import { useEffect, useState } from "react";
 import { checkIfAuthenticated, logout } from "../../store/slices/authSlice";
+import { AccountCircle, Logout } from "@mui/icons-material";
 
 interface MenuEntry {
   title: string;
+  icon: React.ReactNode;
   onClick: () => void;
 }
 
@@ -32,14 +36,16 @@ const Navbar = () => {
 
   const menuOptions: MenuEntry[] = [
     {
-      title: "Profile",
+      title: "Профиль",
+      icon: <AccountCircle fontSize="small" sx={{ color: "#BC57FF" }}/>,
       onClick() {
-        alert("Not implemented");
+        navigate("/profile");
         setAnchorEl(null);
       },
     },
     {
-      title: "Logout",
+      title: "Выйти",
+      icon: <Logout fontSize="small" sx={{ color: "#BC57FF" }}/>,
       onClick() {
         dispatch(logout()).unwrap();
         navigate("/");
@@ -102,16 +108,27 @@ const Navbar = () => {
             gap: 3,
           }}
         >
-          <RoadmapsDropdown />
-          <Button variant="text" component={RouterLink} to="/materials">
+          {isLoggedIn ? (
+            <RoadmapsDropdown />
+          ) : (
+            <Button variant="text" component={NavLink} to="/roadmaps">
+              Roadmaps
+            </Button>
+          )}
+          <Button variant="text" component={NavLink} to="/materials">
             Материалы
           </Button>
-          <Button variant="text" component={RouterLink} to="/">
-            Create
+
+        { isLoggedIn &&
+          <Button variant="text" component={NavLink} to="/chats">
+            Чаты
+          </Button> 
+        }
+        { isLoggedIn &&
+          <Button variant="text" component={NavLink} to="/">
+            Создать роадмап
           </Button>
-          <Button variant="text" component={RouterLink} to="/view">
-            View
-          </Button>
+        }
         </Box>
 
         {isLoggedIn ? (
@@ -124,21 +141,16 @@ const Navbar = () => {
             />
             <Menu
               anchorEl={anchorEl}
-              anchorOrigin={{
-                vertical: "top",
-                horizontal: "right",
-              }}
               keepMounted
-              transformOrigin={{
-                vertical: "top",
-                horizontal: "right",
-              }}
               open={Boolean(anchorEl)}
               onClose={handleMenuClose}
             >
-              {menuOptions.map(({ title, onClick }) => (
+              {menuOptions.map(({ title, icon, onClick }) => (
                 <MenuItem key={title} onClick={onClick}>
-                  <Typography textAlign="center">{title}</Typography>
+                  <ListItemIcon>
+                    {icon}
+                  </ListItemIcon>
+                  <ListItemText primary={title} />
                 </MenuItem>
               ))}
             </Menu>

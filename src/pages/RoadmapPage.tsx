@@ -10,10 +10,13 @@ import BaseLayout from "../components/BaseLayout/BaseLayout";
 import TitlePaper from "../components/TitlePaper/TitlePaper";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import NodeSidebar from "../components/NodeSidebar/NodeSidebar";
+import { RoadmapInfo } from "../types/roadmapinfo";
+import { roadmapinfoService } from "../api/roadmapinfo.service";
+import { roadmapService } from "../api/roadmap.service";
 
 type RoadmapType = "official" | "owned" | "saved";
 
-const estimateGraphHeight = (nodes: any[], fallback = 600) => {
+const estimateGraphHeight = (nodes: any[], fallback = 100) => {
   if (!nodes.length) return fallback;
   let minY = Infinity;
   let maxY = -Infinity;
@@ -39,6 +42,10 @@ const RoadmapPage = () => {
   const { id } = useParams();
   const location = useLocation();
 
+  const incoming = (location.state as any)?.roadmap as RoadmapInfo | undefined;
+  const [info, setInfo] = useState<RoadmapInfo | null>(incoming ?? null);
+  const [notFound, setNotFound] = useState(false);
+
   const searchParams = new URLSearchParams(location.search);
   const routeKind = (location.state as any)?.type as RoadmapType | undefined;
   const queryKind = (searchParams.get("type") as RoadmapType) || undefined;
@@ -50,12 +57,60 @@ const RoadmapPage = () => {
   const closeSidebar = useCallback(() => setSelectedNode(null), []);
 
   useEffect(() => {
-    const raw = localStorage.getItem("flow");
-    if (!raw) return;
-    const { nodes, edges } = JSON.parse(raw);
-    dispatch(viewSliceActions.setNodes(nodes));
-    dispatch(viewSliceActions.setEdges(edges));
-  }, [dispatch, id]);
+    let cancelled = false;
+
+    async function load() {
+      if (incoming) {
+        return;
+      }
+      try {
+        setNotFound(false);
+        const data = await roadmapinfoService.getById(id!);
+        if (!cancelled) setInfo(data ?? null);
+      } catch {
+        if (!cancelled) setInfo(null);
+        setNotFound(true);
+      } finally {
+      }
+    }
+
+    load();
+    return () => { cancelled = true; };
+  }, [id]);
+
+  useEffect(() => {
+    const roadmapId = info?.roadmap_id ?? incoming?.roadmap_id;
+    if (!roadmapId) return;
+
+    dispatch(viewSliceActions.setNodes([]));
+    dispatch(viewSliceActions.setEdges([]));
+
+    let cancelled = false;
+
+    async function loadFlow() {
+      try {
+        const flow = await roadmapService.getGraph(roadmapId);
+        if (cancelled) return;
+
+        if (!flow) {
+          setNotFound(true);
+          dispatch(viewSliceActions.setNodes([]));
+          dispatch(viewSliceActions.setEdges([]));
+          return;
+        }
+
+        dispatch(viewSliceActions.setNodes(flow.nodes ?? []));
+        dispatch(viewSliceActions.setEdges(flow.edges ?? []));
+      } catch {
+        if (cancelled) return;
+        dispatch(viewSliceActions.setNodes([]));
+        dispatch(viewSliceActions.setEdges([]));
+      }
+    }
+
+    loadFlow();
+    return () => { cancelled = true; };
+  }, [info?.roadmap_id, incoming?.roadmap_id, dispatch]);
 
   const defaultEdgeOptions = useMemo(
     () => ({
@@ -128,9 +183,25 @@ const RoadmapPage = () => {
       ? { to: "/roadmaps", label: "Ко всем роадмапам" }
       : { to: "/personal", label: "К моим роадмапам" };
 
+  const titleText = notFound
+    ? "Роадмап не найден"
+    : (info?.name) ||
+    (type === "official" ? "Официальный роадмап" : type === "owned" ? "Мой роадмап" : "Сохранённый роадмап");
+
+  const subtitleText = notFound
+    ? "На странице роадмапов вы точно найдете то, что ищете"
+    : (info?.description) ||
+    (type === "official"
+      ? "Изучите профессию по проверенному плану"
+      : type === "owned"
+      ? "Ваш персональный план: можно редактировать и отслеживать прогресс"
+      : "Вы сохранили этот роадмап и отслеживаете прогресс");
+
+  const showFlow = !notFound && (nodes.length > 0 || edges.length > 0);
+
   return (
-    <BaseLayout>
-      <Box sx={{ position: "relative", display: "flex", width: "100%", justifyContent: "center" }}>
+    <BaseLayout justifyContent="flex-start">
+      <Box sx={{ position: "relative", display: "flex", width: "100%", justifyContent: "center", alignItems: "flex-start" }}>
         <Button
           component={RouterLink}
           to={backLink.to}
@@ -146,19 +217,15 @@ const RoadmapPage = () => {
           {backLink.label}
         </Button>
         <TitlePaper
-            title={type === "official" ? "Официальный роадмап" : type === "owned" ? "Мой роадмап" : "Сохранённый роадмап"}
-            subtitle={
-            type === "official"
-                ? "Изучите профессию по проверенному плану"
-                : type === "owned"
-                ? "Ваш персональный план: можно редактировать и отслеживать прогресс"
-                : "Вы сохранили этот роадмап и отслеживаете прогресс"
-            }
+            title={titleText}
+            subtitle={subtitleText}
         >
-          <HeaderActions />
+          {!notFound && (
+            <HeaderActions />
+          )}
         </TitlePaper>
       </Box>
-
+      
       <Box
         sx={{
           position: "relative",
@@ -167,29 +234,31 @@ const RoadmapPage = () => {
           overflow: "visible",
         }}
       >
-        <ReactFlow
-          nodes={styledNodes}
-          edges={edges}
-          nodeTypes={nodeTypes}
-          edgeTypes={edgeTypes}
-          defaultEdgeOptions={defaultEdgeOptions}
-          fitView
-          fitViewOptions={{ padding: 0.05 }}
-          minZoom={0.25}
-          maxZoom={1.5}
-          proOptions={{ hideAttribution: true }}
-          preventScrolling={false}
-          zoomOnScroll={false}
-          zoomOnPinch={true}
-          panOnScroll={false}
-          panOnDrag={false} 
-          nodesDraggable={false}
-          nodesConnectable={false}
-          elementsSelectable={false}
-          connectOnClick={false}
-          style={{ position: "absolute", inset: 0, background: "transparent" }}
-          onNodeClick={(_, node) => setSelectedNode(node)}
-        ></ReactFlow>
+        { showFlow && (
+          <ReactFlow
+            nodes={styledNodes}
+            edges={edges}
+            nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
+            defaultEdgeOptions={defaultEdgeOptions}
+            fitView
+            fitViewOptions={{ padding: 0.05 }}
+            minZoom={0.25}
+            maxZoom={1.5}
+            proOptions={{ hideAttribution: true }}
+            preventScrolling={false}
+            zoomOnScroll={false}
+            zoomOnPinch={true}
+            panOnScroll={false}
+            panOnDrag={false} 
+            nodesDraggable={false}
+            nodesConnectable={false}
+            elementsSelectable={false}
+            connectOnClick={false}
+            style={{ position: "absolute", inset: 0, background: "transparent" }}
+            onNodeClick={(_, node) => setSelectedNode(node)}
+          ></ReactFlow>
+        )}
         <NodeSidebar open={!!selectedNode} node={selectedNode} onClose={closeSidebar} />
       </Box>
     </BaseLayout>

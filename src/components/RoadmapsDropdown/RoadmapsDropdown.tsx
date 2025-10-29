@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { Button, Menu, MenuItem, ListItemIcon, ListItemText } from "@mui/material";
 import { Map, Person } from "@mui/icons-material";
-import { Link as RouterLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 
 const RoadmapsDropdown = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
+
+  const { pathname } = useLocation();
+  const inRoadmapsSection = pathname.startsWith("/roadmaps") || pathname.startsWith("/personal");
 
   const handleOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -18,7 +21,7 @@ const RoadmapsDropdown = () => {
   return (
     <>
       <Button
-        variant="text"
+        variant={inRoadmapsSection ? "contained" : "text"}
         onClick={handleOpen}
       >
         Roadmaps
@@ -28,26 +31,9 @@ const RoadmapsDropdown = () => {
         anchorEl={anchorEl}
         open={open}
         onClose={handleClose}
-        slotProps={{
-          paper: {
-            sx: {
-              mt: 1,
-              bgcolor: "#212121",
-              color: "#fff",
-              borderRadius: 2,
-              border: "1px solid #444",
-              width: "300px",
-            },
-          },
-          list: {
-            sx: {
-              py: 0.5,
-            },
-          },
-        }}
       >
         <MenuItem
-          component={RouterLink}
+          component={NavLink}
           to="/roadmaps"
           onClick={handleClose}
           sx={{
@@ -61,12 +47,9 @@ const RoadmapsDropdown = () => {
         </MenuItem>
 
         <MenuItem
-          component={RouterLink}
+          component={NavLink}
           to="/personal"
           onClick={handleClose}
-          sx={{
-            "&:hover": { bgcolor: "#2B1631" },
-          }}
         >
           <ListItemIcon>
             <Person fontSize="small" sx={{ color: "#BC57FF" }} />

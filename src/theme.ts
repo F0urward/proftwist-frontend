@@ -32,6 +32,12 @@ export const theme = createTheme({
   components: {
     MuiButton: {
       styleOverrides: {
+        root: {
+          "&.active": {
+            background: colors.gradientDark,
+            color: colors.white,
+          },
+        },
         contained: {
           background: colors.gradientDark,
           border: 0,
@@ -104,6 +110,7 @@ export const theme = createTheme({
           borderRadius: 10,
           "& .MuiOutlinedInput-notchedOutline": {
             borderColor: colors.border,
+            borderRadius: 10,
           },
           "&:hover .MuiOutlinedInput-notchedOutline": {
             borderColor: colors.accent1,
@@ -128,7 +135,24 @@ export const theme = createTheme({
       styleOverrides: {
         paper: {
           width: "fit-content",
+          mt: 1,
+          bgcolor: "#212121",
+          color: "#fff",
+          border: "1px solid #444",
         },
+        list: {
+          py: 0.5,
+        }
+      },
+    },
+    MuiMenuItem: {
+      styleOverrides: {
+        root: {
+          "&:hover": { backgroundColor: "#2B1631" },
+          "&.Mui-selected:hover": {
+            backgroundColor: "#2B1631"
+          },
+        }
       },
     },
   },
