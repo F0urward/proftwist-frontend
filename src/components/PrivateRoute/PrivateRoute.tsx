@@ -3,7 +3,11 @@ import { useAppSelector } from '../../store';
 import { RootState } from '../../store';
 
 const PrivateRoute = () => {
-    const { isLoggedIn } = useAppSelector((state: RootState) => state.auth);
+    const { isLoggedIn, hasResolvedAuth } = useAppSelector((state: RootState) => state.auth);
+
+    if (!hasResolvedAuth) {
+        return null;
+    }
 
     if (!isLoggedIn) {
         return <Navigate to="/roadmaps" replace />;

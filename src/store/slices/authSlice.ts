@@ -14,6 +14,7 @@ const initialState: AuthState = {
   isLoading: false,
   error: null,
   isLoggedIn: false,
+  hasResolvedAuth: false,
 };
 
 export const checkIfAuthenticated = createAsyncThunk<{}, void>(
@@ -23,7 +24,7 @@ export const checkIfAuthenticated = createAsyncThunk<{}, void>(
       const response = await authService.isAuthorized();
       return response.data;
     } catch (error) {
-      return rejectWithValue(error);
+      return rejectWithValue(null);
     }
   },
 );
@@ -95,6 +96,7 @@ const authSlice = createSlice({
         state.user = user;
         state.isLoggedIn = true;
         state.error = null;
+        state.hasResolvedAuth = true;
       },
     );
     // Login rejected
@@ -103,6 +105,7 @@ const authSlice = createSlice({
       (state, action: PayloadAction<string | undefined>) => {
         state.isLoading = false;
         state.error = action.payload || "Login failed";
+        state.hasResolvedAuth = true;
       },
     );
     // Logout fulfilled
@@ -111,6 +114,7 @@ const authSlice = createSlice({
       state.isLoading = false;
       state.isLoggedIn = false;
       state.error = null;
+      state.hasResolvedAuth = true;
     });
     // Logout rejected
     builder.addCase(
@@ -118,6 +122,7 @@ const authSlice = createSlice({
       (state, action: PayloadAction<string | undefined>) => {
         state.isLoading = false;
         state.error = action.payload || "Logout failed";
+        state.hasResolvedAuth = true;
       },
     );
 
@@ -133,6 +138,7 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.user = action.payload.user;
         state.error = null;
+        state.hasResolvedAuth = true;
       },
     );
     // Signup rejected
@@ -141,6 +147,7 @@ const authSlice = createSlice({
       (state, action: PayloadAction<string | undefined>) => {
         state.isLoading = false;
         state.error = action.payload || "Signup failed";
+        state.hasResolvedAuth = true;
       },
     );
 
@@ -150,12 +157,14 @@ const authSlice = createSlice({
       (state, { payload: { user } }: PayloadAction<{ user: User }>) => {
         state.isLoggedIn = true;
         state.user = user;
+        state.hasResolvedAuth = true;
       },
     );
     // IsLoggedIn rejected
     builder.addCase(checkIfAuthenticated.rejected, (state) => {
       state.isLoggedIn = false;
       state.user = null;
+      state.hasResolvedAuth = true;
     });
   },
 });
