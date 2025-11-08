@@ -242,19 +242,38 @@ export const useChatManager = (): UseChatManagerResult => {
     }
   }, []);
 
-  const requestMessages = useCallback(async (chatId: string) => {
-    const { data } = await chatsService.getMessages(chatId, {
-      limit: 50,
-      offset: 0,
-    });
-    const list = extractMessageList(data);
-    return list
-      .map((item) => mapMessageFromApi(item, chatId))
-      .sort(
-        (a, b) =>
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-      );
-  }, []);
+  const requestMessages = useCallback(
+    async (chatId: string, limit = 50) => {
+      const { data } = await chatsService.getMessages(chatId, {
+        limit,
+        offset: 0,
+      });
+      const list = extractMessageList(data);
+      return list
+        .map((item) => mapMessageFromApi(item, chatId))
+        .sort(
+          (a, b) =>
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+        );
+    },
+    [],
+  );
+
+  const fetchLatestMessagePreview = useCallback(
+    async (chatId: string) => {
+      try {
+        const items = await requestMessages(chatId, 1);
+        const last = items[items.length - 1];
+        if (last) {
+          syncParticipantFromMessage(last);
+          updateChatPreview(last);
+        }
+      } catch (err) {
+        console.warn(`Failed to fetch preview for chat ${chatId}`, err);
+      }
+    },
+    [requestMessages, syncParticipantFromMessage, updateChatPreview],
+  );
 
   const fetchChats = useCallback(async ({ silent }: FetchOptions = {}) => {
     if (!silent) {
@@ -278,6 +297,9 @@ export const useChatManager = (): UseChatManagerResult => {
         ),
       ];
       setChats(normalized);
+      normalized.forEach((chat) => {
+        void fetchLatestMessagePreview(chat.id);
+      });
     } catch (err) {
       console.error("Failed to load chats", err);
       if (!silent) setChatsError("Failed to load chats");
@@ -320,6 +342,11 @@ export const useChatManager = (): UseChatManagerResult => {
       .then((items) => {
         if (!active) return;
         replaceMessages(items);
+        items.forEach(syncParticipantFromMessage);
+        const last = items[items.length - 1];
+        if (last) {
+          updateChatPreview(last);
+        }
       })
       .catch((err) => {
         if (!active) return;
@@ -337,7 +364,14 @@ export const useChatManager = (): UseChatManagerResult => {
     return () => {
       active = false;
     };
-  }, [selectedChatId, requestMessages, clearMessages, replaceMessages]);
+  }, [
+    selectedChatId,
+    requestMessages,
+    clearMessages,
+    replaceMessages,
+    syncParticipantFromMessage,
+    updateChatPreview,
+  ]);
 
   useEffect(() => {
     if (typingTimeoutRef.current) {
