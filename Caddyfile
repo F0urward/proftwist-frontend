@@ -4,6 +4,15 @@ prof-twist.ru {
     reverse_proxy 95.163.182.138:8080
   }
 
+  # WebSocket proxy for /ws
+  handle_path /ws/* {
+    reverse_proxy 95.163.182.138:8080 {
+      transport http {
+        versions h1 h2c
+      }
+    }
+  }
+
   # Frontend (SPA)
   handle {
     root * /usr/share/caddy
