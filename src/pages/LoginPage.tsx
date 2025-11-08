@@ -7,17 +7,17 @@ import TitlePaper from "../components/TitlePaper/TitlePaper";
 import BaseLayout from "../components/BaseLayout/BaseLayout";
 import TextInput from "../components/TextInput/TextInput";
 import { RootState, useAppDispatch, useAppSelector } from "../store";
-import { login } from "../store/slices/authSlice";
+import { login, clearError } from "../store/slices/authSlice";
 import axios from "axios";
+import { useEffect } from "react";
 
 const loginSchema = z.object({
   email: z
-    .email({ message: "Invalid email address" })
-    .nonempty("Email is required"),
+    .email({ message: "Некорректный адрес почты" })
+    .nonempty("Введите почту"),
   password: z
     .string()
-    .min(6, "Password must be at least 6 characters")
-    .nonempty("Password is required"),
+    .nonempty("Введите пароль"),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -40,8 +40,7 @@ const LoginPage = () => {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      await dispatch(login(data));
-
+      await dispatch(login(data)).unwrap();;
       navigate("/");
     } catch (error) {
       console.error("Login failed:", error);
@@ -58,6 +57,12 @@ const LoginPage = () => {
     }
   };
 
+  useEffect(() => {
+    return () => {
+      dispatch(clearError());
+    };
+  }, [dispatch]);
+
   return (
     <BaseLayout>
       <TitlePaper
@@ -72,13 +77,28 @@ const LoginPage = () => {
         onSubmit={handleSubmit(onSubmit)}
       >
         <Stack spacing={3}>
-          {error && <Alert severity="error">{error}</Alert>}
+          {error && 
+            <Alert severity="error"
+              sx={{
+                borderRadius: "10px",
+                background: "linear-gradient(90deg, #d23a95ff, #bc3b57ff)",
+                color: "#fff",
+                transition: "all 0.8s ease",
+                "& .MuiAlert-icon": {
+                  color: "#fff",
+                },
+                display: "flex",
+                justifyContent: "center",
+            }}>
+              {error}
+            </Alert>
+          }
           <TextInput
             label="Email"
             type="email"
             placeholder="example@email.com"
             autoComplete="email"
-            {...register("email")}
+            {...register("email", { onChange: () => dispatch(clearError()) })}
             error={!!errors.email}
             helperText={errors.email?.message}
           />
@@ -87,7 +107,7 @@ const LoginPage = () => {
             type="password"
             placeholder="Введите ваш пароль"
             autoComplete="current-password"
-            {...register("password")}
+            {...register("password", { onChange: () => dispatch(clearError()) })}
             error={!!errors.password}
             helperText={errors.password?.message}
           />

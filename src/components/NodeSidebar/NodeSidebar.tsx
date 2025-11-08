@@ -3,6 +3,7 @@ import { Box, Button, Drawer, IconButton, List, ListItem, ListItemButton, ListIt
   Stack, Tab, Tabs, Typography } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { East } from "@mui/icons-material";
+import { useAppSelector } from "../../store";
 
 type NodeSidebarProps = {
     open: boolean;
@@ -20,6 +21,7 @@ type NodeSidebarProps = {
 
 const NodeSidebar = ({ open, onClose, node }: NodeSidebarProps) => {
     const [tab, setTab] = useState<'materials' | 'projects'>('materials');
+    const isLoggedIn = useAppSelector((state) => state.auth.isLoggedIn);
 
     const title = node?.data?.label ?? "Навык";
 
@@ -52,6 +54,8 @@ const NodeSidebar = ({ open, onClose, node }: NodeSidebarProps) => {
                     bgcolor: "#212121",
                     borderLeft: "1px solid rgba(255,255,255,.08)",
                     boxShadow: "0 0 40px rgba(0,0,0,.45)",
+                    borderTopRightRadius: 0,
+                    borderBottomRightRadius: 0,
                 },
                 },
             }}
@@ -101,15 +105,17 @@ const NodeSidebar = ({ open, onClose, node }: NodeSidebarProps) => {
                     <Typography variant="body1">
                         {description}
                     </Typography>
-
-                    <Button
-                        fullWidth
-                        variant="contained"
-                        onClick={() => {
-                        }}
-                    >
-                        Перейти в чат
-                    </Button>
+                    
+                    { isLoggedIn && 
+                        <Button
+                            fullWidth
+                            variant="contained"
+                            onClick={() => {
+                            }}
+                        >
+                            Перейти в чат
+                        </Button>
+                    }
 
                     <Box
                         sx={{

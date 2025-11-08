@@ -104,8 +104,13 @@ const authSlice = createSlice({
       login.rejected,
       (state, action: PayloadAction<string | undefined>) => {
         state.isLoading = false;
-        state.error = action.payload || "Login failed";
         state.hasResolvedAuth = true;
+        const rawError = action.payload || "Ошибка входа";
+        if (rawError.includes("invalid credentials")) {
+          state.error = "Неверный email или пароль. Попробуйте ещё раз.";
+        } else {
+          state.error = action.payload || "Ошибка входа";
+        }
       },
     );
     // Logout fulfilled
@@ -146,8 +151,15 @@ const authSlice = createSlice({
       signup.rejected,
       (state, action: PayloadAction<string | undefined>) => {
         state.isLoading = false;
-        state.error = action.payload || "Signup failed";
         state.hasResolvedAuth = true;
+        const rawError = action.payload || "Ошибка регистрации";
+        if (rawError.toLowerCase().includes("already exists")) {
+          state.error = "Пользователь с таким email уже существует.";
+        } else if (rawError.toLowerCase().includes("network")) {
+          state.error = "Проблема с подключением к серверу.";
+        } else {
+          state.error = "Не удалось зарегистрироваться. Попробуйте ещё раз.";
+        }
       },
     );
 

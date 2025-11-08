@@ -8,29 +8,29 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RootState, useAppDispatch, useAppSelector } from "../store";
-import { signup } from "../store/slices/authSlice";
+import { signup, login } from "../store/slices/authSlice";
 
 export const registerSchema = z
   .object({
     username: z
       .string()
-      .min(3, "Nickname must be at least 3 characters")
-      .max(20, "Nickname must be at most 20 characters")
+      .min(3, "Никнейм должен содержать хотя бы 3 символа")
+      .max(20, "Никнейм максимально может содержать 20 символов")
       .regex(
         /^[a-zA-Z0-9_]+$/,
-        "Nickname can only contain letters, numbers, and underscores",
+        "Никнейм может содержать только буквы, цифры и нижнее подчеркивание",
       )
-      .nonempty("Nickname is required"),
-    email: z.email("Invalid email address").nonempty("Email is required"),
+      .nonempty("Введите никнейм"),
+    email: z.email("Некорректный адрес почты").nonempty("Введите адрес почты"),
     password: z
       .string()
-      .min(8, "Password must be at least 8 characters")
-      .regex(/.*\d.*/, "Password must contain at least one number")
-      .nonempty("Password is required"),
-    passwordRepeat: z.string().nonempty("Please confirm your password"),
+      .min(8, "Пароль должен содержать хотя бы 8 символов")
+      .regex(/.*\d.*/, "Пароль должен содержать хотя бы одну цифру")
+      .nonempty("Введите пароль"),
+    passwordRepeat: z.string().nonempty("Пожалуйста, повторите пароль"),
   })
   .refine((data) => data.password === data.passwordRepeat, {
-    message: "Passwords must match",
+    message: "Пароли должны совпадать",
     path: ["passwordRepeat"], // Attach error to passwordRepeat field
   });
 
@@ -61,6 +61,10 @@ const RegisterPage = () => {
         }),
       ).unwrap();
 
+      await dispatch(
+        login({ email: data.email, password: data.password })
+      ).unwrap();
+
       navigate("/");
     } catch (err: any) {
       console.error("Could not register", err);
@@ -80,7 +84,22 @@ const RegisterPage = () => {
         onSubmit={handleSubmit(onSubmit)}
       >
         <Stack spacing={3}>
-          {error && <Alert severity="error">{error}</Alert>}
+          {error && 
+            <Alert severity="error"
+              sx={{
+                borderRadius: "10px",
+                background: "linear-gradient(90deg, #d23a95ff, #bc3b57ff)",
+                color: "#fff",
+                transition: "all 0.8s ease",
+                "& .MuiAlert-icon": {
+                  color: "#fff",
+                },
+                display: "flex",
+                justifyContent: "center",
+            }}>
+              {error}
+            </Alert>
+          }
           <TextInput
             label="Никнейм"
             placeholder="Придумайте свой ник"

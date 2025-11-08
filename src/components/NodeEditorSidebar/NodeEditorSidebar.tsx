@@ -52,7 +52,7 @@ export const NodeEditorSidebar = ({
                 {nodeType}
               </Typography>
               <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                Node settings
+                Настройки узла
               </Typography>
             </Box>
             <IconButton
@@ -65,7 +65,7 @@ export const NodeEditorSidebar = ({
           </Stack>
 
           <TextField
-            label="Title"
+            label="Название"
             value={label}
             onChange={(event) => onLabelChange(event.target.value)}
             multiline
