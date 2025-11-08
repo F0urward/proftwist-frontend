@@ -5,7 +5,7 @@ prof-twist.ru {
   }
 
   # WebSocket proxy for /ws
-  handle_path /ws/* {
+  handle /ws* {
     reverse_proxy 95.163.182.138:8080 {
       transport http {
         versions 1.1 h2c
