@@ -148,7 +148,14 @@ const authSlice = createSlice({
       signup.rejected,
       (state, action: PayloadAction<string | undefined>) => {
         state.isLoading = false;
-        state.error = action.payload || "Signup failed";
+        const rawError = action.payload || "Ошибка регистрации";
+        if (rawError.toLowerCase().includes("already exists")) {
+          state.error = "Пользователь с таким email уже существует.";
+        } else if (rawError.toLowerCase().includes("network")) {
+          state.error = "Проблема с подключением к серверу.";
+        } else {
+          state.error = "Не удалось зарегистрироваться. Попробуйте ещё раз.";
+        }
       },
     );
 
