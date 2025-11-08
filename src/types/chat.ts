@@ -8,7 +8,7 @@
 export type Chat = {
   id: string;
   title: string;
-  type: "personal" | "group";
+  type: "direct" | "group";
   participants: ChatUser[];
   groupAvatar?: string;
   lastMessage?: string;
@@ -21,6 +21,7 @@ export type ChatMessage = {
   chatId: string;
   senderId: string;
   text: string;
+  kind?: "text" | "system";
   createdAt: string;
   senderName?: string;
   senderNickname?: string;

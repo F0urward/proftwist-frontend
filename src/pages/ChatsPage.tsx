@@ -522,6 +522,8 @@ const ChatsPage = () => {
     pickAttachment,
     clearAttachment,
     typingNotice,
+    refreshChats,
+    closeConnection,
   } = useChatManager();
 
   const [tab, setTab] = useState<TabValue>("group");
@@ -532,6 +534,8 @@ const ChatsPage = () => {
   const [participantsError, setParticipantsError] = useState<string | null>(
     null,
   );
+  const [leaveLoading, setLeaveLoading] = useState(false);
+  const [leaveError, setLeaveError] = useState<string | null>(null);
 
   const filteredChats = useMemo(() => {
     const lower = query.toLowerCase();
@@ -591,6 +595,23 @@ const ChatsPage = () => {
   const handleCloseParticipants = useCallback(() => {
     setParticipantsOpen(false);
   }, []);
+
+  const handleLeaveChat = useCallback(async () => {
+    if (!selectedChat) return;
+    setLeaveLoading(true);
+    setLeaveError(null);
+    try {
+      await chatsService.leaveChat(selectedChat.id, selectedChat.type);
+      setParticipantsOpen(false);
+      closeConnection();
+      await refreshChats({ silent: true });
+    } catch (err) {
+      console.error("Failed to leave chat", err);
+      setLeaveError("Failed to leave chat");
+    } finally {
+      setLeaveLoading(false);
+    }
+  }, [selectedChat, refreshChats, closeConnection]);
 
   return (
     <BaseLayout>
@@ -676,6 +697,28 @@ const ChatsPage = () => {
                   })}
                 </List>
               )}
+
+            {leaveError && (
+              <Typography
+                color="error"
+                variant="body2"
+                sx={{ mt: 2, textAlign: "center" }}
+              >
+                {leaveError}
+              </Typography>
+            )}
+
+            <Box sx={{ mt: 3 }}>
+              <Button
+                fullWidth
+                color="error"
+                variant="contained"
+                onClick={handleLeaveChat}
+                disabled={leaveLoading}
+              >
+                {leaveLoading ? "Leaving..." : "Leave chat"}
+              </Button>
+            </Box>
           </DialogContent>
         </Dialog>
       </Stack>

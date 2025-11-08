@@ -75,7 +75,16 @@ export const chatsService = {
   getMessages: (chatId: string, params?: ChatMessagesQuery) =>
     api.get(`/api/v1/group-chats/${chatId}/messages`, { params }),
 
-  leaveChat: (chatId: string) => api.post(`/api/v1/chats/${chatId}/leave`),
+  leaveChat: (chatId: string, type: "group" | "direct") => {
+    switch (type) {
+      case "group":
+        return api.post(`/api/v1/group-chats/${chatId}/leave`);
+      case "direct":
+        return api.post(`/api/v1/direct-chats/${chatId}/leave`);
+      default:
+        throw new Error("Unknown chat type");
+    }
+  },
 
   removeMember: (chatId: string, userId: string) =>
     api.delete(`/api/v1/chats/${chatId}/members/${userId}`),

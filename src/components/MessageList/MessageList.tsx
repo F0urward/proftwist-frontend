@@ -18,6 +18,7 @@ export type MessageLite = {
   id: string;
   senderId: string;
   text: string;
+  kind?: "text" | "system";
   createdAt: string;
 };
 
@@ -96,6 +97,21 @@ const MessagesList = ({ chat, messages, currentUserId }: Props) => {
               const sender = byId.get(m.senderId) ?? FALLBACK_USER;
               const senderAlt = sender.name || sender.nickname || "User";
               const senderInitials = initialsFrom(senderAlt);
+
+              if (m.kind === "system") {
+                return (
+                  <Box
+                    key={m.id}
+                    sx={{
+                      textAlign: "center",
+                      opacity: 0.65,
+                      fontStyle: "italic",
+                    }}
+                  >
+                    {m.text}
+                  </Box>
+                );
+              }
 
               return (
                 <Stack

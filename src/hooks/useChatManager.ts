@@ -84,6 +84,7 @@ type UseChatManagerResult = {
   pickAttachment: (file: File | null) => void;
   clearAttachment: () => void;
   typingNotice: string | null;
+  closeConnection: () => void;
 };
 
 export const useChatManager = (): UseChatManagerResult => {
@@ -433,6 +434,42 @@ export const useChatManager = (): UseChatManagerResult => {
               dropMessage(chatId, payload.message_id);
             }
           } else if (
+            ["member_left", "chat_member_left", "user_left"].includes(
+              eventType ?? "",
+            ) &&
+            chatId
+          ) {
+            const leftUserId =
+              payload?.user_id ??
+              payload?.userId ??
+              payload?.user?.id ??
+              "system";
+            const leftUserName =
+              payload?.username ??
+              payload?.user_name ??
+              payload?.user?.name ??
+              payload?.user?.username ??
+              "Someone";
+            const systemMessage: ChatMessage = {
+              id:
+                payload?.event_id ??
+                payload?.id ??
+                payload?.message_id ??
+                `system-${Date.now()}`,
+              chatId,
+              senderId: leftUserId,
+              text: `${leftUserName} left the chat`,
+              kind: "system",
+              createdAt:
+                payload?.timestamp ??
+                payload?.created_at ??
+                new Date().toISOString(),
+              senderName: leftUserName,
+              senderNickname: payload?.username ?? payload?.user_name,
+              senderAvatar: payload?.avatar_url ?? payload?.user?.avatar_url,
+            };
+            commitMessage(systemMessage);
+          } else if (
             (eventType === "typing" || eventType === "typing_notification") &&
             chatId
           ) {
@@ -718,6 +755,17 @@ export const useChatManager = (): UseChatManagerResult => {
     [chats, selectedChatId],
   );
 
+  const closeConnection = useCallback(() => {
+    const ws = wsRef.current;
+    if (ws) {
+      ws.close();
+    }
+    wsRef.current = null;
+    setWsReady(false);
+    currentChatRef.current = null;
+    pendingJoinRef.current = null;
+  }, []);
+
   return {
     currentUserId: CURRENT_USER_ID,
     chats,
@@ -739,5 +787,6 @@ export const useChatManager = (): UseChatManagerResult => {
     pickAttachment,
     clearAttachment,
     typingNotice,
+    closeConnection,
   };
 };
