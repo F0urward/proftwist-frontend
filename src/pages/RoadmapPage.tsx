@@ -41,6 +41,7 @@ const RoadmapPage = () => {
   const dispatch = useAppDispatch();
   const { id } = useParams();
   const location = useLocation();
+  const isLoggedIn = useAppSelector((state) => state.auth.isLoggedIn);
 
   const incoming = (location.state as any)?.roadmap as RoadmapInfo | undefined;
   const [info, setInfo] = useState<RoadmapInfo | null>(incoming ?? null);
@@ -134,7 +135,7 @@ const RoadmapPage = () => {
   const progress = useMemo(() => getProgress(styledNodes), [styledNodes]);
 
   const HeaderActions = () => {
-    if (type === "official") {
+    if (type === "official" && isLoggedIn) {
       return (
         <Button variant="contained" onClick={() => navigate(`/personal`)}>
           Начать изучение
@@ -166,16 +167,18 @@ const RoadmapPage = () => {
         </Stack>
       );
     }
-    return (
-      <Stack direction="row" spacing={2} alignItems="center" sx={{ width: "100%" }}>
-        <Stack sx={{ flex: 1 }} spacing={0.5}>
-          <Typography variant="body2" color="text.secondary">
-            Прогресс: {progress.done}/{progress.total} ({progress.percent}%)
-          </Typography>
-          <LinearProgress variant="determinate" value={progress.percent} />
+    if (type === "saved") {
+      return (
+        <Stack direction="row" spacing={2} alignItems="center" sx={{ width: "100%" }}>
+          <Stack sx={{ flex: 1 }} spacing={0.5}>
+            <Typography variant="body2" color="text.secondary">
+              Прогресс: {progress.done}/{progress.total} ({progress.percent}%)
+            </Typography>
+            <LinearProgress variant="determinate" value={progress.percent} />
+          </Stack>
         </Stack>
-      </Stack>
-    );
+      );
+    }
   };
 
   const backLink =

@@ -104,8 +104,13 @@ const authSlice = createSlice({
       login.rejected,
       (state, action: PayloadAction<string | undefined>) => {
         state.isLoading = false;
-        state.error = action.payload || "Login failed";
         state.isAuthChecked = true;
+        const rawError = action.payload || "Ошибка входа";
+        if (rawError.includes("invalid credentials")) {
+          state.error = "Неверный email или пароль. Попробуйте ещё раз.";
+        } else {
+          state.error = action.payload || "Ошибка входа";
+        }
       },
     );
     // Logout fulfilled
