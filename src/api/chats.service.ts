@@ -47,6 +47,8 @@ export interface ListChatsParams {
 }
 
 export const chatsService = {
+  getChatId: (nodeId: string) => api.get(`/api/v1/group-chats/node/${nodeId}`),
+
   createChat: (payload: CreateChatPayload) =>
     api.post("/api/v1/chats", payload),
 
@@ -70,7 +72,11 @@ export const chatsService = {
   addMember: (chatId: string, payload: ChatMemberPayload) =>
     api.post(`/api/v1/chats/${chatId}/members`, payload),
 
-  joinChat: (chatId: string) => api.post(`/api/v1/chats/${chatId}/join`),
+  joinDirectChat: (chatId: string) =>
+    api.post(`/api/v1/direct-chats/${chatId}/join`),
+
+  joinGroupChat: (chatId: string) =>
+    api.post(`/api/v1/group-chats/${chatId}/join`),
 
   getMessages: (chatId: string, params?: ChatMessagesQuery) =>
     api.get(`/api/v1/group-chats/${chatId}/messages`, { params }),
