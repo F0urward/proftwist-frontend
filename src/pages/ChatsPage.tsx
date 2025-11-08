@@ -454,19 +454,6 @@ const ChatWindow = ({
               </Box>
             )}
 
-            {!messagesLoading && typingNotice && (
-              <Box
-                sx={{
-                  textAlign: "center",
-                  opacity: 0.7,
-                  mt: 2,
-                  fontStyle: "italic",
-                }}
-              >
-                {typingNotice}
-              </Box>
-            )}
-
             {!messagesLoading && !messagesError && messages.length === 0 && (
               <Box sx={{ textAlign: "center", opacity: 0.7, mt: 4 }}>
                 Start the conversation
@@ -483,6 +470,20 @@ const ChatWindow = ({
           </>
         )}
       </Box>
+
+      {selectedChat && typingNotice && (
+        <Box
+          sx={{
+            px: 2.5,
+            py: 1,
+            textAlign: "center",
+            opacity: 0.75,
+            fontStyle: "italic",
+          }}
+        >
+          {typingNotice}
+        </Box>
+      )}
 
       {selectedChat && <MessageComposer {...composerProps} />}
     </Paper>

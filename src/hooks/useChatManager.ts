@@ -14,8 +14,7 @@ type ActiveChatResolver = () => string | null;
 
 const sortMessagesByDate = (items: ChatMessage[]): ChatMessage[] =>
   [...items].sort(
-    (a, b) =>
-      new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
   );
 
 const useMessagesStore = (resolveActiveChat: ActiveChatResolver) => {
@@ -194,10 +193,7 @@ export const useChatManager = (): UseChatManagerResult => {
             ...chat.participants,
             {
               id: message.senderId,
-              name:
-                message.senderName ??
-                message.senderNickname ??
-                "User",
+              name: message.senderName ?? message.senderNickname ?? "User",
               nickname: message.senderNickname,
               avatar: message.senderAvatar,
             },
@@ -436,7 +432,10 @@ export const useChatManager = (): UseChatManagerResult => {
             if (chatId && payload?.message_id) {
               dropMessage(chatId, payload.message_id);
             }
-          } else if (eventType === "typing" && chatId) {
+          } else if (
+            (eventType === "typing" || eventType === "typing_notification") &&
+            chatId
+          ) {
             if (selectedIdRef.current === chatId) {
               const typingPayload = payload;
               let typedMessage: string | null = null;
@@ -446,8 +445,9 @@ export const useChatManager = (): UseChatManagerResult => {
                 typedMessage = typingPayload.message;
               } else if (typeof typingPayload?.text === "string") {
                 typedMessage = typingPayload.text;
+              } else if (typeof typingPayload?.content === "string") {
+                typedMessage = typingPayload.content;
               }
-
               let typingFlag: boolean | null = null;
               if (typeof typingPayload === "object" && typingPayload !== null) {
                 if (typeof typingPayload.typing === "boolean") {
@@ -464,11 +464,21 @@ export const useChatManager = (): UseChatManagerResult => {
                 }
               }
 
+              const typingUserId =
+                typingPayload?.user_id ??
+                typingPayload?.userId ??
+                typingPayload?.user?.id ??
+                null;
+              if (typingUserId && typingUserId === CURRENT_USER_ID) {
+                return;
+              }
+
               const displayName =
+                typingPayload?.username ??
+                typingPayload?.user_name ??
                 typingPayload?.user?.name ??
                 typingPayload?.user?.username ??
                 typingPayload?.user_name ??
-                typingPayload?.username ??
                 typingPayload?.user_id ??
                 typingPayload?.userId ??
                 "Someone";
@@ -484,7 +494,9 @@ export const useChatManager = (): UseChatManagerResult => {
               }
 
               if (typingFlag === true || typedMessage) {
-                const notice = typedMessage ?? `${displayName} is typing...`;
+                const notice = typedMessage
+                  ? `${displayName}: ${typedMessage}`
+                  : `${displayName} is typing...`;
                 setTypingNotice(notice);
                 typingIndicatorTimeoutRef.current = setTimeout(() => {
                   setTypingNotice(null);
@@ -681,7 +693,7 @@ export const useChatManager = (): UseChatManagerResult => {
       });
       const messageSource = data?.message ?? data;
       if (messageSource) {
-      const message = mapMessageFromApi(messageSource, chatId);
+        const message = mapMessageFromApi(messageSource, chatId);
         commitMessage(message);
       }
       setAttachment(null);
