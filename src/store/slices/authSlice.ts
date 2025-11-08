@@ -14,6 +14,7 @@ const initialState: AuthState = {
   isLoading: false,
   error: null,
   isLoggedIn: false,
+  isAuthChecked: false,
 };
 
 export const checkIfAuthenticated = createAsyncThunk<{}, void>(
@@ -95,6 +96,7 @@ const authSlice = createSlice({
         state.user = user;
         state.isLoggedIn = true;
         state.error = null;
+        state.isAuthChecked = true;
       },
     );
     // Login rejected
@@ -103,6 +105,7 @@ const authSlice = createSlice({
       (state, action: PayloadAction<string | undefined>) => {
         state.isLoading = false;
         state.error = action.payload || "Login failed";
+        state.isAuthChecked = true;
       },
     );
     // Logout fulfilled
@@ -150,12 +153,14 @@ const authSlice = createSlice({
       (state, { payload: { user } }: PayloadAction<{ user: User }>) => {
         state.isLoggedIn = true;
         state.user = user;
+        state.isAuthChecked = true;
       },
     );
     // IsLoggedIn rejected
     builder.addCase(checkIfAuthenticated.rejected, (state) => {
       state.isLoggedIn = false;
       state.user = null;
+      state.isAuthChecked = true;
     });
   },
 });
