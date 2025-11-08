@@ -109,7 +109,7 @@ const PersonalRoadmapsPage = () => {
                                 title={roadmap.name} 
                                 description={roadmap.description} 
                                 to={`/roadmaps/${roadmap.id}`} 
-                                state={{ type: "official", roadmap }}
+                                state={{ type: "owned", roadmap }}
                             />
                         ))}
                     </Stack>

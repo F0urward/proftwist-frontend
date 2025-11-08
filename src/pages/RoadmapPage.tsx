@@ -145,7 +145,7 @@ const RoadmapPage = () => {
     if (type === "owned") {
       return (
         <Stack direction="row" spacing={2} alignItems="center" sx={{ width: "100%" }}>
-          <Stack sx={{ flex: 1 }} spacing={0.5}>
+          {/*<Stack sx={{ flex: 1 }} spacing={0.5}>
             <Typography variant="body1">
               Прогресс: {progress.done}/{progress.total} ({progress.percent}%)
             </Typography>
@@ -160,8 +160,17 @@ const RoadmapPage = () => {
               },
             }}
           />
-          </Stack>
-          <Button variant="contained" onClick={() => navigate(`/`)}>
+          </Stack>*/}
+          <Button 
+            variant="contained" 
+            onClick={() => {
+              const roadmapId = info?.roadmap_id ?? incoming?.roadmap_id;
+              if (roadmapId) {
+                navigate(`/roadmaps/${roadmapId}/edit`, {
+                  state: { roadmapInfo: info },
+                });
+              }
+          }}>
             Редактировать
           </Button>
         </Stack>
