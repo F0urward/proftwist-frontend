@@ -4,30 +4,63 @@ import CategoryList from "../components/CategoryList/CategoryList.tsx";
 import BaseLayout from "../components/BaseLayout/BaseLayout.tsx";
 import TitlePaper from "../components/TitlePaper/TitlePaper.tsx";
 import CreateRoadmapInfoModal from "../components/CreateRoadmapsinfoModal/CreateRoadmapsinfoModal";
+import { roadmapinfoService } from "../api/roadmapinfo.service";
+import { RoadmapInfo } from "../types/roadmapinfo";
+import EmptyState from "../components/EmptyState/EmptyState.tsx";
 
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 
-type Roadmap = {
-    id: number;
-    title: string;
-    category: string;
-    description?: string;
-}
+const STORAGE_KEY = "selectedCategoryId";
 
 const PersonalRoadmapsPage = () => {
-    const [items, setItems] = useState<Roadmap[]>([]);
+    const [items, setItems] = useState<RoadmapInfo[]>([]);
+    const [selected, setSelected] = useState<number>(0);
     const [modalOpen, setModalOpen] = useState(false);
+    const [initialized, setInitialized] = useState(false);
+    const navigate = useNavigate();
+
+    const categoryNames = useMemo(
+        () => ["Все roadmaps", "Созданные roadmaps", "Сохранённые roadmaps"],
+        []
+    );
+
+    const handleSelect = (i: number) => {
+        setSelected(i);
+        if (i === 0) {
+            localStorage.removeItem(STORAGE_KEY);
+        } else {
+            const id =(categoryNames[i - 1] as any)?.category_id;
+            if (id) localStorage.setItem(STORAGE_KEY, id);
+        }
+    };
+
+    const selectedCategoryId = useMemo(() => {
+        if (selected <= 0) return null;
+        const idx = selected - 1;
+        return idx ?? null;
+    }, [selected, categoryNames]);
     
     useEffect(() => {
-        setItems([
-            { id: 1, title: "Frontend Developer", category: "Веб разработка", description: "HTML/CSS/JS/React" },
-            { id: 2, title: "Data Analyst", category: "Аналитика", description: "SQL, Python, BI" },
-            { id: 3, title: "Backend Developer", category: "Веб разработка", description: "Node.js, Databases" },
-        ]);
-    }, []);
+        if (selected === -1) return;
 
-    const navigate =useNavigate();
+        let cancelled = false;
+        async function load() {
+            try {
+                const data = await roadmapinfoService.getByUser();
+                if (!cancelled) setItems(data);
+            } catch (e) {
+                console.error("Load roadmapsinfo failed:", e);
+                if (!cancelled) setItems([]);
+            } finally {
+                if (!cancelled) {
+                    setInitialized(true);
+                }
+            }
+        }
+        load();
+        return () => { cancelled = true; };
+    }, [selectedCategoryId, selected]);
 
     return (
         <BaseLayout>
@@ -60,14 +93,24 @@ const PersonalRoadmapsPage = () => {
                 }}
             >
                 <CategoryList
-                    items={["Все roadmaps", "Сохраненные roadmaps", "Созданные roadmaps"]}
-                    selected={0}
+                    items={categoryNames}
+                    selected={selected}
+                    onSelect={handleSelect}
                 />
 
                 <Paper variant="outlined" sx={{ p: { xs: 2, md: 3 } }}>
+                    {!items.length && initialized &&
+                        <EmptyState></EmptyState>
+                    }
                     <Stack spacing={2}>
                         {items.map((roadmap) => (
-                            <ItemCard title="Мой Backend Beginner" description="Это крутой роадмап" to={`/roadmaps/${roadmap.id}`} state={{ type: "owned" }}/>
+                            <ItemCard 
+                                key={roadmap.id} 
+                                title={roadmap.name} 
+                                description={roadmap.description} 
+                                to={`/roadmaps/${roadmap.id}`} 
+                                state={{ type: "official", roadmap }}
+                            />
                         ))}
                     </Stack>
                 </Paper>

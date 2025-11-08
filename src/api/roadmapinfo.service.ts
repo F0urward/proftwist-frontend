@@ -6,10 +6,12 @@ export const roadmapinfoService = {
     const { data } = await api.get("/roadmapsinfo");
     return (data as any).roadmaps_info;
   },
+
   async getByCategory(categoryId: string): Promise<RoadmapInfo[]> {
-    const { data } = await api.get(`/roadmapsinfo/category/${categoryId}`);
+    const { data } = await api.get(`/roadmapsinfo/public/category/${categoryId}`);
     return (data as any).roadmaps_info;
   },
+
   async getById(roadmapinfoId: string): Promise<RoadmapInfo | null> {
     try {
       const { data } = await api.get(`/roadmapsinfo/${roadmapinfoId}`)
@@ -20,6 +22,7 @@ export const roadmapinfoService = {
       throw error;
     }
   },
+
   async create(payload: { category_id: string; 
                           name: string; description?: 
                           string; is_public?: boolean; 
@@ -32,10 +35,16 @@ export const roadmapinfoService = {
     const created = (data as any)?.roadmap_info ?? data;
     return created as RoadmapInfo;
   },
+
   async updateGraph(roadmapId: string, nodes: any[], edges: any[]): Promise<void> {
     await api.put(`/roadmaps/${roadmapId}`, {
       nodes,
       edges,
     });
+  },
+
+  async getByUser(): Promise<RoadmapInfo[]> {
+    const { data } = await api.get("/roadmapsinfo");
+    return (data as any).roadmaps_info ?? data;
   },
 };
