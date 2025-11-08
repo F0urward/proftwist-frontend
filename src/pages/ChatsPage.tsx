@@ -1,4 +1,11 @@
-import { useMemo, useState, useRef, useEffect, ChangeEvent, useCallback } from "react";
+import {
+  useMemo,
+  useState,
+  useRef,
+  useEffect,
+  ChangeEvent,
+  useCallback,
+} from "react";
 import {
   Avatar,
   Badge,
@@ -33,7 +40,11 @@ import { alpha } from "@mui/material/styles";
 import BaseLayout from "../components/BaseLayout/BaseLayout";
 import MessagesList from "../components/MessageList/MessageList";
 import { useChatManager } from "../hooks/useChatManager";
-import { getChatAvatar, mapUserFromApi, initialsFrom } from "../utils/chat-utils";
+import {
+  getChatAvatar,
+  mapUserFromApi,
+  initialsFrom,
+} from "../utils/chat-utils";
 import { chatsService } from "../api";
 import type { Chat, ChatMessage, ChatUser } from "../types/chat";
 
@@ -431,12 +442,6 @@ const ChatWindow = ({
             Select a chat to start
           </Typography>
         )}
-
-        {tab === "group" && (
-          <Stack direction="row" spacing={1}>
-            <Button variant="contained">Create Group Chat</Button>
-          </Stack>
-        )}
       </Box>
 
       <Box ref={scrollRef} sx={{ p: 2.5, overflow: "auto" }}>
@@ -568,7 +573,9 @@ const ChatsPage = () => {
       const response =
         selectedChat.type === "group"
           ? await chatsService.getGroupChatMembers({ chatId: selectedChat.id })
-          : await chatsService.getDirectChatMembers({ chatId: selectedChat.id });
+          : await chatsService.getDirectChatMembers({
+              chatId: selectedChat.id,
+            });
       const membersSource = Array.isArray(response?.data?.members)
         ? response.data.members
         : Array.isArray(response?.data)
@@ -689,7 +696,11 @@ const ChatsPage = () => {
                           </ListItemAvatar>
                           <ListItemText
                             primary={displayName}
-                            secondary={user.name && user.name !== displayName ? user.name : undefined}
+                            secondary={
+                              user.name && user.name !== displayName
+                                ? user.name
+                                : undefined
+                            }
                           />
                         </ListItemButton>
                       </ListItem>
