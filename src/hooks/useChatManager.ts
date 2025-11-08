@@ -10,6 +10,56 @@ import {
   mapMessageFromApi,
 } from "../utils/chat-utils";
 
+type ActiveChatResolver = () => string | null;
+
+const sortMessagesByDate = (items: ChatMessage[]): ChatMessage[] =>
+  [...items].sort(
+    (a, b) =>
+      new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+  );
+
+const useMessagesStore = (resolveActiveChat: ActiveChatResolver) => {
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+
+  const replaceMessages = useCallback((incoming: ChatMessage[]) => {
+    setMessages(sortMessagesByDate(incoming));
+  }, []);
+
+  const upsertMessageForActiveChat = useCallback(
+    (message: ChatMessage) => {
+      setMessages((prev) => {
+        if (resolveActiveChat() !== message.chatId) return prev;
+        const exists = prev.some((item) => item.id === message.id);
+        const next = exists
+          ? prev.map((item) => (item.id === message.id ? message : item))
+          : [...prev, message];
+        return sortMessagesByDate(next);
+      });
+    },
+    [resolveActiveChat],
+  );
+
+  const removeMessageForActiveChat = useCallback(
+    (chatId: string, messageId: string) => {
+      setMessages((prev) => {
+        if (resolveActiveChat() !== chatId) return prev;
+        return prev.filter((item) => item.id !== messageId);
+      });
+    },
+    [resolveActiveChat],
+  );
+
+  const clearMessages = useCallback(() => setMessages([]), []);
+
+  return {
+    messages,
+    replaceMessages,
+    upsertMessageForActiveChat,
+    removeMessageForActiveChat,
+    clearMessages,
+  };
+};
+
 type FetchOptions = {
   silent?: boolean;
 };
@@ -34,6 +84,7 @@ type UseChatManagerResult = {
   attachment: File | null;
   pickAttachment: (file: File | null) => void;
   clearAttachment: () => void;
+  typingNotice: string | null;
 };
 
 export const useChatManager = (): UseChatManagerResult => {
@@ -42,8 +93,6 @@ export const useChatManager = (): UseChatManagerResult => {
   const [chatsError, setChatsError] = useState<string | null>(null);
 
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
-
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [messagesError, setMessagesError] = useState<string | null>(null);
 
@@ -54,6 +103,22 @@ export const useChatManager = (): UseChatManagerResult => {
   const wsRef = useRef<WebSocket | null>(null);
   const [wsReady, setWsReady] = useState(false);
   const selectedIdRef = useRef<string | null>(null);
+  const chatTypeFor = useCallback(
+    (chatId: string | null): "direct" | "group" => {
+      if (!chatId) return "direct";
+      const chat = chats.find((item) => item.id === chatId);
+      return chat?.type === "group" ? "group" : "direct";
+    },
+    [chats],
+  );
+  const resolveActiveChat = useCallback(() => selectedIdRef.current, []);
+  const {
+    messages,
+    replaceMessages,
+    upsertMessageForActiveChat,
+    removeMessageForActiveChat,
+    clearMessages,
+  } = useMessagesStore(resolveActiveChat);
   const currentChatRef = useRef<string | null>(null);
   const pendingJoinRef = useRef<string | null>(null);
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
@@ -62,23 +127,15 @@ export const useChatManager = (): UseChatManagerResult => {
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isTypingRef = useRef(false);
   const [connectRequested, setConnectRequested] = useState(false);
+  const typingIndicatorTimeoutRef = useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
+  const [typingNotice, setTypingNotice] = useState<string | null>(null);
 
   const clearMessagesError = useCallback(() => setMessagesError(null), []);
 
-  const upsertMessage = useCallback(
+  const updateChatPreview = useCallback(
     (message: ChatMessage) => {
-      setMessages((prev) => {
-        if (selectedIdRef.current !== message.chatId) return prev;
-        const exists = prev.some((item) => item.id === message.id);
-        const next = exists
-          ? prev.map((item) => (item.id === message.id ? message : item))
-          : [...prev, message];
-        return next.sort(
-          (a, b) =>
-            new Date(a.createdAt).getTime() -
-            new Date(b.createdAt).getTime(),
-        );
-      });
       setChats((prev) =>
         prev.map((chat) =>
           chat.id === message.chatId
@@ -94,12 +151,80 @@ export const useChatManager = (): UseChatManagerResult => {
     [setChats],
   );
 
-  const removeMessage = useCallback((chatId: string, messageId: string) => {
-    setMessages((prev) => {
-      if (selectedIdRef.current !== chatId) return prev;
-      return prev.filter((item) => item.id !== messageId);
-    });
+  const syncParticipantFromMessage = useCallback((message: ChatMessage) => {
+    if (!message.senderId) return;
+    const hasProfileInfo = Boolean(
+      message.senderName || message.senderNickname || message.senderAvatar,
+    );
+    if (!hasProfileInfo) return;
+
+    setChats((prev) =>
+      prev.map((chat) => {
+        if (chat.id !== message.chatId) return chat;
+        const existing = chat.participants.find(
+          (participant) => participant.id === message.senderId,
+        );
+        if (existing) {
+          const nextParticipant = {
+            ...existing,
+            name: message.senderName ?? existing.name,
+            nickname: message.senderNickname ?? existing.nickname,
+            avatar: message.senderAvatar ?? existing.avatar,
+          };
+          if (
+            nextParticipant.name === existing.name &&
+            nextParticipant.nickname === existing.nickname &&
+            nextParticipant.avatar === existing.avatar
+          ) {
+            return chat;
+          }
+          return {
+            ...chat,
+            participants: chat.participants.map((participant) =>
+              participant.id === message.senderId
+                ? nextParticipant
+                : participant,
+            ),
+          };
+        }
+
+        return {
+          ...chat,
+          participants: [
+            ...chat.participants,
+            {
+              id: message.senderId,
+              name:
+                message.senderName ??
+                message.senderNickname ??
+                "User",
+              nickname: message.senderNickname,
+              avatar: message.senderAvatar,
+            },
+          ],
+        };
+      }),
+    );
   }, []);
+
+  const commitMessage = useCallback(
+    (message: ChatMessage) => {
+      syncParticipantFromMessage(message);
+      upsertMessageForActiveChat(message);
+      updateChatPreview(message);
+      if (selectedIdRef.current === message.chatId) {
+        setTypingNotice(null);
+      }
+    },
+    [syncParticipantFromMessage, upsertMessageForActiveChat, updateChatPreview],
+  );
+
+  const dropMessage = useCallback(
+    (chatId: string, messageId: string) => {
+      removeMessageForActiveChat(chatId, messageId);
+    },
+    [removeMessageForActiveChat],
+  );
 
   const sendWsMessage = useCallback((type: string, data: unknown) => {
     const ws = wsRef.current;
@@ -141,11 +266,20 @@ export const useChatManager = (): UseChatManagerResult => {
     }
 
     try {
-      const { data } = await chatsService.listChats();
-      const list = extractChatList(data);
-      const normalized = list.map((item) =>
-        mapChatFromApi(item, CURRENT_USER_ID),
-      );
+      const [directResponse, groupResponse] = await Promise.all([
+        chatsService.listDirectChats(),
+        chatsService.listGroupChats(),
+      ]);
+      const directChats = extractChatList(directResponse?.data);
+      const groupChats = extractChatList(groupResponse?.data);
+      const normalized = [
+        ...directChats.map((item) =>
+          mapChatFromApi(item, CURRENT_USER_ID, "personal"),
+        ),
+        ...groupChats.map((item) =>
+          mapChatFromApi(item, CURRENT_USER_ID, "group"),
+        ),
+      ];
       setChats(normalized);
     } catch (err) {
       console.error("Failed to load chats", err);
@@ -162,6 +296,7 @@ export const useChatManager = (): UseChatManagerResult => {
   useEffect(() => {
     if (selectedChatId && !chats.some((chat) => chat.id === selectedChatId)) {
       setSelectedChatId(null);
+      setTypingNotice(null);
     }
   }, [chats, selectedChatId]);
 
@@ -171,11 +306,12 @@ export const useChatManager = (): UseChatManagerResult => {
 
   useEffect(() => {
     if (!selectedChatId) {
-      setMessages([]);
+      clearMessages();
       setMessagesLoading(false);
       setMessagesError(null);
       setDraft("");
       setAttachment(null);
+      setTypingNotice(null);
       return;
     }
 
@@ -186,7 +322,7 @@ export const useChatManager = (): UseChatManagerResult => {
     requestMessages(selectedChatId)
       .then((items) => {
         if (!active) return;
-        setMessages(items);
+        replaceMessages(items);
       })
       .catch((err) => {
         if (!active) return;
@@ -194,7 +330,7 @@ export const useChatManager = (): UseChatManagerResult => {
           `Failed to load messages for chat ${selectedChatId}`,
           err,
         );
-        setMessages([]);
+        clearMessages();
         setMessagesError("Failed to load messages");
       })
       .finally(() => {
@@ -204,7 +340,7 @@ export const useChatManager = (): UseChatManagerResult => {
     return () => {
       active = false;
     };
-  }, [selectedChatId, requestMessages]);
+  }, [selectedChatId, requestMessages, clearMessages, replaceMessages]);
 
   useEffect(() => {
     if (typingTimeoutRef.current) {
@@ -213,6 +349,11 @@ export const useChatManager = (): UseChatManagerResult => {
     }
 
     if (!selectedChatId) {
+      if (typingIndicatorTimeoutRef.current) {
+        clearTimeout(typingIndicatorTimeoutRef.current);
+        typingIndicatorTimeoutRef.current = null;
+      }
+      setTypingNotice(null);
       if (wsReady && currentChatRef.current) {
         sendWsMessage("leave", { chat_id: currentChatRef.current });
       }
@@ -271,7 +412,7 @@ export const useChatManager = (): UseChatManagerResult => {
         }
       };
 
-      ws.onmessage = async (event) => {
+      ws.onmessage = (event) => {
         try {
           const parsed = JSON.parse(event.data);
           const eventType = parsed?.type ?? parsed?.event;
@@ -289,36 +430,71 @@ export const useChatManager = (): UseChatManagerResult => {
           if (eventType === "message_sent" || eventType === "message_updated") {
             if (chatId) {
               const message = mapMessageFromApi(payload, chatId);
-              upsertMessage(message);
+              commitMessage(message);
             }
-            return;
-          }
-
-          if (eventType === "message_deleted") {
+          } else if (eventType === "message_deleted") {
             if (chatId && payload?.message_id) {
-              removeMessage(chatId, payload.message_id);
+              dropMessage(chatId, payload.message_id);
             }
-            return;
-          }
+          } else if (eventType === "typing" && chatId) {
+            if (selectedIdRef.current === chatId) {
+              const typingPayload = payload;
+              let typedMessage: string | null = null;
+              if (typeof typingPayload === "string") {
+                typedMessage = typingPayload;
+              } else if (typeof typingPayload?.message === "string") {
+                typedMessage = typingPayload.message;
+              } else if (typeof typingPayload?.text === "string") {
+                typedMessage = typingPayload.text;
+              }
 
-          if (
-            eventType === "typing" ||
-            eventType === "pong" ||
-            eventType === "ping"
-          ) {
-            return;
-          }
+              let typingFlag: boolean | null = null;
+              if (typeof typingPayload === "object" && typingPayload !== null) {
+                if (typeof typingPayload.typing === "boolean") {
+                  typingFlag = typingPayload.typing;
+                } else if (typeof typingPayload.is_typing === "boolean") {
+                  typingFlag = typingPayload.is_typing;
+                } else if (typeof typingPayload.status === "string") {
+                  const status = typingPayload.status.toLowerCase();
+                  if (["start", "started", "typing"].includes(status)) {
+                    typingFlag = true;
+                  } else if (["stop", "stopped", "idle"].includes(status)) {
+                    typingFlag = false;
+                  }
+                }
+              }
 
-          if (
-            chatId &&
-            selectedIdRef.current &&
-            chatId === selectedIdRef.current
-          ) {
-            const items = await requestMessages(chatId);
-            setMessages(items);
-          }
+              const displayName =
+                typingPayload?.user?.name ??
+                typingPayload?.user?.username ??
+                typingPayload?.user_name ??
+                typingPayload?.username ??
+                typingPayload?.user_id ??
+                typingPayload?.userId ??
+                "Someone";
 
-          fetchChats({ silent: true }).catch(() => undefined);
+              if (typingIndicatorTimeoutRef.current) {
+                clearTimeout(typingIndicatorTimeoutRef.current);
+                typingIndicatorTimeoutRef.current = null;
+              }
+
+              if (typingFlag === false) {
+                setTypingNotice(null);
+                return;
+              }
+
+              if (typingFlag === true || typedMessage) {
+                const notice = typedMessage ?? `${displayName} is typing...`;
+                setTypingNotice(notice);
+                typingIndicatorTimeoutRef.current = setTimeout(() => {
+                  setTypingNotice(null);
+                  typingIndicatorTimeoutRef.current = null;
+                }, 3000);
+              }
+            }
+          } else if (eventType === "pong" || eventType === "ping") {
+            // ignore heartbeats
+          }
         } catch (err) {
           console.error("Failed to handle ws message", err);
         }
@@ -367,22 +543,20 @@ export const useChatManager = (): UseChatManagerResult => {
       currentChatRef.current = null;
       pendingJoinRef.current = null;
       setWsReady(false);
+      setTypingNotice(null);
     };
-  }, [
-    connectRequested,
-    fetchChats,
-    removeMessage,
-    requestMessages,
-    sendWsMessage,
-    upsertMessage,
-  ]);
+  }, [connectRequested, dropMessage, sendWsMessage, commitMessage]);
 
   useEffect(() => {
     const trimmed = draft.trim();
 
     if (!selectedChatId || !wsReady) {
       if (isTypingRef.current && selectedChatId) {
-        sendWsMessage("typing", { chat_id: selectedChatId, typing: false });
+        sendWsMessage("typing", {
+          chat_id: selectedChatId,
+          chat_type: chatTypeFor(selectedChatId),
+          typing: false,
+        });
         isTypingRef.current = false;
       }
       if (typingTimeoutRef.current) {
@@ -394,7 +568,11 @@ export const useChatManager = (): UseChatManagerResult => {
 
     if (trimmed.length === 0) {
       if (isTypingRef.current) {
-        sendWsMessage("typing", { chat_id: selectedChatId, typing: false });
+        sendWsMessage("typing", {
+          chat_id: selectedChatId,
+          chat_type: chatTypeFor(selectedChatId),
+          typing: false,
+        });
         isTypingRef.current = false;
       }
       if (typingTimeoutRef.current) {
@@ -405,7 +583,11 @@ export const useChatManager = (): UseChatManagerResult => {
     }
 
     if (!isTypingRef.current) {
-      sendWsMessage("typing", { chat_id: selectedChatId, typing: true });
+      sendWsMessage("typing", {
+        chat_id: selectedChatId,
+        chat_type: chatTypeFor(selectedChatId),
+        typing: true,
+      });
       isTypingRef.current = true;
     }
 
@@ -416,12 +598,13 @@ export const useChatManager = (): UseChatManagerResult => {
       if (isTypingRef.current && selectedIdRef.current) {
         sendWsMessage("typing", {
           chat_id: selectedIdRef.current,
+          chat_type: chatTypeFor(selectedIdRef.current),
           typing: false,
         });
         isTypingRef.current = false;
       }
     }, 2000);
-  }, [draft, selectedChatId, wsReady, sendWsMessage]);
+  }, [draft, selectedChatId, wsReady, sendWsMessage, chatTypeFor]);
 
   useEffect(
     () => () => {
@@ -450,6 +633,9 @@ export const useChatManager = (): UseChatManagerResult => {
   const sendMessage = useCallback(async () => {
     if (!selectedIdRef.current || isSending) return;
 
+    const chatId = selectedIdRef.current;
+    if (!chatId) return;
+
     const trimmed = draft.trim();
     if (!trimmed) return;
 
@@ -465,6 +651,7 @@ export const useChatManager = (): UseChatManagerResult => {
     if (isTypingRef.current && selectedIdRef.current) {
       sendWsMessage("typing", {
         chat_id: selectedIdRef.current,
+        chat_type: chatTypeFor(selectedIdRef.current),
         typing: false,
       });
       isTypingRef.current = false;
@@ -474,33 +661,30 @@ export const useChatManager = (): UseChatManagerResult => {
     setMessagesError(null);
     setDraft("");
 
-    const chatId = selectedIdRef.current;
     const payload = {
       chat_id: chatId,
+      chat_type: chatTypeFor(chatId),
       content: trimmed,
       metadata: { type: "text" },
     };
 
-    const finalizeRefresh = async () => {
-      try {
-        const items = await requestMessages(chatId);
-        setMessages(items);
-      } catch (err) {
-        console.error(`Failed to refresh messages for chat ${chatId}`, err);
-      }
-      setAttachment(null);
-    };
-
     const sentViaWs = sendWsMessage("send_message", payload);
     if (sentViaWs) {
-      await finalizeRefresh();
+      setAttachment(null);
       setIsSending(false);
       return;
     }
 
     try {
-      await chatsService.sendMessage(chatId, { text: trimmed });
-      await finalizeRefresh();
+      const { data } = await chatsService.sendMessage(chatId, {
+        text: trimmed,
+      });
+      const messageSource = data?.message ?? data;
+      if (messageSource) {
+      const message = mapMessageFromApi(messageSource, chatId);
+        commitMessage(message);
+      }
+      setAttachment(null);
     } catch (err) {
       console.error("Failed to send message", err);
       setMessagesError("Failed to send message");
@@ -508,11 +692,12 @@ export const useChatManager = (): UseChatManagerResult => {
     } finally {
       setIsSending(false);
     }
-  }, [attachment, draft, isSending, requestMessages, sendWsMessage]);
+  }, [attachment, draft, isSending, sendWsMessage, commitMessage, chatTypeFor]);
 
   const selectChat = useCallback((chatId: string) => {
     pendingJoinRef.current = chatId;
     setSelectedChatId(chatId);
+    setTypingNotice(null);
     setConnectRequested(true);
   }, []);
 
@@ -541,6 +726,6 @@ export const useChatManager = (): UseChatManagerResult => {
     attachment,
     pickAttachment,
     clearAttachment,
+    typingNotice,
   };
 };
-

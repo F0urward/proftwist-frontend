@@ -22,4 +22,7 @@ export type ChatMessage = {
   senderId: string;
   text: string;
   createdAt: string;
+  senderName?: string;
+  senderNickname?: string;
+  senderAvatar?: string;
 };

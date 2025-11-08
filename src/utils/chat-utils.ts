@@ -1,6 +1,60 @@
-﻿import { Chat, ChatMessage, ChatUser } from "../types/chat";
+import { Chat, ChatMessage, ChatUser } from "../types/chat";
 
 export const CURRENT_USER_ID = "me";
+
+const randomId = () => Math.random().toString(36).slice(2, 10);
+
+const toNonEmptyString = (value: unknown): string | null => {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return String(value);
+  }
+  return null;
+};
+
+const optionalString = (value: unknown): string | undefined =>
+  toNonEmptyString(value) ?? undefined;
+
+const pickFirstDefined = <T>(
+  ...values: Array<T | null | undefined>
+): T | undefined => {
+  for (const value of values) {
+    if (value !== undefined && value !== null) {
+      return value;
+    }
+  }
+  return undefined;
+};
+
+const readPath = (root: any, path: string[]) =>
+  path.reduce<unknown>(
+    (acc, key) =>
+      acc && typeof acc === "object"
+        ? (acc as Record<string, unknown>)[key]
+        : undefined,
+    root,
+  );
+
+const extractListFromPayload = (
+  payload: unknown,
+  candidatePaths: string[][],
+): any[] => {
+  if (Array.isArray(payload)) return payload;
+  if (!payload || typeof payload !== "object") return [];
+
+  for (const path of candidatePaths) {
+    const candidate = readPath(payload, path);
+    if (Array.isArray(candidate)) return candidate;
+  }
+
+  return [];
+};
+
+export const ensureString = (value: unknown, fallback: string): string =>
+  toNonEmptyString(value) ?? fallback;
 
 export const initialsFrom = (value: string): string =>
   value
@@ -9,14 +63,6 @@ export const initialsFrom = (value: string): string =>
     .slice(0, 2)
     .map((segment) => segment[0]?.toUpperCase() ?? "")
     .join("") || "U";
-
-const randomId = () => Math.random().toString(36).slice(2, 10);
-
-export const ensureString = (value: unknown, fallback: string): string => {
-  if (typeof value === "string" && value.trim().length > 0) return value;
-  if (typeof value === "number" && Number.isFinite(value)) return String(value);
-  return fallback;
-};
 
 export const sameDay = (a: Date, b: Date) =>
   a.getFullYear() === b.getFullYear() &&
@@ -44,53 +90,66 @@ export const mapUserFromApi = (user: any): ChatUser => {
   }
 
   const id = ensureString(
-    user.id ?? user.user_id ?? user.uuid,
+    pickFirstDefined(user.id, user.user_id, user.uuid),
     `user-${randomId()}`,
   );
-  const nameSource =
-    user.name ?? user.username ?? user.full_name ?? user.email ?? "User";
+  const nameSource = pickFirstDefined(
+    user.name,
+    user.username,
+    user.full_name,
+    user.email,
+  );
 
   return {
     id,
     name: ensureString(nameSource, "User"),
-    nickname: user.nickname ?? user.username ?? user.display_name ?? undefined,
-    avatar: user.avatar ?? user.avatar_url ?? user.image ?? undefined,
+    nickname: optionalString(
+      user.nickname ?? user.username ?? user.display_name,
+    ),
+    avatar: optionalString(user.avatar ?? user.avatar_url ?? user.image),
   };
 };
 
-export const mapChatFromApi = (chat: any, currentUserId: string): Chat => {
+export const mapChatFromApi = (
+  chat: any,
+  currentUserId: string,
+  preferredType?: "personal" | "group",
+): Chat => {
   const participantsSource = Array.isArray(chat?.participants)
     ? chat.participants
     : Array.isArray(chat?.members)
-    ? chat.members
-    : [];
+      ? chat.members
+      : [];
 
   const chatType: "group" | "personal" =
-    chat?.type === "group" || chat?.kind === "group" ? "group" : "personal";
+    preferredType ??
+    (chat?.type === "group" || chat?.kind === "group" ? "group" : "personal");
 
-  const lastMessage =
+  const messageMeta =
+    typeof chat?.last_message === "object" ? chat.last_message : null;
+  const lastMessageSource =
     typeof chat?.last_message === "string"
       ? chat.last_message
-      : chat?.last_message?.text ??
-        chat?.last_message?.content ??
-        chat?.last_message?.message ??
-        chat?.lastMessage ??
-        undefined;
+      : pickFirstDefined(
+          messageMeta?.text,
+          messageMeta?.content,
+          messageMeta?.message,
+          chat?.lastMessage,
+        );
 
-  const timestamp =
-    chat?.last_message?.created_at ??
-    chat?.last_message?.createdAt ??
-    chat?.updated_at ??
-    chat?.updatedAt ??
-    chat?.created_at ??
-    chat?.createdAt;
+  const timestampSource = pickFirstDefined(
+    messageMeta?.created_at,
+    messageMeta?.createdAt,
+    chat?.updated_at,
+    chat?.updatedAt,
+    chat?.created_at,
+    chat?.createdAt,
+  );
 
-  const unreadCount =
-    typeof chat?.unread_count === "number"
-      ? chat.unread_count
-      : typeof chat?.unread === "number"
-      ? chat.unread
-      : undefined;
+  const unreadCount = pickFirstDefined(
+    typeof chat?.unread_count === "number" ? chat.unread_count : undefined,
+    typeof chat?.unread === "number" ? chat.unread : undefined,
+  );
 
   const participants = participantsSource.map(mapUserFromApi);
   if (!participants.some((participant) => participant.id === currentUserId)) {
@@ -99,19 +158,20 @@ export const mapChatFromApi = (chat: any, currentUserId: string): Chat => {
 
   return {
     id: ensureString(
-      chat?.id ?? chat?.chat_id ?? chat?.uuid,
+      pickFirstDefined(chat?.id, chat?.chat_id, chat?.uuid),
       `chat-${randomId()}`,
     ),
     title: ensureString(
-      chat?.title ?? chat?.name ?? chat?.topic,
+      pickFirstDefined(chat?.title, chat?.name, chat?.topic),
       chatType === "group" ? "Group chat" : "Personal chat",
     ),
     type: chatType,
     participants,
-    groupAvatar:
-      chat?.group_avatar ?? chat?.avatar ?? chat?.image ?? undefined,
-    lastMessage,
-    time: formatChatTime(timestamp),
+    groupAvatar: optionalString(
+      chat?.group_avatar ?? chat?.avatar ?? chat?.image,
+    ),
+    lastMessage: optionalString(lastMessageSource),
+    time: formatChatTime(timestampSource),
     unread: unreadCount,
   };
 };
@@ -120,93 +180,106 @@ export const mapMessageFromApi = (
   message: any,
   fallbackChatId: string,
 ): ChatMessage => {
-  const id = ensureString(
-    message?.id ?? message?.message_id ?? message?.uuid,
-    `msg-${randomId()}`,
-  );
-
   const senderSource = message?.sender ?? message?.author ?? message?.user;
+
   const senderId = ensureString(
-    senderSource?.id ??
-      senderSource?.user_id ??
-      message?.sender_id ??
+    pickFirstDefined(
+      senderSource?.id,
+      senderSource?.user_id,
+      message?.sender_id,
       message?.user_id,
+    ),
     "unknown",
   );
 
   const text = ensureString(
-    message?.text ?? message?.content ?? message?.message ?? "",
+    pickFirstDefined(message?.text, message?.content, message?.message),
     "",
   );
 
+  const senderName = optionalString(
+    pickFirstDefined(
+      senderSource?.name,
+      senderSource?.full_name,
+      senderSource?.display_name,
+      message?.user_name,
+      message?.username,
+    ),
+  );
+
+  const senderNickname = optionalString(
+    pickFirstDefined(
+      senderSource?.nickname,
+      senderSource?.username,
+      message?.username,
+      message?.user_name,
+    ),
+  );
+
+  const senderAvatar = optionalString(
+    pickFirstDefined(
+      senderSource?.avatar,
+      senderSource?.avatar_url,
+      senderSource?.image,
+      message?.avatar_url,
+      message?.avatar,
+    ),
+  );
+
   const chatId = ensureString(
-    message?.chat_id ?? message?.chatId ?? message?.chat?.id,
+    pickFirstDefined(message?.chat_id, message?.chatId, message?.chat?.id),
     fallbackChatId,
   );
 
-  const rawTimestamp =
-    message?.created_at ??
-    message?.createdAt ??
-    message?.timestamp ??
-    message?.sent_at ??
-    message?.sentAt ??
-    new Date().toISOString();
+  const rawTimestamp = pickFirstDefined(
+    message?.created_at,
+    message?.createdAt,
+    message?.timestamp,
+    message?.sent_at,
+    message?.sentAt,
+  );
 
-  const parsed = new Date(rawTimestamp);
+  const parsed = rawTimestamp ? new Date(rawTimestamp) : new Date();
   const createdAt = Number.isNaN(parsed.getTime())
     ? new Date().toISOString()
     : parsed.toISOString();
 
   return {
-    id,
+    id: ensureString(
+      pickFirstDefined(message?.id, message?.message_id, message?.uuid),
+      `msg-${randomId()}`,
+    ),
     chatId,
     senderId,
     text,
     createdAt,
+    senderName,
+    senderNickname,
+    senderAvatar,
   };
 };
 
-export const extractChatList = (payload: unknown): any[] => {
-  if (Array.isArray(payload)) return payload;
-  if (!payload || typeof payload !== "object") return [];
+export const extractChatList = (payload: unknown): any[] =>
+  extractListFromPayload(payload, [
+    ["chats"],
+    ["data"],
+    ["items"],
+    ["group_chats"],
+    ["direct_chats"],
+    ["list"],
+  ]);
 
-  const candidates = [
-    (payload as any).chats,
-    (payload as any).data,
-    (payload as any).items,
-    (payload as any).results,
-    (payload as any).list,
-  ];
-
-  for (const candidate of candidates) {
-    if (Array.isArray(candidate)) return candidate;
-  }
-
-  return [];
-};
-
-export const extractMessageList = (payload: unknown): any[] => {
-  if (Array.isArray(payload)) return payload;
-  if (!payload || typeof payload !== "object") return [];
-
-  const root = payload as any;
-  const candidates = [
-    root.messages,
-    root.chat_messages,
-    root.data,
-    root.data?.messages,
-    root.data?.chat_messages,
-    root.items,
-    root.results,
-    root.list,
-  ];
-
-  for (const candidate of candidates) {
-    if (Array.isArray(candidate)) return candidate;
-  }
-
-  return [];
-};
+export const extractMessageList = (payload: unknown): any[] =>
+  extractListFromPayload(payload, [
+    ["messages"],
+    ["chat_messages"],
+    ["data"],
+    ["data", "messages"],
+    ["data", "chat_messages"],
+    ["items"],
+    ["results"],
+    ["list"],
+  ]);
 
 export const getOtherUser = (chat: Chat, meId: string): ChatUser =>
   chat.participants.find((participant) => participant.id !== meId) ??

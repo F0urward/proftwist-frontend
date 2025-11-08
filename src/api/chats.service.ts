@@ -56,7 +56,10 @@ export const chatsService = {
   createDirectChat: (memberIds: string[]) =>
     api.post("/api/v1/chats", { type: "direct", member_ids: memberIds }),
 
-  listChats: (params?: ListChatsParams) => api.get("/api/v1/chats", { params }),
+  listDirectChats: () => api.get("/api/v1/direct-chats"),
+
+  listGroupChats: (params?: ListChatsParams) =>
+    api.get("/api/v1/group-chats", { params }),
 
   addMember: (chatId: string, payload: ChatMemberPayload) =>
     api.post(`/api/v1/chats/${chatId}/members`, payload),
@@ -64,7 +67,7 @@ export const chatsService = {
   joinChat: (chatId: string) => api.post(`/api/v1/chats/${chatId}/join`),
 
   getMessages: (chatId: string, params?: ChatMessagesQuery) =>
-    api.get(`/api/v1/chats/${chatId}/messages`, { params }),
+    api.get(`/api/v1/group-chats/${chatId}/messages`, { params }),
 
   leaveChat: (chatId: string) => api.post(`/api/v1/chats/${chatId}/leave`),
 
