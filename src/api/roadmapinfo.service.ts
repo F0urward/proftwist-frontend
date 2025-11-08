@@ -24,12 +24,14 @@ export const roadmapinfoService = {
   },
 
   async create(payload: { category_id: string; 
-                          name: string; description?: 
-                          string; is_public?: boolean; 
+                          name: string; 
+                          description?: string; 
+                          is_public?: boolean; 
                           referenced_roadmap_info_id?: string | null; 
                         }): Promise<RoadmapInfo> {
     const { data } = await api.post("/roadmapsinfo", {
       ...payload,
+      is_public: payload.is_public ?? false,
     });
 
     const created = (data as any)?.roadmap_info ?? data;

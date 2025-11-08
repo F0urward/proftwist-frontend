@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, Stack, MenuItem } from "@mui/material";
+import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, Stack, MenuItem, FormControlLabel, Switch } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { roadmapinfoService } from "../../api/roadmapinfo.service.ts";
 import { categoryService } from "../../api/category.service.ts";
@@ -19,6 +19,7 @@ const CreateRoadmapInfoModal = ({ open, onClose }: Props) => {
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [isPublic, setIsPublic] = useState(false);
 
     useEffect(() => {
         if (open) {
@@ -47,7 +48,7 @@ const CreateRoadmapInfoModal = ({ open, onClose }: Props) => {
                 category_id: categoryId,
                 name,
                 description,
-                is_public: false,
+                is_public: isPublic,
             });
 
             onClose();
@@ -113,6 +114,26 @@ const CreateRoadmapInfoModal = ({ open, onClose }: Props) => {
                         fullWidth
                         multiline
                         rows={3}
+                    />
+
+                    <FormControlLabel
+                        control={
+                        <Switch
+                            checked={isPublic}
+                            onChange={(e) => setIsPublic(e.target.checked)}
+                            color="secondary"
+                            sx={{
+                                "& .MuiSwitch-track": {
+                                    backgroundColor: isPublic ? "#FF4DCA" : "#555",
+                                    opacity: 1,
+                                },
+                                "& .MuiSwitch-thumb": {
+                                    color: isPublic ? "secondary" : "#999",
+                                },
+                            }}
+                        />
+                        }
+                        label="Сделать публичным"
                     />
 
                     {error && <div style={{ color: "red", fontSize: 14 }}>{error}</div>}
