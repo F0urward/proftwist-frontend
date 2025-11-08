@@ -33,7 +33,7 @@ const App = () => {
               <Navbar />
               <Routes>
                 <Route element={<PrivateRoute />}>
-                  <Route path="/" element={<CreatorPage />} />
+                  <Route path="/roadmaps/:roadmap_id/edit" element={<CreatorPage />} />
                   <Route path="/profile" element={<ProfilePage />} />
                   <Route path="/personal" element={<PersonalRoadmapsPage />} />
                   <Route path="/chats" element={<ChatsPage />} />
@@ -42,6 +42,7 @@ const App = () => {
                   <Route path="/signup" element={<RegisterPage />} />
                   <Route path="/login" element={<LoginPage />} />
                 </Route>
+                <Route path="/" element={<RoadmapsPage />} />
                 <Route path="/view" element={<ViewerPage />} />
                 <Route path="/roadmaps" element={<RoadmapsPage />} />
                 <Route path="/roadmaps/:id" element={<RoadmapPage />} />

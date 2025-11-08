@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ReactFlow,
   applyNodeChanges,
@@ -13,57 +13,53 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { v4 as uuidv4 } from "uuid";
+import { useParams } from "react-router-dom";
 
-import { Box, Stack } from "@mui/material";
+import { Box, Stack, CircularProgress } from "@mui/material";
 import { Sidebar } from "../components/Sidebar";
 import { RootState, useAppDispatch, useAppSelector } from "../store";
 import { editorSliceActions } from "../store/slices/editorSlice";
 import { Edge, Node } from "../types";
 import { edgeTypes, nodeTypes } from "../consts";
 import { NodeEditorSidebar } from "../components/NodeEditorSidebar";
+import { roadmapService } from "../api/roadmap.service";
 
 export const CreatorPage = () => {
+  const { roadmap_id } = useParams();
+  const dispatch = useAppDispatch();
+  const { screenToFlowPosition } = useReactFlow();
+
   const { nodes, edges, editingNodeId } = useAppSelector(
     (state: RootState) => state.editor,
   );
 
-  useEffect(() => {
-    const data = localStorage.getItem("flow");
-    if (!data) return;
-
-    console.log(data);
-
-    const { nodes: storedNodes, edges: storedEdges } = JSON.parse(data);
-    dispatch(editorSliceActions.setNodes(storedNodes));
-    const normalizedEdges = Array.isArray(storedEdges)
-      ? storedEdges.map((edge: any) => {
-          const nextType =
-            edge?.type === "dotted"
-              ? "dashed"
-              : ((edge?.type as string | undefined) ?? "solid");
-          return {
-            ...edge,
-            type: nextType,
-            data: {
-              ...(edge?.data ?? {}),
-              variant: nextType,
-            },
-          };
-        })
-      : [];
-    dispatch(editorSliceActions.setEdges(normalizedEdges));
-  }, []);
-
-  const dispatch = useAppDispatch();
-
-  const { screenToFlowPosition } = useReactFlow();
-
+  const [loading, setLoading] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const editingNode = useMemo(
     () => nodes.find((node) => node.id === editingNodeId) ?? null,
     [nodes, editingNodeId],
   );
+
+  useEffect(() => {
+    if (!roadmap_id) return;
+    setLoading(true);
+
+    roadmapService
+      .getGraph(roadmap_id)
+      .then((data) => {
+        const parsedNodes = data?.nodes ?? [];
+        const parsedEdges = data?.edges ?? [];
+        dispatch(editorSliceActions.setNodes(parsedNodes));
+        dispatch(editorSliceActions.setEdges(parsedEdges));
+      })
+      .catch((e) => {
+        console.error("Ошибка при загрузке roadmap:", e);
+        dispatch(editorSliceActions.setNodes([]));
+        dispatch(editorSliceActions.setEdges([]));
+      })
+      .finally(() => setLoading(false));
+  }, [roadmap_id, dispatch]);
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) =>
@@ -145,6 +141,18 @@ export const CreatorPage = () => {
     },
     [dispatch, editingNodeId],
   );
+
+  if (loading) {
+    return (
+      <Stack
+        alignItems="center"
+        justifyContent="center"
+        sx={{ height: "100vh" }}
+      >
+        <CircularProgress />
+      </Stack>
+    );
+  }
 
   return (
     <Stack direction="row" sx={{ height: "100vh" }}>

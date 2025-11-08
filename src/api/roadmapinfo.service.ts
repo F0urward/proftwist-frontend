@@ -19,5 +19,23 @@ export const roadmapinfoService = {
       if (error?.response?.status === 404) return null;
       throw error;
     }
-  }
+  },
+  async create(payload: { category_id: string; 
+                          name: string; description?: 
+                          string; is_public?: boolean; 
+                          referenced_roadmap_info_id?: string | null; 
+                        }): Promise<RoadmapInfo> {
+    const { data } = await api.post("/roadmapsinfo", {
+      ...payload,
+    });
+
+    const created = (data as any)?.roadmap_info ?? data;
+    return created as RoadmapInfo;
+  },
+  async updateGraph(roadmapId: string, nodes: any[], edges: any[]): Promise<void> {
+    await api.put(`/roadmaps/${roadmapId}`, {
+      nodes,
+      edges,
+    });
+  },
 };

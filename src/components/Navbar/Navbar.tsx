@@ -16,6 +16,7 @@ import { RootState, useAppDispatch, useAppSelector } from "../../store";
 import { useEffect, useState } from "react";
 import { checkIfAuthenticated, logout } from "../../store/slices/authSlice";
 import { AccountCircle, Logout } from "@mui/icons-material";
+import CreateRoadmapInfoModal from "../CreateRoadmapsinfoModal/CreateRoadmapsinfoModal";
 
 interface MenuEntry {
   title: string;
@@ -33,6 +34,7 @@ const Navbar = () => {
   const navigate = useNavigate();
 
   const [anchorEl, setAnchorEl] = useState(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const menuOptions: MenuEntry[] = [
     {
@@ -125,7 +127,7 @@ const Navbar = () => {
           </Button> 
         }
         { isLoggedIn &&
-          <Button variant="text" component={NavLink} to="/">
+          <Button variant="text" onClick={() => setIsCreateModalOpen(true)}>
             Создать роадмап
           </Button>
         }
@@ -171,6 +173,12 @@ const Navbar = () => {
             </Button>
           </Box>
         )}
+        { isLoggedIn && 
+          <CreateRoadmapInfoModal
+            open={isCreateModalOpen}
+            onClose={() => setIsCreateModalOpen(false)}
+          />
+        }
       </Toolbar>
     </AppBar>
   );

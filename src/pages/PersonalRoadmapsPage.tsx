@@ -3,6 +3,7 @@ import ItemCard from "../components/ItemCard/ItemCard.tsx";
 import CategoryList from "../components/CategoryList/CategoryList.tsx";
 import BaseLayout from "../components/BaseLayout/BaseLayout.tsx";
 import TitlePaper from "../components/TitlePaper/TitlePaper.tsx";
+import CreateRoadmapInfoModal from "../components/CreateRoadmapsinfoModal/CreateRoadmapsinfoModal";
 
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -16,6 +17,7 @@ type Roadmap = {
 
 const PersonalRoadmapsPage = () => {
     const [items, setItems] = useState<Roadmap[]>([]);
+    const [modalOpen, setModalOpen] = useState(false);
     
     useEffect(() => {
         setItems([
@@ -36,12 +38,17 @@ const PersonalRoadmapsPage = () => {
                 <>
                     <Button 
                         variant="contained"
-                        onClick={ () => navigate("/")}
+                        onClick={() => setModalOpen(true)}
                     >
                         Создать свой roadmap
                     </Button>
                 </>
             </TitlePaper>
+
+            <CreateRoadmapInfoModal
+                open={modalOpen}
+                onClose={() => setModalOpen(false)}
+            />
 
             <Box
                 sx={{
