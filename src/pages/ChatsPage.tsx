@@ -1,7 +1,29 @@
-import { useMemo, useState, useRef, useEffect, ChangeEvent } from "react";
-import { Avatar, Badge, Box, Button, Chip, Divider, IconButton, InputAdornment,
-  List, ListItem, ListItemAvatar, ListItemButton, ListItemText, Paper,
-  Stack, Tab, Tabs, TextField, Typography } from "@mui/material";
+import { useMemo, useState, useRef, useEffect, ChangeEvent, useCallback } from "react";
+import {
+  Avatar,
+  Badge,
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  Divider,
+  IconButton,
+  InputAdornment,
+  List,
+  ListItem,
+  ListItemAvatar,
+  ListItemButton,
+  ListItemText,
+  Paper,
+  Stack,
+  Tab,
+  Tabs,
+  TextField,
+  Typography,
+} from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
 import SendIcon from "@mui/icons-material/Send";
@@ -10,441 +32,698 @@ import CloseIcon from "@mui/icons-material/Close";
 import { alpha } from "@mui/material/styles";
 import BaseLayout from "../components/BaseLayout/BaseLayout";
 import MessagesList from "../components/MessageList/MessageList";
+import { useChatManager } from "../hooks/useChatManager";
+import { getChatAvatar, mapUserFromApi, initialsFrom } from "../utils/chat-utils";
+import { chatsService } from "../api";
+import type { Chat, ChatMessage, ChatUser } from "../types/chat";
 
-type User = {
-    id: string;
-    name: string;
-    nickname?: string;
-    avatar?: string;
+type TabValue = "personal" | "group";
+
+type ChatSidebarProps = {
+  tab: TabValue;
+  onTabChange: (value: TabValue) => void;
+  query: string;
+  onQueryChange: (value: string) => void;
+  chats: Chat[];
+  chatsLoading: boolean;
+  chatsError: string | null;
+  selectedChatId: string | null;
+  onSelectChat: (chatId: string) => void;
+  currentUserId: string;
 };
 
-type Chat = {
-    id: string;
-    title: string;
-    type: "personal" | "group";
-    participants: User[];
-    groupAvatar?: string;
-    lastMessage?: string;
-    time?: string;
-    unread?: number;
+type MessageComposerProps = {
+  draft: string;
+  onDraftChange: (value: string) => void;
+  onSend: () => void;
+  isSending: boolean;
+  attachment: File | null;
+  onPickAttachment: (file: File | null) => void;
+  onClearAttachment: () => void;
 };
 
-type Message = {
-    id: string;
-    chatId: string;
-    senderId: string;
-    text: string;
-    createdAt: string;
+type ChatWindowProps = {
+  currentUserId: string;
+  selectedChat: Chat | null;
+  tab: TabValue;
+  messages: ChatMessage[];
+  messagesLoading: boolean;
+  messagesError: string | null;
+  typingNotice: string | null;
+  composerProps: MessageComposerProps;
+  onShowParticipants: () => void;
 };
 
-type UsersMap = {
-    me: User;
-    u1: User;
-    u2: User;
-    u3: User;
+const ChatListItem = ({
+  chat,
+  isSelected,
+  onSelect,
+  currentUserId,
+}: {
+  chat: Chat;
+  isSelected: boolean;
+  onSelect: () => void;
+  currentUserId: string;
+}) => {
+  const avatar = getChatAvatar(chat, currentUserId);
+  const hasSrc = "src" in avatar;
+
+  return (
+    <ListItem
+      disablePadding
+      sx={{
+        "&:not(:last-of-type) .MuiListItemButton-root": {
+          borderBottom: "1px solid rgba(255,255,255,.08)",
+        },
+      }}
+    >
+      <ListItemButton
+        selected={isSelected}
+        onClick={onSelect}
+        sx={{
+          alignItems: "flex-start",
+          gap: 1.25,
+          "&.Mui-selected": { bgcolor: alpha("#BC57FF", 0.08) },
+        }}
+      >
+        <ListItemAvatar sx={{ alignSelf: "center" }}>
+          <Badge
+            overlap="circular"
+            badgeContent={chat.unread || 0}
+            invisible={!chat.unread}
+            sx={{ "& .MuiBadge-badge": { bgcolor: "#FF4DCA" } }}
+          >
+            <Avatar
+              {...(hasSrc ? { src: avatar.src } : {})}
+              alt={avatar.alt}
+              sx={{ width: 40, height: 40 }}
+            >
+              {!hasSrc && avatar.initials}
+            </Avatar>
+          </Badge>
+        </ListItemAvatar>
+
+        <ListItemText
+          primary={chat.title}
+          secondary={
+            <Typography component="span" sx={{ opacity: 0.8, fontSize: 13 }}>
+              {chat.lastMessage || "No messages yet"}
+            </Typography>
+          }
+          slotProps={{
+            primary: { sx: { fontWeight: 700 } },
+            secondary: { sx: { color: alpha("#fff", 0.75) } },
+          }}
+        />
+
+        <Typography variant="caption" sx={{ opacity: 0.7, mt: 0.8 }}>
+          {chat.time}
+        </Typography>
+      </ListItemButton>
+    </ListItem>
+  );
 };
 
-const currentUserId = "me";
+const ChatSidebar = ({
+  tab,
+  onTabChange,
+  query,
+  onQueryChange,
+  chats,
+  chatsLoading,
+  chatsError,
+  selectedChatId,
+  onSelectChat,
+  currentUserId,
+}: ChatSidebarProps) => (
+  <Paper
+    variant="outlined"
+    sx={{
+      width: { xs: 320, md: 380 },
+      height: "80vh",
+      overflow: "hidden",
+      display: "flex",
+      flexDirection: "column",
+    }}
+  >
+    <Box sx={{ borderBottom: "1px solid rgba(255,255,255,.08)" }}>
+      <Tabs
+        value={tab}
+        onChange={(_, value: TabValue) => onTabChange(value)}
+        variant="fullWidth"
+        sx={{
+          "& .MuiTabs-indicator": { display: "none" },
+          "& .MuiTab-root": {
+            color: "#fff",
+            textTransform: "none",
+            fontWeight: 600,
+            borderRight: "1px solid rgba(255,255,255,.08)",
+            "&:last-of-type": { borderRight: "none" },
+            "&.Mui-selected": {
+              color: "#fff",
+              bgcolor: "#733E97",
+            },
+          },
+        }}
+      >
+        <Tab value="personal" label="Personal" />
+        <Tab value="group" label="Group" />
+      </Tabs>
+    </Box>
 
-const users: UsersMap= {
-    me: { id: "me", name: "Вы", nickname: "me" },
-    u1: { id: "u1", name: "Полина", nickname: "polina" },
-    u2: { id: "u2", name: "Маша", nickname: "masha" },
-    u3: { id: "u3", name: "Артем", nickname: "art" },
+    <Box sx={{ p: 2 }}>
+      <TextField
+        fullWidth
+        size="small"
+        placeholder="Search chats"
+        value={query}
+        onChange={(event) => onQueryChange(event.target.value)}
+        slotProps={{
+          input: {
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon fontSize="small" sx={{ color: "#fff" }} />
+              </InputAdornment>
+            ),
+            endAdornment: query ? (
+              <InputAdornment position="end">
+                <IconButton
+                  aria-label="Clear"
+                  onClick={() => onQueryChange("")}
+                  size="small"
+                  sx={{ color: "#fff" }}
+                >
+                  <ClearIcon fontSize="small" />
+                </IconButton>
+              </InputAdornment>
+            ) : undefined,
+          },
+        }}
+        sx={{
+          "& .MuiInputBase-root": { bgcolor: "#181818", borderRadius: 3 },
+        }}
+      />
+    </Box>
+
+    <Divider sx={{ borderColor: "rgba(255,255,255,.08)" }} />
+
+    <Box sx={{ flex: 1, overflowY: "auto" }}>
+      <List disablePadding>
+        {chatsLoading && (
+          <Box sx={{ p: 3, textAlign: "center", opacity: 0.7 }}>
+            Loading chats...
+          </Box>
+        )}
+
+        {!chatsLoading &&
+          chats.map((chat) => (
+            <ChatListItem
+              key={chat.id}
+              chat={chat}
+              currentUserId={currentUserId}
+              isSelected={selectedChatId === chat.id}
+              onSelect={() => onSelectChat(chat.id)}
+            />
+          ))}
+
+        {!chatsLoading && !chatsError && chats.length === 0 && (
+          <Box sx={{ p: 3, textAlign: "center", opacity: 0.7 }}>
+            No chats found
+          </Box>
+        )}
+
+        {!chatsLoading && chatsError && (
+          <Box sx={{ p: 3, textAlign: "center", opacity: 0.7 }}>
+            {chatsError}
+          </Box>
+        )}
+      </List>
+    </Box>
+  </Paper>
+);
+
+const MessageComposer = ({
+  draft,
+  onDraftChange,
+  onSend,
+  isSending,
+  attachment,
+  onPickAttachment,
+  onClearAttachment,
+}: MessageComposerProps) => {
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const trimmedDraft = draft.trim();
+
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] ?? null;
+    onPickAttachment(file);
+    event.target.value = "";
+  };
+
+  return (
+    <Box sx={{ px: 2, py: 2, borderTop: "1px solid rgba(255,255,255,.08)" }}>
+      {attachment && (
+        <Box sx={{ mb: 2 }}>
+          <Chip
+            label={attachment.name}
+            onDelete={onClearAttachment}
+            deleteIcon={<CloseIcon />}
+            sx={{ bgcolor: alpha("#fff", 0.08), color: "#fff" }}
+          />
+        </Box>
+      )}
+
+      <Stack direction="row" spacing={2} alignItems="flex-end">
+        <IconButton
+          aria-label="Attach file"
+          sx={{ color: "#fff", height: 44, width: 20 }}
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <AttachFileIcon />
+        </IconButton>
+        <input
+          ref={fileInputRef}
+          type="file"
+          style={{ display: "none" }}
+          onChange={handleFileChange}
+        />
+
+        <TextField
+          fullWidth
+          size="small"
+          placeholder="Write a message"
+          value={draft}
+          onChange={(event) => onDraftChange(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && !event.shiftKey) {
+              event.preventDefault();
+              onSend();
+            }
+          }}
+          multiline
+          minRows={1}
+          maxRows={4}
+          sx={{
+            "& .MuiInputBase-root": {
+              bgcolor: "#181818",
+              borderRadius: 3,
+              minHeight: 44,
+            },
+            "& fieldset": { borderColor: alpha("#fff", 0.16) },
+          }}
+        />
+        <Button
+          variant="contained"
+          onClick={onSend}
+          endIcon={<SendIcon />}
+          disabled={
+            isSending || trimmedDraft.length === 0 || Boolean(attachment)
+          }
+          sx={{ height: 44, width: 44, "& .MuiButton-endIcon": { m: 0 } }}
+        />
+      </Stack>
+    </Box>
+  );
 };
 
-const chats: Chat[] = [
-    {
-        id: "1",
-        title: "Полина",
-        type: "personal",
-        participants: [users.me, users.u1],
-        lastMessage: "Начните ваше общение",
-        time: "10:44",
-        unread: 2,
-    },
-    {
-        id: "2",
-        title: "Маша",
-        type: "personal",
-        participants: [users.me, users.u2],
-        lastMessage: "Привет",
-        time: "10:40",
-        unread: 0,
-    },
-    {
-        id: "3",
-        title: "Frontend Crew",
-        type: "group",
-        participants: [users.me, users.u1, users.u3],
-        groupAvatar: "",
-        lastMessage: "Смотрим PR #124",
-        time: "09:22",
-        unread: 4,
-    },
-    {
-        id: "4",
-        title: "Golang Backend",
-        type: "group",
-        participants: [users.me, users.u2, users.u3],
-        groupAvatar: "",
-        lastMessage: "Обсудим роутер",
-        time: "Вчера",
-        unread: 0,
-    },
-];
+const ChatWindow = ({
+  currentUserId,
+  selectedChat,
+  tab,
+  messages,
+  messagesLoading,
+  messagesError,
+  typingNotice,
+  composerProps,
+  onShowParticipants,
+}: ChatWindowProps) => {
+  const scrollRef = useRef<HTMLDivElement | null>(null);
 
-const messagesByChat: Record<string, Message[]> = {
-    "1": [
-        { id: "m1", chatId: "1", senderId: "me", text: "Привет! Давай обсудим задачи?", createdAt: "2025-10-13T10:40:00" },
-        { id: "m2", chatId: "1", senderId: "u1", text: "Да, глянь PR и пиши комменты", createdAt: "2025-10-13T10:41:00" },
-        { id: "m3", chatId: "1", senderId: "me", text: "Ок!", createdAt: "2025-10-13T10:42:30" },
-    ],
-    "3": [
-        { id: "m4", chatId: "3", senderId: "u3", text: "Кто на ревью?", createdAt: "2025-10-12T09:15:00" },
-        { id: "m5", chatId: "3", senderId: "u1", text: "Я могу через час", createdAt: "2025-10-12T09:18:00" },
-        { id: "m6", chatId: "3", senderId: "me", text: "Ок, давайте в 12:00", createdAt: "2025-10-12T09:20:00" },
-    ],
+  useEffect(() => {
+    if (!selectedChat || messages.length === 0) return;
+    scrollRef.current?.scrollTo({
+      top: scrollRef.current.scrollHeight,
+      behavior: "smooth",
+    });
+  }, [messages, selectedChat?.id]);
+
+  return (
+    <Paper
+      variant="outlined"
+      sx={{
+        width: { xs: 400, md: 620 },
+        flex: 1,
+        overflow: "hidden",
+        display: "grid",
+        gridTemplateRows: "auto 1fr auto",
+        height: "80vh",
+      }}
+    >
+      <Box
+        sx={{
+          px: 2,
+          py: 2,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          borderBottom: "1px solid rgba(255,255,255,.08)",
+        }}
+      >
+        {selectedChat ? (
+          <Stack
+            direction="row"
+            alignItems="center"
+            spacing={2}
+            onClick={onShowParticipants}
+            sx={{ cursor: "pointer" }}
+          >
+            {(() => {
+              const avatar = getChatAvatar(selectedChat, currentUserId);
+              const hasSrc = "src" in avatar;
+
+              return (
+                <Avatar
+                  {...(hasSrc ? { src: avatar.src } : {})}
+                  alt={avatar.alt}
+                  sx={{ width: 40, height: 40 }}
+                >
+                  {!hasSrc && avatar.initials}
+                </Avatar>
+              );
+            })()}
+
+            <Typography
+              variant="h6"
+              sx={{
+                fontFamily: '"TDAText", "Lato", sans-serif',
+                backgroundImage: "linear-gradient(90deg, #BC57FF, #FF4DCA)",
+                backgroundClip: "text",
+                color: "transparent",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}
+            >
+              {selectedChat.title}
+            </Typography>
+          </Stack>
+        ) : (
+          <Typography variant="h6" sx={{ opacity: 0.6 }}>
+            Select a chat to start
+          </Typography>
+        )}
+
+        {tab === "group" && (
+          <Stack direction="row" spacing={1}>
+            <Button variant="contained">Create Group Chat</Button>
+          </Stack>
+        )}
+      </Box>
+
+      <Box ref={scrollRef} sx={{ p: 2.5, overflow: "auto" }}>
+        {!selectedChat && (
+          <Box
+            sx={{
+              height: "100%",
+              textAlign: "center",
+              alignContent: "center",
+            }}
+          >
+            <Typography>Select a chat to get started</Typography>
+          </Box>
+        )}
+
+        {selectedChat && (
+          <>
+            {messagesLoading && (
+              <Box sx={{ textAlign: "center", opacity: 0.7, mt: 4 }}>
+                Loading messages...
+              </Box>
+            )}
+
+            {!messagesLoading && messagesError && (
+              <Box sx={{ textAlign: "center", opacity: 0.7, mt: 4 }}>
+                {messagesError}
+              </Box>
+            )}
+
+            {!messagesLoading && !messagesError && messages.length === 0 && (
+              <Box sx={{ textAlign: "center", opacity: 0.7, mt: 4 }}>
+                Start the conversation
+              </Box>
+            )}
+
+            {!messagesLoading && !messagesError && messages.length > 0 && (
+              <MessagesList
+                chat={selectedChat}
+                messages={messages}
+                currentUserId={currentUserId}
+              />
+            )}
+          </>
+        )}
+      </Box>
+
+      {selectedChat && typingNotice && (
+        <Box
+          sx={{
+            px: 2.5,
+            py: 1,
+            textAlign: "center",
+            opacity: 0.75,
+            fontStyle: "italic",
+          }}
+        >
+          {typingNotice}
+        </Box>
+      )}
+
+      {selectedChat && <MessageComposer {...composerProps} />}
+    </Paper>
+  );
 };
 
-const initialsFrom = (s: string) =>
-    s.trim().split(/\s+/).slice(0, 2).map(w => w[0]?.toUpperCase() ?? "").join("") || "U";
+const ChatsPage = () => {
+  const {
+    currentUserId,
+    chats,
+    chatsLoading,
+    chatsError,
+    selectedChat,
+    selectedChatId,
+    selectChat,
+    messages,
+    messagesLoading,
+    messagesError,
+    draft,
+    handleDraftChange,
+    sendMessage,
+    isSending,
+    attachment,
+    pickAttachment,
+    clearAttachment,
+    typingNotice,
+    refreshChats,
+    closeConnection,
+  } = useChatManager();
 
-const FALLBACK_USER: User = { id: "unknown", name: "User" };
+  const [tab, setTab] = useState<TabValue>("group");
+  const [query, setQuery] = useState("");
+  const [participantsOpen, setParticipantsOpen] = useState(false);
+  const [participants, setParticipants] = useState<ChatUser[]>([]);
+  const [participantsLoading, setParticipantsLoading] = useState(false);
+  const [participantsError, setParticipantsError] = useState<string | null>(
+    null,
+  );
+  const [leaveLoading, setLeaveLoading] = useState(false);
+  const [leaveError, setLeaveError] = useState<string | null>(null);
 
-const getOtherUser = (chat: Chat, meId: string): User =>
-    chat.participants.find(u => u.id !== meId) ?? chat.participants[0] ?? FALLBACK_USER;
+  const filteredChats = useMemo(() => {
+    const lower = query.toLowerCase();
+    return chats
+      .filter((chat) => chat.type === tab)
+      .filter((chat) => chat.title.toLowerCase().includes(lower));
+  }, [tab, query, chats]);
 
-const getChatAvatar = (chat: Chat, meId: string): { alt: string; initials: string } | { src: string; alt: string; initials: string } => {
-    if (chat.type === "group") {
-        const alt = chat.title || "Group";
-        const initials = initialsFrom(alt);
-        if (chat.groupAvatar && chat.groupAvatar.length > 0) 
-            return { src: chat.groupAvatar, alt, initials };
-        return { alt, initials };
+  const handleSend = () => {
+    void sendMessage();
+  };
+
+  const composerProps: MessageComposerProps = {
+    draft,
+    onDraftChange: handleDraftChange,
+    onSend: handleSend,
+    isSending,
+    attachment,
+    onPickAttachment: pickAttachment,
+    onClearAttachment: clearAttachment,
+  };
+
+  const handleOpenParticipants = useCallback(async () => {
+    if (!selectedChat) return;
+    setParticipantsOpen(true);
+    setParticipantsLoading(true);
+    setParticipantsError(null);
+    setParticipants([]);
+    try {
+      const response =
+        selectedChat.type === "group"
+          ? await chatsService.getGroupChatMembers({ chatId: selectedChat.id })
+          : await chatsService.getDirectChatMembers({ chatId: selectedChat.id });
+      const membersSource = Array.isArray(response?.data?.members)
+        ? response.data.members
+        : Array.isArray(response?.data)
+          ? response.data
+          : [];
+      const normalized = membersSource.map((member: any) =>
+        mapUserFromApi({
+          id: member?.user_id ?? member?.id,
+          name: member?.name ?? member?.username,
+          username: member?.username,
+          avatar: member?.avatar_url ?? member?.avatar,
+          ...member,
+        }),
+      );
+      setParticipants(normalized);
+    } catch (err) {
+      console.error("Failed to load participants", err);
+      setParticipantsError("Failed to load participants");
+    } finally {
+      setParticipantsLoading(false);
     }
-    const other = getOtherUser(chat, meId);
-    const alt = other.name || other.nickname || "User";
-    const initials = initialsFrom(alt);
-    if (other.avatar && other.avatar.length > 0) 
-        return { src: other.avatar, alt, initials };
-    return { alt, initials };
-};
+  }, [selectedChat]);
 
+  const handleCloseParticipants = useCallback(() => {
+    setParticipantsOpen(false);
+  }, []);
 
-const sameDay = (a: Date, b: Date) =>
-    a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
-
-const  ChatsPage = () => {
-    const [tab, setTab] = useState<"personal" | "group">("personal");
-    const [query, setQuery] = useState("");
-    const [selectedId, setSelectedId] = useState<string | null>(null);
-    const [message, setMessage] = useState("");
-    const [file, setFile] = useState<File | null>(null);
-    const fileInputRef = useRef<HTMLInputElement | null>(null);
-
-    const filtered = useMemo(() => {
-        return chats
-        .filter(c => c.type === tab)
-        .filter(c => c.title.toLowerCase().includes(query.toLowerCase()));
-    }, [tab, query]);
-
-    const selected = useMemo(() => chats.find(c => c.id === selectedId) || null, [selectedId]);
-
-    const scrollRef = useRef<HTMLDivElement | null>(null);
-    useEffect(() => {
-        scrollRef.current?.scrollTo({ top: 1e9 });
-    }, [selectedId]);
-
-    const handleSend = () => {
-        if (!selected) 
-            return;
-        if (!message.trim() && !file) 
-            return;
-        setMessage("");
-        setFile(null);
-        scrollRef.current?.scrollTo({ top: 1e9, behavior: "smooth" });
-    };
-
-    const onPickFile = (e: ChangeEvent<HTMLInputElement>) => {
-        const f = e.target.files?.[0];
-        if (f) 
-            setFile(f);
-    };
+  const handleLeaveChat = useCallback(async () => {
+    if (!selectedChat) return;
+    setLeaveLoading(true);
+    setLeaveError(null);
+    try {
+      await chatsService.leaveChat(selectedChat.id, selectedChat.type);
+      setParticipantsOpen(false);
+      closeConnection();
+      await refreshChats({ silent: true });
+    } catch (err) {
+      console.error("Failed to leave chat", err);
+      setLeaveError("Failed to leave chat");
+    } finally {
+      setLeaveLoading(false);
+    }
+  }, [selectedChat, refreshChats, closeConnection]);
 
   return (
     <BaseLayout>
-        <Stack direction="row" spacing={3}>
-            <Paper
-                variant="outlined"
-                sx={{
-                    width: { xs: 320, md: 400 },
-                    height: "80vh",
-                    overflow: "hidden"
-                }}
-            >
-                <Box 
-                    sx={{
-                        borderBottom: "1px solid rgba(255,255,255,.08)"
-                    }}
-                >
-                    <Tabs
-                        value={tab}
-                        onChange={(_, v: "personal" | "group") => setTab(v)}
-                        variant="fullWidth"
-                        sx={{
-                            "& .MuiTabs-indicator": { display: "none" },
-                            "& .MuiTab-root": {
-                                color: "#fff",
-                                textTransform: "none",
-                                fontWeight: 600,
-                                borderRight: "1px solid rgba(255,255,255,.08)",
-                                "&:last-of-type": { borderRight: "none" },
-                                "&.Mui-selected": {
-                                    color: "#fff",
-                                    bgcolor: "#733E97",
-                                },
-                            },
-                        }}
-                    >
-                        <Tab value="personal" label="Личные" />
-                        <Tab value="group" label="Групповые" />
-                    </Tabs>
-                </Box>
+      <Stack direction="row" spacing={3}>
+        <ChatSidebar
+          tab={tab}
+          onTabChange={setTab}
+          query={query}
+          onQueryChange={setQuery}
+          chats={filteredChats}
+          chatsLoading={chatsLoading}
+          chatsError={chatsError}
+          selectedChatId={selectedChatId}
+          onSelectChat={selectChat}
+          currentUserId={currentUserId}
+        />
 
-                <Box sx={{ p: 2 }}>
-                    <TextField
-                        fullWidth
-                        size="small"
-                        placeholder="Поиск по чатам"
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                        slotProps={{
-                            input: {
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <SearchIcon fontSize="small" sx={{ color: "#fff" }} />
-                                </InputAdornment>
-                            ),
-                            endAdornment: query ? (
-                                <InputAdornment position="end">
-                                    <IconButton
-                                        aria-label="Очистить"
-                                        onClick={() => setQuery("")}
-                                        size="small"
-                                        sx={{ color: "#fff" }}
-                                    >
-                                        <ClearIcon fontSize="small" />
-                                    </IconButton>
-                                </InputAdornment>
-                            ) : undefined,
-                            },
-                        }}
-                        sx={{
-                            "& .MuiInputBase-root": { bgcolor: "#181818", borderRadius: 3 },
-                        }}
-                    />
-                </Box>
+        <ChatWindow
+          currentUserId={currentUserId}
+          selectedChat={selectedChat}
+          tab={tab}
+          messages={messages}
+          messagesLoading={messagesLoading}
+          messagesError={messagesError}
+          typingNotice={typingNotice}
+          composerProps={composerProps}
+          onShowParticipants={handleOpenParticipants}
+        />
 
-                <Divider sx={{ borderColor: "rgba(255,255,255,.08)" }} />
+        <Dialog
+          open={participantsOpen}
+          onClose={handleCloseParticipants}
+          fullWidth
+          maxWidth="xs"
+        >
+          <DialogTitle>Chat participants</DialogTitle>
+          <DialogContent dividers>
+            {participantsLoading && (
+              <Box sx={{ textAlign: "center", py: 4 }}>
+                <CircularProgress size={24} />
+              </Box>
+            )}
 
-                <Box>
-                    <List disablePadding>
-                        {filtered.map((c) => {
-                        const av = getChatAvatar(c, currentUserId);
-                        const hasSrc = "src" in av;
+            {!participantsLoading && participantsError && (
+              <Typography sx={{ textAlign: "center", opacity: 0.8 }}>
+                {participantsError}
+              </Typography>
+            )}
 
-                        return (
-                            <ListItem
-                                key={c.id}
-                                disablePadding
-                                sx={{ "&:not(:last-of-type) .MuiListItemButton-root": { borderBottom: "1px solid rgba(255,255,255,.08)" } }}
+            {!participantsLoading &&
+              !participantsError &&
+              participants.length === 0 && (
+                <Typography sx={{ textAlign: "center", opacity: 0.8 }}>
+                  No participants
+                </Typography>
+              )}
+
+            {!participantsLoading &&
+              !participantsError &&
+              participants.length > 0 && (
+                <List disablePadding>
+                  {participants.map((user) => {
+                    const displayName = user.nickname || user.name || "User";
+                    const initials = initialsFrom(displayName);
+                    return (
+                      <ListItem key={user.id} disablePadding>
+                        <ListItemButton disableRipple>
+                          <ListItemAvatar>
+                            <Avatar
+                              {...(user.avatar ? { src: user.avatar } : {})}
+                              alt={displayName}
                             >
-                            <ListItemButton
-                                selected={selectedId === c.id}
-                                onClick={() => setSelectedId(c.id)}
-                                sx={{
-                                    alignItems: "flex-start",
-                                    gap: 1.25,
-                                    "&.Mui-selected": { bgcolor: alpha("#BC57FF", 0.08) },
-                                }}
-                            >
-                                <ListItemAvatar sx={{ alignSelf: "center" }}>
-                                <Badge
-                                    overlap="circular"
-                                    badgeContent={c.unread || 0}
-                                    invisible={!c.unread}
-                                    sx={{ "& .MuiBadge-badge": { bgcolor: "#FF4DCA" } }}
-                                >
-                                    <Avatar {...(hasSrc ? { src: av.src } : {})} alt={av.alt} sx={{ width: 40, height: 40 }}>
-                                        {!hasSrc && av.initials}
-                                    </Avatar>
-                                </Badge>
-                                </ListItemAvatar>
+                              {!user.avatar && initials}
+                            </Avatar>
+                          </ListItemAvatar>
+                          <ListItemText
+                            primary={displayName}
+                            secondary={user.name && user.name !== displayName ? user.name : undefined}
+                          />
+                        </ListItemButton>
+                      </ListItem>
+                    );
+                  })}
+                </List>
+              )}
 
-                                <ListItemText
-                                    primary={c.title}
-                                    secondary={<Typography component="span" sx={{ opacity: 0.8, fontSize: 13 }}>{c.lastMessage || "Без сообщений"}</Typography>}
-                                    slotProps={{
-                                        primary: { sx: { fontWeight: 700 } },
-                                        secondary: { sx: { color: alpha("#fff", 0.75) } },
-                                    }}
-                                />
+            {leaveError && (
+              <Typography
+                color="error"
+                variant="body2"
+                sx={{ mt: 2, textAlign: "center" }}
+              >
+                {leaveError}
+              </Typography>
+            )}
 
-                                <Typography variant="caption" sx={{ opacity: 0.7, mt: 0.8 }}>{c.time}</Typography>
-                            </ListItemButton>
-                            </ListItem>
-                            );
-                        })}
-
-                        {filtered.length === 0 && <Box sx={{ p: 3, textAlign: "center", opacity: 0.7 }}>Ничего не найдено</Box>}
-                    </List>
-                </Box>
-            </Paper>
-
-            <Paper
-                variant="outlined"
-                sx={{
-                    width: { xs: 400, md: 620 },
-                    flex: 1,
-                    overflow: "hidden",
-                    display: "grid",
-                    gridTemplateRows: "auto 1fr auto",
-                }}
-            >
-
-                <Box
-                    sx={{
-                        px: 2, py: 2, display: "flex", alignItems: "center", justifyContent: "space-between",
-                        borderBottom: "1px solid rgba(255,255,255,.08)",
-                    }}
-                >
-                    {selected && (
-                        <Stack direction="row" alignItems="center" spacing={2}>
-                            {(() => {
-                                const av = getChatAvatar(selected, currentUserId);
-                                const hasSrc = "src" in av;
-
-                                return (
-                                <Avatar
-                                    {...(hasSrc ? { src: av.src } : {})}
-                                    alt={av.alt}
-                                    sx={{ width: 40, height: 40 }}
-                                >
-                                    {!hasSrc && av.initials}
-                                </Avatar>
-                                );
-                            })()}
-
-                            <Typography
-                                variant="h6"
-                                sx={{
-                                    fontFamily: '"TDAText", "Lato", sans-serif',
-                                    backgroundImage: "linear-gradient(90deg, #BC57FF, #FF4DCA)",
-                                    backgroundClip: "text",
-                                    color: "transparent",
-                                    WebkitBackgroundClip: "text",
-                                    WebkitTextFillColor: "transparent",
-                                }}
-                            >
-                                {selected.title}
-                            </Typography>
-                        </Stack>
-                    )}
-
-                    {tab === "group" && (
-                        <Stack direction="row" spacing={1}>
-                            <Button
-                                variant="contained"
-                            >
-                                Вступить в чат
-                            </Button>
-                        </Stack>
-                    )}
-                </Box>
-
-                <Box
-                    ref={scrollRef}
-                    sx={{
-                        p: 2.5, 
-                        overflow: "auto",
-                    }}
-                >
-                    {!selected && (
-                        <Box sx={{ height:"100%", textAlign: "center", alignContent: "center" }}>
-                            <Typography>Выберите чат слева</Typography>
-                        </Box>
-                    )}
-
-                    {selected && (
-                        <MessagesList
-                            chat={selected}
-                            messages={messagesByChat[selected.id] || []}
-                            currentUserId={currentUserId}
-                        />
-                    )}
-                </Box>
-
-                <Box sx={{ px: 2, py: 2, borderTop: "1px solid rgba(255,255,255,.08)" }}>
-                    {file && (
-                        <Box sx={{ mb: 2 }}>
-                            <Chip
-                                label={file.name}
-                                onDelete={() => setFile(null)}
-                                deleteIcon={<CloseIcon />}
-                                sx={{ bgcolor: alpha("#fff", 0.08), color: "#fff" }}
-                            />
-                        </Box>
-                    )}
-
-                    <Stack direction="row" spacing={ 2 } alignItems="flex-end">
-                        <IconButton
-                            aria-label="Прикрепить файл"
-                            sx={{ color: "#fff", height: 44, width: 20 }}
-                            onClick={() => fileInputRef.current?.click()}
-                        >
-                            <AttachFileIcon />
-                        </IconButton>
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            style={{ display: "none" }}
-                            onChange={onPickFile}
-                        />
-
-                        <TextField
-                            fullWidth
-                            size="small"
-                            placeholder="Введите сообщение"
-                            value={message}
-                            onChange={(e) => setMessage(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === "Enter" && !e.shiftKey) {
-                                e.preventDefault();
-                                handleSend();
-                                }
-                            }}
-                            multiline
-                            minRows={1}
-                            maxRows={4}
-                            sx={{
-                                "& .MuiInputBase-root": { bgcolor: "#181818", borderRadius: 3, minHeight: 44,},
-                                "& fieldset": { borderColor: alpha("#fff", 0.16) },
-                            }}
-                        />
-                        <Button
-                            variant="contained"
-                            onClick={handleSend}
-                            endIcon={<SendIcon />}
-                            sx={{ height: 44, width: 44, "& .MuiButton-endIcon": { m: 0 } }}
-                        >
-                        </Button>
-                    </Stack>
-                </Box>
-            </Paper>
-        </Stack>
+            <Box sx={{ mt: 3 }}>
+              <Button
+                fullWidth
+                color="error"
+                variant="contained"
+                onClick={handleLeaveChat}
+                disabled={leaveLoading}
+              >
+                {leaveLoading ? "Leaving..." : "Leave chat"}
+              </Button>
+            </Box>
+          </DialogContent>
+        </Dialog>
+      </Stack>
     </BaseLayout>
   );
-}
+};
 
 export default ChatsPage;

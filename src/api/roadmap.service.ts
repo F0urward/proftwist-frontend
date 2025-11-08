@@ -17,4 +17,14 @@ export const roadmapService = {
       throw e;
     }
   },
+  async updateGraph(
+    roadmapId: string,
+    payload: { nodes: any[]; edges: any[] },
+  ): Promise<void> {
+    try {
+      await api.put(`/roadmaps/${roadmapId}`, payload);
+    } catch (e: any) {
+      throw e;
+    }
+  },
 };
