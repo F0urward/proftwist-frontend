@@ -1,10 +1,14 @@
-﻿import { useMemo, useState, useRef, useEffect, ChangeEvent } from "react";
+import { useMemo, useState, useRef, useEffect, ChangeEvent, useCallback } from "react";
 import {
   Avatar,
   Badge,
   Box,
   Button,
   Chip,
+  CircularProgress,
+  Dialog,
+  DialogContent,
+  DialogTitle,
   Divider,
   IconButton,
   InputAdornment,
@@ -29,8 +33,9 @@ import { alpha } from "@mui/material/styles";
 import BaseLayout from "../components/BaseLayout/BaseLayout";
 import MessagesList from "../components/MessageList/MessageList";
 import { useChatManager } from "../hooks/useChatManager";
-import { getChatAvatar } from "../utils/chat-utils";
-import type { Chat, ChatMessage } from "../types/chat";
+import { getChatAvatar, mapUserFromApi, initialsFrom } from "../utils/chat-utils";
+import { chatsService } from "../api";
+import type { Chat, ChatMessage, ChatUser } from "../types/chat";
 
 type TabValue = "personal" | "group";
 
@@ -66,6 +71,7 @@ type ChatWindowProps = {
   messagesError: string | null;
   typingNotice: string | null;
   composerProps: MessageComposerProps;
+  onShowParticipants: () => void;
 };
 
 const ChatListItem = ({
@@ -349,6 +355,7 @@ const ChatWindow = ({
   messagesError,
   typingNotice,
   composerProps,
+  onShowParticipants,
 }: ChatWindowProps) => {
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
@@ -383,7 +390,13 @@ const ChatWindow = ({
         }}
       >
         {selectedChat ? (
-          <Stack direction="row" alignItems="center" spacing={2}>
+          <Stack
+            direction="row"
+            alignItems="center"
+            spacing={2}
+            onClick={onShowParticipants}
+            sx={{ cursor: "pointer" }}
+          >
             {(() => {
               const avatar = getChatAvatar(selectedChat, currentUserId);
               const hasSrc = "src" in avatar;
@@ -421,7 +434,6 @@ const ChatWindow = ({
 
         {tab === "group" && (
           <Stack direction="row" spacing={1}>
-            <Button variant="contained">Add Member</Button>
             <Button variant="contained">Create Group Chat</Button>
           </Stack>
         )}
@@ -514,6 +526,12 @@ const ChatsPage = () => {
 
   const [tab, setTab] = useState<TabValue>("group");
   const [query, setQuery] = useState("");
+  const [participantsOpen, setParticipantsOpen] = useState(false);
+  const [participants, setParticipants] = useState<ChatUser[]>([]);
+  const [participantsLoading, setParticipantsLoading] = useState(false);
+  const [participantsError, setParticipantsError] = useState<string | null>(
+    null,
+  );
 
   const filteredChats = useMemo(() => {
     const lower = query.toLowerCase();
@@ -535,6 +553,44 @@ const ChatsPage = () => {
     onPickAttachment: pickAttachment,
     onClearAttachment: clearAttachment,
   };
+
+  const handleOpenParticipants = useCallback(async () => {
+    if (!selectedChat) return;
+    setParticipantsOpen(true);
+    setParticipantsLoading(true);
+    setParticipantsError(null);
+    setParticipants([]);
+    try {
+      const response =
+        selectedChat.type === "group"
+          ? await chatsService.getGroupChatMembers({ chatId: selectedChat.id })
+          : await chatsService.getDirectChatMembers({ chatId: selectedChat.id });
+      const membersSource = Array.isArray(response?.data?.members)
+        ? response.data.members
+        : Array.isArray(response?.data)
+          ? response.data
+          : [];
+      const normalized = membersSource.map((member: any) =>
+        mapUserFromApi({
+          id: member?.user_id ?? member?.id,
+          name: member?.name ?? member?.username,
+          username: member?.username,
+          avatar: member?.avatar_url ?? member?.avatar,
+          ...member,
+        }),
+      );
+      setParticipants(normalized);
+    } catch (err) {
+      console.error("Failed to load participants", err);
+      setParticipantsError("Failed to load participants");
+    } finally {
+      setParticipantsLoading(false);
+    }
+  }, [selectedChat]);
+
+  const handleCloseParticipants = useCallback(() => {
+    setParticipantsOpen(false);
+  }, []);
 
   return (
     <BaseLayout>
@@ -561,7 +617,67 @@ const ChatsPage = () => {
           messagesError={messagesError}
           typingNotice={typingNotice}
           composerProps={composerProps}
+          onShowParticipants={handleOpenParticipants}
         />
+
+        <Dialog
+          open={participantsOpen}
+          onClose={handleCloseParticipants}
+          fullWidth
+          maxWidth="xs"
+        >
+          <DialogTitle>Chat participants</DialogTitle>
+          <DialogContent dividers>
+            {participantsLoading && (
+              <Box sx={{ textAlign: "center", py: 4 }}>
+                <CircularProgress size={24} />
+              </Box>
+            )}
+
+            {!participantsLoading && participantsError && (
+              <Typography sx={{ textAlign: "center", opacity: 0.8 }}>
+                {participantsError}
+              </Typography>
+            )}
+
+            {!participantsLoading &&
+              !participantsError &&
+              participants.length === 0 && (
+                <Typography sx={{ textAlign: "center", opacity: 0.8 }}>
+                  No participants
+                </Typography>
+              )}
+
+            {!participantsLoading &&
+              !participantsError &&
+              participants.length > 0 && (
+                <List disablePadding>
+                  {participants.map((user) => {
+                    const displayName = user.nickname || user.name || "User";
+                    const initials = initialsFrom(displayName);
+                    return (
+                      <ListItem key={user.id} disablePadding>
+                        <ListItemButton disableRipple>
+                          <ListItemAvatar>
+                            <Avatar
+                              {...(user.avatar ? { src: user.avatar } : {})}
+                              alt={displayName}
+                            >
+                              {!user.avatar && initials}
+                            </Avatar>
+                          </ListItemAvatar>
+                          <ListItemText
+                            primary={displayName}
+                            secondary={user.name && user.name !== displayName ? user.name : undefined}
+                          />
+                        </ListItemButton>
+                      </ListItem>
+                    );
+                  })}
+                </List>
+              )}
+          </DialogContent>
+        </Dialog>
       </Stack>
     </BaseLayout>
   );

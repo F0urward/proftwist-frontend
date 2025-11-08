@@ -61,6 +61,12 @@ export const chatsService = {
   listGroupChats: (params?: ListChatsParams) =>
     api.get("/api/v1/group-chats", { params }),
 
+  getGroupChatMembers: ({ chatId }: { chatId: string }) =>
+    api.get(`/api/v1/group-chats/${chatId}/members`),
+
+  getDirectChatMembers: ({ chatId }: { chatId: string }) =>
+    api.get(`/api/v1/direct-chats/${chatId}/members`),
+
   addMember: (chatId: string, payload: ChatMemberPayload) =>
     api.post(`/api/v1/chats/${chatId}/members`, payload),
 
