@@ -98,7 +98,7 @@ const mockRequests: FriendRequest[] = [
     id: "req-01",
     name: "Elena Markova",
     username: "@emarkova",
-    message: "Loved your AI roadmap - let's collaborate!",
+    message: "Очень понравился твой AI-роадмэп — давай сотрудничать!",
     mutualRoadmaps: 2,
     direction: "incoming",
     avatar:
@@ -108,7 +108,7 @@ const mockRequests: FriendRequest[] = [
     id: "req-02",
     name: "Ivan Kuznetsov",
     username: "@ivan_k",
-    message: "Working on ML benchmarks, would love to connect.",
+    message: "Работаю над ML-бенчмарками, буду рад познакомиться.",
     mutualRoadmaps: 1,
     direction: "incoming",
   },
@@ -116,7 +116,7 @@ const mockRequests: FriendRequest[] = [
     id: "req-03",
     name: "Daria Smirnova",
     username: "@daria-sm",
-    message: "Sent an invite yesterday - waiting on approval.",
+    message: "Отправила приглашение вчера — жду подтверждения.",
     mutualRoadmaps: 3,
     direction: "outgoing",
   },
@@ -163,8 +163,8 @@ const FriendsPage = () => {
     name: request.name,
     username: request.username,
     avatar: request.avatar,
-    expertise: "New connection",
-    focus: request.message ?? "Exploring collaboration",
+    expertise: "Новый контакт",
+    focus: request.message ?? "Ищем формат сотрудничества",
     sharedRoadmaps: request.mutualRoadmaps,
     online: false,
     chatId: `chat-${request.id}`,
@@ -207,7 +207,7 @@ const FriendsPage = () => {
           }}
         >
           <Typography variant="h6" sx={{ mb: 1.5, fontWeight: 700 }}>
-            Friends
+            Друзья
           </Typography>
           <Stack spacing={1}>
             <Button
@@ -217,7 +217,7 @@ const FriendsPage = () => {
               onClick={() => setActiveSection("friends")}
               sx={{ justifyContent: "space-between", borderRadius: 3 }}
             >
-              <span>Friend list</span>
+              <span>Список друзей</span>
               <Chip size="small" label={friends.length} />
             </Button>
             <Button
@@ -227,7 +227,7 @@ const FriendsPage = () => {
               onClick={() => setActiveSection("requests")}
               sx={{ justifyContent: "space-between", borderRadius: 3 }}
             >
-              <span>Requests</span>
+              <span>Заявки</span>
               <Badge
                 color="error"
                 badgeContent={incomingRequests.length}
@@ -259,17 +259,17 @@ const FriendsPage = () => {
                 >
                   <Box>
                     <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                      Friend requests
+                      Заявки в друзья
                     </Typography>
                     <Typography sx={{ opacity: 0.7 }}>
-                      Respond to new invites or manage the ones you sent.
+                      Обрабатывайте новые запросы и управляйте отправленными.
                     </Typography>
                   </Box>
                   <Chip
                     label={
                       totalRequests === 0
-                        ? "No pending requests"
-                        : `${totalRequests} pending`
+                        ? "Нет ожидающих заявок"
+                        : `${totalRequests} в ожидании`
                     }
                     color={totalRequests === 0 ? "default" : "warning"}
                     variant="outlined"
@@ -287,9 +287,9 @@ const FriendsPage = () => {
                       bgcolor: "transparent",
                     }}
                   >
-                    <Typography>No requests right now</Typography>
+                    <Typography>Пока нет заявок</Typography>
                     <Typography sx={{ opacity: 0.7 }}>
-                      When someone adds you, it will appear here.
+                      Когда кто-то добавит вас, запрос появится здесь.
                     </Typography>
                   </Paper>
                 ) : (
@@ -297,11 +297,11 @@ const FriendsPage = () => {
                     <Grid item xs={12} md={6}>
                       <Stack spacing={1.5}>
                         <Typography sx={{ fontWeight: 600, opacity: 0.9 }}>
-                          Incoming ({incomingRequests.length})
+                          Входящие ({incomingRequests.length})
                         </Typography>
                         {incomingRequests.length === 0 ? (
                           <Typography sx={{ opacity: 0.6, fontSize: 14 }}>
-                            Nothing to review.
+                            Пока нечего проверять.
                           </Typography>
                         ) : (
                           incomingRequests.map((request) => (
@@ -342,7 +342,7 @@ const FriendsPage = () => {
                                     </Typography>
                                   )}
                                   <Chip
-                                    label={`${request.mutualRoadmaps} mutual roadmaps`}
+                                    label={`${request.mutualRoadmaps} общих роадмэпов`}
                                     size="small"
                                     sx={{ mt: 1 }}
                                   />
@@ -357,14 +357,14 @@ const FriendsPage = () => {
                                   variant="contained"
                                   onClick={() => handleAcceptRequest(request)}
                                 >
-                                  Accept
+                                  Принять
                                 </Button>
                                 <Button
                                   variant="outlined"
                                   color="inherit"
                                   onClick={() => handleDeclineRequest(request.id)}
                                 >
-                                  Decline
+                                  Отклонить
                                 </Button>
                               </Stack>
                             </Paper>
@@ -375,11 +375,11 @@ const FriendsPage = () => {
                     <Grid item xs={12} md={6}>
                       <Stack spacing={1.5}>
                         <Typography sx={{ fontWeight: 600, opacity: 0.9 }}>
-                          Outgoing ({outgoingRequests.length})
+                          Исходящие ({outgoingRequests.length})
                         </Typography>
                         {outgoingRequests.length === 0 ? (
                           <Typography sx={{ opacity: 0.6, fontSize: 14 }}>
-                            No pending invites.
+                            Нет активных приглашений.
                           </Typography>
                         ) : (
                           outgoingRequests.map((request) => (
@@ -420,7 +420,7 @@ const FriendsPage = () => {
                                     </Typography>
                                   )}
                                   <Chip
-                                    label={`${request.mutualRoadmaps} mutual roadmaps`}
+                                    label={`${request.mutualRoadmaps} общих роадмэпов`}
                                     size="small"
                                     sx={{ mt: 1 }}
                                   />
@@ -431,13 +431,13 @@ const FriendsPage = () => {
                                 spacing={1}
                                 sx={{ mt: 2 }}
                               >
-                                <Button
-                                  variant="outlined"
-                                  color="error"
-                                  onClick={() => handleCancelRequest(request.id)}
-                                >
-                                  Cancel request
-                                </Button>
+                            <Button
+                              variant="outlined"
+                              color="error"
+                              onClick={() => handleCancelRequest(request.id)}
+                            >
+                              Отменить заявку
+                            </Button>
                               </Stack>
                             </Paper>
                           ))
@@ -467,21 +467,21 @@ const FriendsPage = () => {
                 >
                   <Box sx={{ flex: 1 }}>
                     <Typography variant="h4" sx={{ fontWeight: 800 }}>
-                      Friends
+                      Друзья
                     </Typography>
                     <Typography sx={{ mt: 1, opacity: 0.8 }}>
-                      Keep track of mentors, teammates, and study buddies. Start a chat,
-                      share a roadmap, or declutter your list when someone is no longer
-                      active.
+                      Отслеживайте наставников, тиммейтов и партнёров по учебе. Начинайте
+                      диалоги, делитесь роадмэпами или очищайте список, когда контакт
+                      становится неактивным.
                     </Typography>
                     <Stack direction="row" spacing={1} sx={{ mt: 2, flexWrap: "wrap" }}>
                       <Chip
-                        label={`${incomingRequests.length} incoming requests`}
+                        label={`${incomingRequests.length} входящих заявок`}
                         color="secondary"
                         variant="outlined"
                       />
                       <Chip
-                        label={`${outgoingRequests.length} pending invites`}
+                        label={`${outgoingRequests.length} ожидающих приглашений`}
                         variant="outlined"
                       />
                     </Stack>
@@ -500,10 +500,10 @@ const FriendsPage = () => {
                     <Typography variant="h3" sx={{ fontWeight: 700 }}>
                       {friends.length}
                     </Typography>
-                    <Typography sx={{ opacity: 0.7 }}>friends</Typography>
+                    <Typography sx={{ opacity: 0.7 }}>друзей</Typography>
                     {totalRequests > 0 && (
                       <Typography sx={{ opacity: 0.7, fontSize: 14 }}>
-                        {totalRequests} open request{totalRequests === 1 ? "" : "s"}
+                        {`${totalRequests} активн${totalRequests === 1 ? "ая заявка" : "ых заявок"}`}
                       </Typography>
                     )}
                   </Box>
@@ -526,12 +526,12 @@ const FriendsPage = () => {
                 >
                   <TextField
                     fullWidth
-                    placeholder="Search by name, nickname, or stack"
+                    placeholder="Поиск по имени, нику или стеку"
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
                   />
                   <Chip
-                    label={`${friends.filter((friend) => friend.online).length} online`}
+                    label={`${friends.filter((friend) => friend.online).length} онлайн`}
                     color="success"
                     variant="outlined"
                   />
@@ -539,7 +539,7 @@ const FriendsPage = () => {
                     label={`${friends.reduce(
                       (acc, friend) => acc + friend.sharedRoadmaps,
                       0,
-                    )} shared roadmaps`}
+                    )} общих роадмэпов`}
                     variant="outlined"
                   />
                 </Stack>
@@ -555,9 +555,9 @@ const FriendsPage = () => {
                     textAlign: "center",
                   }}
                 >
-                  <Typography variant="h6">Nothing matched your search</Typography>
+                  <Typography variant="h6">Ничего не найдено</Typography>
                   <Typography sx={{ opacity: 0.7, mt: 1 }}>
-                    Try a different keyword or clear the search to see the full list.
+                    Попробуйте другой запрос или очистите поиск, чтобы увидеть весь список.
                   </Typography>
                 </Paper>
               ) : (
@@ -601,7 +601,7 @@ const FriendsPage = () => {
                               <Typography variant="h6" sx={{ fontWeight: 700 }}>
                                 {friend.name}
                               </Typography>
-                              <Tooltip title={friend.online ? "Online" : "Offline"} arrow>
+                              <Tooltip title={friend.online ? "В сети" : "Не в сети"} arrow>
                                 <CircleIcon
                                   fontSize="small"
                                   sx={{
@@ -617,7 +617,7 @@ const FriendsPage = () => {
                             color="error"
                             edge="end"
                             onClick={() => setPendingRemoval(friend)}
-                            aria-label={`Remove ${friend.name}`}
+                            aria-label={`Удалить ${friend.name}`}
                           >
                             <DeleteOutlineIcon />
                           </IconButton>
@@ -629,7 +629,7 @@ const FriendsPage = () => {
                           </Typography>
                           <Typography sx={{ opacity: 0.8 }}>{friend.focus}</Typography>
                           <Chip
-                            label={`${friend.sharedRoadmaps} shared roadmaps`}
+                            label={`${friend.sharedRoadmaps} общих роадмэпов`}
                             size="small"
                             variant="outlined"
                             sx={{ alignSelf: "flex-start" }}
@@ -650,7 +650,7 @@ const FriendsPage = () => {
                             onClick={() => handleMessage(friend)}
                             fullWidth
                           >
-                            Write message
+                            Написать сообщение
                           </Button>
                         </Box>
                       </Paper>
@@ -668,18 +668,18 @@ const FriendsPage = () => {
         onClose={() => setPendingRemoval(null)}
         aria-labelledby="remove-friend-title"
       >
-        <DialogTitle id="remove-friend-title">Remove friend</DialogTitle>
+        <DialogTitle id="remove-friend-title">Удалить из друзей</DialogTitle>
         <DialogContent>
           <DialogContentText>
             {pendingRemoval
-              ? `Are you sure you want to remove ${pendingRemoval.name} from your friends list? You can add them again later if you reconnect.`
+              ? `Удалить ${pendingRemoval.name} из списка друзей? При желании сможете добавить этого человека снова.`
               : null}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setPendingRemoval(null)}>Cancel</Button>
+          <Button onClick={() => setPendingRemoval(null)}>Отмена</Button>
           <Button color="error" variant="contained" onClick={handleRemoveFriend}>
-            Remove
+            Удалить
           </Button>
         </DialogActions>
       </Dialog>
