@@ -37,6 +37,7 @@ import SendIcon from "@mui/icons-material/Send";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import CloseIcon from "@mui/icons-material/Close";
 import { alpha } from "@mui/material/styles";
+import { useSearchParams } from "react-router-dom";
 import BaseLayout from "../components/BaseLayout/BaseLayout";
 import MessagesList from "../components/MessageList/MessageList";
 import { useChatManager } from "../hooks/useChatManager";
@@ -531,6 +532,9 @@ const ChatsPage = () => {
     closeConnection,
   } = useChatManager();
 
+  const [searchParams, setSearchParams] = useSearchParams();
+  const chatQueryParam = searchParams.get("chat");
+
   const [tab, setTab] = useState<TabValue>("group");
   const [query, setQuery] = useState("");
   const [participantsOpen, setParticipantsOpen] = useState(false);
@@ -541,6 +545,25 @@ const ChatsPage = () => {
   );
   const [leaveLoading, setLeaveLoading] = useState(false);
   const [leaveError, setLeaveError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!chatQueryParam) return;
+    if (selectedChatId === chatQueryParam) return;
+    const targetChat = chats.find((chat) => chat.id === chatQueryParam);
+    if (!targetChat) return;
+    if (tab !== targetChat.type) {
+      setTab(targetChat.type as TabValue);
+    }
+    selectChat(chatQueryParam);
+  }, [chatQueryParam, chats, selectChat, selectedChatId, tab]);
+
+  useEffect(() => {
+    if (!selectedChatId) return;
+    if (chatQueryParam === selectedChatId) return;
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set("chat", selectedChatId);
+    setSearchParams(nextParams, { replace: true });
+  }, [selectedChatId, chatQueryParam, searchParams, setSearchParams]);
 
   const filteredChats = useMemo(() => {
     const lower = query.toLowerCase();

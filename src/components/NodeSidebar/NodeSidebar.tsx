@@ -17,6 +17,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { East } from "@mui/icons-material";
 import { useAppSelector } from "../../store";
 import { chatsService } from "../../api";
+import { useNavigate } from "react-router-dom";
 
 type NodeSidebarProps = {
   open: boolean;
@@ -33,6 +34,8 @@ type NodeSidebarProps = {
 };
 
 const NodeSidebar = ({ open, onClose, node }: NodeSidebarProps) => {
+  const navigate = useNavigate();
+
   const [tab, setTab] = useState<"materials" | "projects">("materials");
   const isLoggedIn = useAppSelector((state) => state.auth.isLoggedIn);
 
@@ -137,12 +140,58 @@ const NodeSidebar = ({ open, onClose, node }: NodeSidebarProps) => {
                   const chatId =
                     data?.chat_id ?? data?.chatId ?? data?.id ?? data;
                   if (chatId) {
-                    alert(`Chat id: ${chatId}`);
+                    const targetChatId = String(chatId);
+                    const alreadyMemberMessage =
+                      "already a member of this chat";
+                    const normalizeMessage = (
+                      payload: unknown,
+                    ): string | null => {
+                      if (!payload) return null;
+                      if (typeof payload === "string") return payload;
+                      if (typeof payload === "object") {
+                        const record = payload as Record<string, unknown>;
+                        const candidate =
+                          record.message ?? record.error ?? record.detail;
+                        return typeof candidate === "string" ? candidate : null;
+                      }
+                      return null;
+                    };
+                    const isAlreadyMember = (message: string | null) =>
+                      typeof message === "string" &&
+                      message.toLowerCase() === alreadyMemberMessage;
+                    const redirectToChat = () =>
+                      navigate(
+                        `/chats?chat=${encodeURIComponent(targetChatId)}`,
+                      );
+
+                    try {
+                      const res = await chatsService.joinGroupChat(
+                        targetChatId,
+                      );
+                      const responseMessage = normalizeMessage(res?.data);
+                      if (
+                        (res.status >= 200 && res.status < 300) ||
+                        isAlreadyMember(responseMessage)
+                      ) {
+                        redirectToChat();
+                        return;
+                      }
+                      alert("Failed joining chats");
+                    } catch (joinError) {
+                      const alreadyMemberResponse = normalizeMessage(
+                        (joinError as any)?.response?.data,
+                      );
+                      if (isAlreadyMember(alreadyMemberResponse)) {
+                        redirectToChat();
+                        return;
+                      }
+                      throw joinError;
+                    }
                   } else {
                     alert("Chat ID is not available for this node.");
                   }
                 } catch (error) {
-                  console.error("Failed to resolve chat id", error);
+                  console.error("Failed to open chat for this node.", error);
                   alert("Failed to open chat for this node.");
                 }
               }}
