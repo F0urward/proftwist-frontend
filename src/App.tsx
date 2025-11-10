@@ -18,6 +18,7 @@ import MaterialsPage from "./pages/MaterialsPage.tsx";
 import PersonalRoadmapsPage from "./pages/PersonalRoadmapsPage.tsx";
 import ChatsPage from "./pages/ChatsPage.tsx";
 import ProfilePage from "./pages/ProfilePage.tsx";
+import FriendsPage from "./pages/FriendsPage.tsx";
 import PrivateRoute from "./components/PrivateRoute/PrivateRoute.tsx";
 import GuestOnlyRoute from "./components/GuestOnlyRoute/GuestOnlyRoute.tsx";
 import AuthVKCallbackPage from "./pages/AuthVKCallback";
@@ -37,6 +38,7 @@ const App = () => {
                   <Route path="/profile" element={<ProfilePage />} />
                   <Route path="/personal" element={<PersonalRoadmapsPage />} />
                   <Route path="/chats" element={<ChatsPage />} />
+                  <Route path="/friends" element={<FriendsPage />} />
                 </Route>
                 <Route element={<GuestOnlyRoute />}>
                   <Route path="/signup" element={<RegisterPage />} />

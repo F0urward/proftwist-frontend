@@ -127,6 +127,11 @@ const Navbar = () => {
           </Button> 
         }
         { isLoggedIn &&
+          <Button variant="text" component={NavLink} to="/friends">
+            Friends
+          </Button>
+        }
+        { isLoggedIn &&
           <Button variant="text" onClick={() => setIsCreateModalOpen(true)}>
             Создать роадмап
           </Button>
@@ -185,3 +190,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
