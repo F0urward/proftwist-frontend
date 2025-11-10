@@ -545,25 +545,21 @@ const ChatsPage = () => {
   );
   const [leaveLoading, setLeaveLoading] = useState(false);
   const [leaveError, setLeaveError] = useState<string | null>(null);
+  const consumedChatParamRef = useRef(false);
 
   useEffect(() => {
-    if (!chatQueryParam) return;
-    if (selectedChatId === chatQueryParam) return;
+    if (!chatQueryParam || consumedChatParamRef.current) return;
     const targetChat = chats.find((chat) => chat.id === chatQueryParam);
     if (!targetChat) return;
+    consumedChatParamRef.current = true;
     if (tab !== targetChat.type) {
       setTab(targetChat.type as TabValue);
     }
     selectChat(chatQueryParam);
-  }, [chatQueryParam, chats, selectChat, selectedChatId, tab]);
-
-  useEffect(() => {
-    if (!selectedChatId) return;
-    if (chatQueryParam === selectedChatId) return;
     const nextParams = new URLSearchParams(searchParams);
-    nextParams.set("chat", selectedChatId);
+    nextParams.delete("chat");
     setSearchParams(nextParams, { replace: true });
-  }, [selectedChatId, chatQueryParam, searchParams, setSearchParams]);
+  }, [chatQueryParam, chats, selectChat, tab, searchParams, setSearchParams]);
 
   const filteredChats = useMemo(() => {
     const lower = query.toLowerCase();
