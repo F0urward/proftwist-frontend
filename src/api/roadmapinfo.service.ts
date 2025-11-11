@@ -3,7 +3,7 @@ import { RoadmapInfo } from "../types/roadmapinfo";
 
 export const roadmapinfoService = {
   async getAllRoadmapsInfo(): Promise<RoadmapInfo[]> {
-    const { data } = await api.get("/roadmapsinfo");
+    const { data } = await api.get("/roadmapsinfo/public");
     return (data as any).roadmaps_info;
   },
 
@@ -47,6 +47,11 @@ export const roadmapinfoService = {
 
   async getByUser(): Promise<RoadmapInfo[]> {
     const { data } = await api.get("/roadmapsinfo");
+    return (data as any).roadmaps_info ?? data;
+  },
+
+  async getSubscribed(): Promise<RoadmapInfo[]> {
+    const { data } = await api.get("/roadmapsinfo/public/subscribed");
     return (data as any).roadmaps_info ?? data;
   },
 };

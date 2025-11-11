@@ -41,9 +41,10 @@ export const theme = createTheme({
         contained: {
           background: colors.gradientDark,
           border: 0,
-          boxShadow: "none",
           textTransform: "none",
+          fontWeight: 600,
           borderRadius: 10,
+          boxShadow: "none",
           "&:hover": {
             background: colors.gradientLight,
             boxShadow: "none",

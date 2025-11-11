@@ -1,5 +1,5 @@
 import "@xyflow/react/dist/style.css";
-import { Box, Button, Stack, LinearProgress, Typography } from "@mui/material";
+import { Box, Button, Stack, LinearProgress, Typography, Tooltip } from "@mui/material";
 import { ReactFlow } from "@xyflow/react";
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useNavigate, useParams, useLocation, Link as RouterLink } from "react-router-dom";
@@ -13,8 +13,10 @@ import NodeSidebar from "../components/NodeSidebar/NodeSidebar";
 import { RoadmapInfo } from "../types/roadmapinfo";
 import { roadmapinfoService } from "../api/roadmapinfo.service";
 import { roadmapService } from "../api/roadmap.service";
+import BookmarkAddOutlinedIcon from "@mui/icons-material/BookmarkAddOutlined";
+import CallSplitOutlinedIcon from "@mui/icons-material/CallSplitOutlined";
 
-type RoadmapType = "official" | "owned" | "saved";
+type RoadmapType = "public" | "owned" | "saved" | "fork";
 
 const estimateGraphHeight = (nodes: any[], fallback = 100) => {
   if (!nodes.length) return fallback;
@@ -48,14 +50,16 @@ const RoadmapPage = () => {
   const [notFound, setNotFound] = useState(false);
 
   const searchParams = new URLSearchParams(location.search);
-  const routeKind = (location.state as any)?.type as RoadmapType | undefined;
-  const queryKind = (searchParams.get("type") as RoadmapType) || undefined;
-  const type: RoadmapType = routeKind ?? queryKind ?? "official";
 
   const { nodes, edges } = useAppSelector((s: RootState) => s.editor);
   
   const [selectedNode, setSelectedNode] = useState<any | null>(null);
   const closeSidebar = useCallback(() => setSelectedNode(null), []);
+
+  const type: RoadmapType = useMemo(() => {
+    if (!info) return "public";
+    return info.is_public ? "public" : "owned";
+  }, [info]);
 
   useEffect(() => {
     let cancelled = false;
@@ -135,11 +139,24 @@ const RoadmapPage = () => {
   const progress = useMemo(() => getProgress(styledNodes), [styledNodes]);
 
   const HeaderActions = () => {
-    if (type === "official" && isLoggedIn) {
+    if (type === "public" && isLoggedIn) {
       return (
-        <Button variant="contained" onClick={() => navigate(`/personal`)}>
-          Начать изучение
-        </Button>
+        <Stack direction="row" spacing={4} alignItems="center" sx={{ width: "100%" }}>
+          <Stack direction="row" alignItems="center" spacing={0.5}>
+            <Tooltip arrow title="Добавить роадмап в свои закладки, чтобы отслеживать прогресс">
+              <Button variant="contained" onClick={() => navigate(`/personal`)} startIcon={<BookmarkAddOutlinedIcon />}>
+                Сохранить в закладки
+              </Button>
+            </Tooltip>
+          </Stack>
+          <Stack direction="row" alignItems="center" spacing={0.5}>
+            <Tooltip arrow title="Создать копию роадмапа, чтобы редактировать под себя">
+              <Button variant="contained" onClick={() => navigate(`/personal`)} startIcon={<CallSplitOutlinedIcon />}>
+                Сделать форк
+              </Button>
+            </Tooltip>
+          </Stack>
+        </Stack>
       );
     }
     if (type === "owned") {
@@ -191,19 +208,19 @@ const RoadmapPage = () => {
   };
 
   const backLink =
-    type === "official"
+    type === "public"
       ? { to: "/roadmaps", label: "Ко всем роадмапам" }
       : { to: "/personal", label: "К моим роадмапам" };
 
   const titleText = notFound
     ? "Роадмап не найден"
     : (info?.name) ||
-    (type === "official" ? "Официальный роадмап" : type === "owned" ? "Мой роадмап" : "Сохранённый роадмап");
+    (type === "public" ? "Официальный роадмап" : type === "owned" ? "Мой роадмап" : "Сохранённый роадмап");
 
   const subtitleText = notFound
     ? "На странице роадмапов вы точно найдете то, что ищете"
     : (info?.description) ||
-    (type === "official"
+    (type === "public"
       ? "Изучите профессию по проверенному плану"
       : type === "owned"
       ? "Ваш персональный план: можно редактировать и отслеживать прогресс"
