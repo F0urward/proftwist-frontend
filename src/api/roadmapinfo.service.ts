@@ -29,7 +29,7 @@ export const roadmapinfoService = {
                           is_public?: boolean; 
                           referenced_roadmap_info_id?: string | null; 
                         }): Promise<RoadmapInfo> {
-    const { data } = await api.post("/roadmapsinfo", {
+    const { data } = await api.post("/roadmapsinfo/private", {
       ...payload,
       is_public: payload.is_public ?? false,
     });
@@ -53,5 +53,12 @@ export const roadmapinfoService = {
   async getSubscribed(): Promise<RoadmapInfo[]> {
     const { data } = await api.get("/roadmapsinfo/public/subscribed");
     return (data as any).roadmaps_info ?? data;
+  },
+  async subscribe(roadmapInfoId: string): Promise<void> {
+    await api.post(`/roadmapsinfo/public/${roadmapInfoId}/subscribe`);
+  },
+  async fork(roadmapInfoId: string): Promise<RoadmapInfo> {
+    const { data } = await api.post(`/roadmapsinfo/public/${roadmapInfoId}/fork`);
+    return (data as any).roadmap_info ?? data;
   },
 };

@@ -21,7 +21,7 @@ const PersonalRoadmapsPage = () => {
     const navigate = useNavigate();
 
     const categoryNames = useMemo(
-        () => ["Все мои roadmaps", "Сохраненные закладки", "Созданные roadmaps", "Форки", "Опубликованные roadmaps",],
+        () => ["Все мои roadmaps", "Избранное", "Созданные roadmaps", "Форки", "Опубликованные roadmaps",],
         []
     );
 
@@ -49,17 +49,19 @@ const PersonalRoadmapsPage = () => {
                 if (selected === 0) {
                     // All roadmaps
                     data = await roadmapinfoService.getByUser();
+                    let subscribed: RoadmapInfo[] = await roadmapinfoService.getSubscribed();
+                    data = [...data, ...subscribed];
                 } else if (selected === 1) {
                     // Saved
                     data = await roadmapinfoService.getSubscribed();
                 } else if (selected === 2) {
-                    // Created (add check !referenced)
+                    // Created
                     const all = await roadmapinfoService.getByUser();
-                    data = all.filter((r) => !r.is_public);
+                    data = all.filter((r) => !r.is_public && (!r.referenced_roadmap_info_id || r.referenced_roadmap_info_id === ""));
                 } else if (selected === 3) {
-                    // Forks (add check referenced)
+                    // Forks
                     const all = await roadmapinfoService.getByUser();
-                    data = all.filter((r) => !r.is_public);
+                    data = all.filter((r) => !r.is_public && (r.referenced_roadmap_info_id || r.referenced_roadmap_info_id != ""));
                 } else if (selected === 4) {
                     // Published
                     const all = await roadmapinfoService.getByUser();

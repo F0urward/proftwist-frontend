@@ -11,6 +11,8 @@ import { editorSliceActions } from "../../store/slices/editorSlice";
 import { useParams } from "react-router-dom";
 import { roadmapService } from "../../api/roadmap.service";
 
+import { useNotification } from "../Notification/Notification";
+
 interface SidebarProps {
   addNode: (nodeType: "root" | "primary" | "secondary" | "text") => void;
 }
@@ -29,19 +31,7 @@ export const Sidebar = ({ addNode }: SidebarProps) => {
   const nodes = useAppSelector((state: RootState) => state.editor.nodes);
   const edges = useAppSelector((state: RootState) => state.editor.edges);
 
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error" | "info">("info");
-  const handleCloseSnackbar = () => setSnackbarOpen(false);
-
-  const showNotification = (
-    message: string,
-    severity: "success" | "error" | "info" = "info",
-  ) => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
-  };
+  const { showNotification, Notification } = useNotification();
 
   const handleFileChange = () => {
     if (!fileInputRef.current) return;
@@ -60,7 +50,6 @@ export const Sidebar = ({ addNode }: SidebarProps) => {
     };
 
     reader.onerror = () => {
-      // todo: write universal alert for all app's errors and use it here
       showNotification("Error reading file", "error");
     };
 
@@ -165,24 +154,7 @@ export const Sidebar = ({ addNode }: SidebarProps) => {
           accept="application/json,.json"
         />
       </Stack>
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={3000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        <Alert
-          severity={snackbarSeverity}
-          onClose={handleCloseSnackbar}
-          sx={{
-            backgroundColor: "#212121",
-            color: "#fff",
-            "& .MuiAlert-icon": { color: snackbarSeverity === "error" ? "#f44336" : "#BC57FF" },
-          }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
+      { Notification }
     </>
   );
 };

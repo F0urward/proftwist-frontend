@@ -13,8 +13,10 @@ import NodeSidebar from "../components/NodeSidebar/NodeSidebar";
 import { RoadmapInfo } from "../types/roadmapinfo";
 import { roadmapinfoService } from "../api/roadmapinfo.service";
 import { roadmapService } from "../api/roadmap.service";
+import { categoryService } from "../api/category.service";
 import BookmarkAddOutlinedIcon from "@mui/icons-material/BookmarkAddOutlined";
 import CallSplitOutlinedIcon from "@mui/icons-material/CallSplitOutlined";
+import { useNotification } from "../components/Notification/Notification";
 
 type RoadmapType = "public" | "owned" | "saved" | "fork";
 
@@ -50,11 +52,14 @@ const RoadmapPage = () => {
   const [notFound, setNotFound] = useState(false);
 
   const searchParams = new URLSearchParams(location.search);
+  const [categoryName, setCategoryName] = useState<string>("");
 
   const { nodes, edges } = useAppSelector((s: RootState) => s.editor);
   
   const [selectedNode, setSelectedNode] = useState<any | null>(null);
   const closeSidebar = useCallback(() => setSelectedNode(null), []);
+
+  const { showNotification, Notification } = useNotification();
 
   const type: RoadmapType = useMemo(() => {
     if (!info) return "public";
@@ -82,6 +87,21 @@ const RoadmapPage = () => {
     load();
     return () => { cancelled = true; };
   }, [id]);
+
+  useEffect(() => {
+    if (!info?.category_id) return;
+
+    async function loadCategory() {
+      try {
+        const category = await categoryService.getById(info.category_id);;
+        setCategoryName(category.name);
+      } catch (e) {
+        setCategoryName("Без категории");
+      }
+    }
+
+    loadCategory();
+  }, [info?.category_id]);
 
   useEffect(() => {
     const roadmapId = info?.roadmap_id ?? incoming?.roadmap_id;
@@ -135,26 +155,72 @@ const RoadmapPage = () => {
     [nodes]
   );
 
+  const handleSubscribe = async () => {
+    if (!info?.id) return;
+    try {
+      const roadmapInfoId = info.id;
+      await roadmapinfoService.subscribe(roadmapInfoId);
+      showNotification("Roadmap добавлен в избранное!", "success");
+    } catch (e) {
+      showNotification("Не удалось добавить roadmap в избранное", "error");
+    }
+  };
+
+  const handleFork = async () => {
+    if (!info?.id && !info?.id) return;
+    try {
+      const roadmapInfoId = info.id ?? info.id;
+      const newRoadmap = await roadmapinfoService.fork(roadmapInfoId);
+      showNotification("Форк roadmap успешно создан!", "success");
+      navigate(`/roadmaps/${newRoadmap.id}`);
+    } catch (e) {
+      console.error("Ошибка при форке:", e);
+      showNotification("Не удалось сделать форк", "error");
+    }
+  };
+
   const graphHeight = useMemo(() => estimateGraphHeight(styledNodes), [styledNodes]);
   const progress = useMemo(() => getProgress(styledNodes), [styledNodes]);
+
+  const CategoryBadge = () => {
+    if (!categoryName) return null;
+    return (
+      <Box
+        sx={{
+          px: 1.5,
+          py: 0.5,
+          borderRadius: "8px",
+          fontSize: "0.75rem",
+          fontWeight: 600,
+          textTransform: "uppercase",
+          letterSpacing: "0.5px",
+          width: "fit-content",
+          background: "linear-gradient(90deg, #7E57FF, #BC57FF)",
+          color: "#fff",
+          boxShadow: "0 0 10px rgba(188,87,255,0.3)",
+        }}
+      >
+        {categoryName}
+      </Box>
+    );
+  };
 
   const HeaderActions = () => {
     if (type === "public" && isLoggedIn) {
       return (
-        <Stack direction="row" spacing={4} alignItems="center" sx={{ width: "100%" }}>
-          <Stack direction="row" alignItems="center" spacing={0.5}>
-            <Tooltip arrow title="Добавить роадмап в свои закладки, чтобы отслеживать прогресс">
-              <Button variant="contained" onClick={() => navigate(`/personal`)} startIcon={<BookmarkAddOutlinedIcon />}>
-                Сохранить в закладки
-              </Button>
-            </Tooltip>
-          </Stack>
-          <Stack direction="row" alignItems="center" spacing={0.5}>
-            <Tooltip arrow title="Создать копию роадмапа, чтобы редактировать под себя">
-              <Button variant="contained" onClick={() => navigate(`/personal`)} startIcon={<CallSplitOutlinedIcon />}>
-                Сделать форк
-              </Button>
-            </Tooltip>
+        <Stack direction="column" spacing={2} alignItems="center">
+          <CategoryBadge />
+          <Stack direction="row" spacing={4} alignItems="right" sx={{ width: "100%" }}>
+              <Tooltip arrow title="Добавить роадмап в избранное для быстрого доступа и отслеживания прогресса">
+                <Button variant="contained" onClick={handleSubscribe} startIcon={<BookmarkAddOutlinedIcon />}>
+                  Добавить в избранное
+                </Button>
+              </Tooltip>
+              <Tooltip arrow title="Создать копию роадмапа, чтобы редактировать под себя">
+                <Button variant="contained" onClick={handleFork} startIcon={<CallSplitOutlinedIcon />}>
+                  Сделать форк
+                </Button>
+              </Tooltip>
           </Stack>
         </Stack>
       );
@@ -290,6 +356,7 @@ const RoadmapPage = () => {
         )}
         <NodeSidebar open={!!selectedNode} node={selectedNode} onClose={closeSidebar} />
       </Box>
+      { Notification }
     </BaseLayout>
   );
 };

@@ -19,7 +19,6 @@ const CreateRoadmapInfoModal = ({ open, onClose }: Props) => {
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
-    const [isPublic, setIsPublic] = useState(false);
 
     useEffect(() => {
         if (open) {
@@ -48,7 +47,7 @@ const CreateRoadmapInfoModal = ({ open, onClose }: Props) => {
                 category_id: categoryId,
                 name,
                 description,
-                is_public: isPublic,
+                is_public: false,
             });
 
             onClose();
@@ -114,26 +113,6 @@ const CreateRoadmapInfoModal = ({ open, onClose }: Props) => {
                         fullWidth
                         multiline
                         rows={3}
-                    />
-
-                    <FormControlLabel
-                        control={
-                        <Switch
-                            checked={isPublic}
-                            onChange={(e) => setIsPublic(e.target.checked)}
-                            color="secondary"
-                            sx={{
-                                "& .MuiSwitch-track": {
-                                    backgroundColor: isPublic ? "#FF4DCA" : "#555",
-                                    opacity: 1,
-                                },
-                                "& .MuiSwitch-thumb": {
-                                    color: isPublic ? "secondary" : "#999",
-                                },
-                            }}
-                        />
-                        }
-                        label="Сделать публичным"
                     />
 
                     {error && <div style={{ color: "red", fontSize: 14 }}>{error}</div>}

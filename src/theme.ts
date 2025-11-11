@@ -164,5 +164,22 @@ export const theme = createTheme({
         },
       },
     },
+    MuiTooltip: {
+      styleOverrides: {
+        tooltip: {
+          backgroundColor: "#43244cff",
+          color: "#fff",
+          fontSize: "0.8rem",
+          fontWeight: 500,
+          borderRadius: 10,
+          padding: "8px 12px",
+          textAlign: "center",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+        },
+        arrow: {
+          color: "#43244cff",
+        },
+      },
+    },
   },
 });
