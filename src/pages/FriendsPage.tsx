@@ -462,11 +462,11 @@ const FriendsPage = () => {
                                       {request.message}
                                     </Typography>
                                   )}
-                                  <Chip
+                                  {/* <Chip
                                     label={`${request.mutualRoadmaps} общих роадмэпов`}
                                     size="small"
                                     sx={{ mt: 1 }}
-                                  />
+                                  /> */}
                                 </Box>
                               </Stack>
                               <Stack
@@ -547,14 +547,14 @@ const FriendsPage = () => {
                                         fontSize: 14,
                                       }}
                                     >
-                                      {request.message}
+                                      {/* {request.message} */}
                                     </Typography>
                                   )}
-                                  <Chip
+                                  {/* <Chip
                                     label={`${request.mutualRoadmaps} общих роадмэпов`}
                                     size="small"
                                     sx={{ mt: 1 }}
-                                  />
+                                  /> */}
                                 </Box>
                               </Stack>
                               <Stack
@@ -667,7 +667,7 @@ const FriendsPage = () => {
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
                   />
-                  <Chip
+                  {/* <Chip
                     label={`${friends.filter((friend) => friend.online).length} онлайн`}
                     color="success"
                     variant="outlined"
@@ -678,7 +678,7 @@ const FriendsPage = () => {
                       0,
                     )} общих роадмэпов`}
                     variant="outlined"
-                  />
+                  /> */}
                 </Stack>
               </Paper>
 
@@ -772,7 +772,7 @@ const FriendsPage = () => {
                           </IconButton>
                         </Stack>
 
-                        <Stack spacing={1.5}>
+                        {/* <Stack spacing={1.5}>
                           <Typography sx={{ fontWeight: 600 }}>
                             {friend.expertise}
                           </Typography>
@@ -785,7 +785,7 @@ const FriendsPage = () => {
                             variant="outlined"
                             sx={{ alignSelf: "flex-start" }}
                           />
-                        </Stack>
+                        </Stack> */}
 
                         <Box
                           sx={{
