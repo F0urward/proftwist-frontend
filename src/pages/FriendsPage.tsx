@@ -23,11 +23,7 @@ import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import CircleIcon from "@mui/icons-material/Circle";
 import { useNavigate } from "react-router-dom";
 import BaseLayout from "../components/BaseLayout/BaseLayout";
-import {
-  FriendRequestSummary,
-  friendsService,
-  FriendSummary,
-} from "../api";
+import { FriendRequestSummary, friendsService, FriendSummary } from "../api";
 
 type Friend = {
   id: string;
@@ -103,11 +99,12 @@ const formatUsername = (value?: string) => {
 
 const mapFriendSummary = (friend: FriendSummary): Friend => ({
   id: friend.user_id,
-  name:
-    friend.display_name?.trim().length
-      ? friend.display_name
-      : friend.username ?? "Community member",
-  username: formatUsername(friend.username ?? friend.display_name ?? friend.user_id),
+  name: friend.display_name?.trim().length
+    ? friend.display_name
+    : (friend.username ?? "Community member"),
+  username: formatUsername(
+    friend.username ?? friend.display_name ?? friend.user_id,
+  ),
   avatar: friend.avatar_url,
   expertise: friend.expertise ?? "Curious builder",
   focus: friend.focus ?? "Exploring collaboration opportunities",
@@ -131,14 +128,19 @@ const mapFriendRequestSummary = (
   ];
 
   const name =
-    pickStringField(relatedProfiles, ["display_name", "name"], "Community member") ??
-    "Community member";
+    pickStringField(
+      relatedProfiles,
+      ["display_name", "name"],
+      "Community member",
+    ) ?? "Community member";
   const username =
     pickStringField(relatedProfiles, ["username", "handle"], name) ?? name;
-  const avatar = pickStringField(
-    relatedProfiles,
-    ["avatar_url", "avatar", "photo", "photo_url"],
-  );
+  const avatar = pickStringField(relatedProfiles, [
+    "avatar_url",
+    "avatar",
+    "photo",
+    "photo_url",
+  ]);
   const mutualRoadmaps =
     pickNumberField(
       [raw],
@@ -159,7 +161,6 @@ const mapFriendRequestSummary = (
   };
 };
 
-
 const FriendsPage = () => {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [incomingRequests, setIncomingRequests] = useState<FriendRequest[]>([]);
@@ -174,10 +175,9 @@ const FriendsPage = () => {
 
   const fetchFriendsData = useCallback(async () => {
     try {
-      const [{ data: friendsData }, { data: requestsData }] = await Promise.all([
-        friendsService.listFriends(),
-        friendsService.listFriendRequests(),
-      ]);
+      const [{ data: friendsData }, { data: requestsData }] = await Promise.all(
+        [friendsService.listFriends(), friendsService.listFriendRequests()],
+      );
 
       setFriends(
         (friendsData?.friends ?? []).map((friend) => mapFriendSummary(friend)),
@@ -253,7 +253,9 @@ const FriendsPage = () => {
   const handleAcceptRequest = async (request: FriendRequest) => {
     try {
       await friendsService.acceptFriendRequest(request.id);
-      setIncomingRequests((prev) => prev.filter((item) => item.id !== request.id));
+      setIncomingRequests((prev) =>
+        prev.filter((item) => item.id !== request.id),
+      );
       await fetchFriendsData();
     } catch (error) {
       console.error("Failed to accept friend request", error);
@@ -263,7 +265,9 @@ const FriendsPage = () => {
   const handleDeclineRequest = async (requestId: string) => {
     try {
       await friendsService.deleteFriendRequest(requestId);
-      setIncomingRequests((prev) => prev.filter((item) => item.id !== requestId));
+      setIncomingRequests((prev) =>
+        prev.filter((item) => item.id !== requestId),
+      );
     } catch (error) {
       console.error("Failed to decline friend request", error);
     }
@@ -272,7 +276,9 @@ const FriendsPage = () => {
   const handleCancelRequest = async (requestId: string) => {
     try {
       await friendsService.deleteFriendRequest(requestId);
-      setOutgoingRequests((prev) => prev.filter((item) => item.id !== requestId));
+      setOutgoingRequests((prev) =>
+        prev.filter((item) => item.id !== requestId),
+      );
     } catch (error) {
       console.error("Failed to cancel friend request", error);
     }
@@ -405,7 +411,7 @@ const FriendsPage = () => {
                     </Typography>
                   </Paper>
                 ) : (
-                  <Grid container spacing={2}>
+                  <Grid container columns={2} direction="column" spacing={2}>
                     <Grid item xs={12} md={6}>
                       <Stack spacing={1.5}>
                         <Typography sx={{ fontWeight: 600, opacity: 0.9 }}>
@@ -426,7 +432,11 @@ const FriendsPage = () => {
                                 p: 2,
                               }}
                             >
-                              <Stack direction="row" spacing={2} alignItems="center">
+                              <Stack
+                                direction="row"
+                                spacing={2}
+                                alignItems="center"
+                              >
                                 <Avatar
                                   src={request.avatar}
                                   alt={request.name}
@@ -448,7 +458,11 @@ const FriendsPage = () => {
                                   </Typography>
                                   {request.message && (
                                     <Typography
-                                      sx={{ mt: 0.5, opacity: 0.7, fontSize: 14 }}
+                                      sx={{
+                                        mt: 0.5,
+                                        opacity: 0.7,
+                                        fontSize: 14,
+                                      }}
                                     >
                                       {request.message}
                                     </Typography>
@@ -474,7 +488,9 @@ const FriendsPage = () => {
                                 <Button
                                   variant="outlined"
                                   color="inherit"
-                                  onClick={() => handleDeclineRequest(request.id)}
+                                  onClick={() =>
+                                    handleDeclineRequest(request.id)
+                                  }
                                 >
                                   Отклонить
                                 </Button>
@@ -504,7 +520,11 @@ const FriendsPage = () => {
                                 p: 2,
                               }}
                             >
-                              <Stack direction="row" spacing={2} alignItems="center">
+                              <Stack
+                                direction="row"
+                                spacing={2}
+                                alignItems="center"
+                              >
                                 <Avatar
                                   src={request.avatar}
                                   alt={request.name}
@@ -526,7 +546,11 @@ const FriendsPage = () => {
                                   </Typography>
                                   {request.message && (
                                     <Typography
-                                      sx={{ mt: 0.5, opacity: 0.7, fontSize: 14 }}
+                                      sx={{
+                                        mt: 0.5,
+                                        opacity: 0.7,
+                                        fontSize: 14,
+                                      }}
                                     >
                                       {request.message}
                                     </Typography>
@@ -543,13 +567,15 @@ const FriendsPage = () => {
                                 spacing={1}
                                 sx={{ mt: 2 }}
                               >
-                            <Button
-                              variant="outlined"
-                              color="error"
-                              onClick={() => handleCancelRequest(request.id)}
-                            >
-                              Отменить заявку
-                            </Button>
+                                <Button
+                                  variant="outlined"
+                                  color="error"
+                                  onClick={() =>
+                                    handleCancelRequest(request.id)
+                                  }
+                                >
+                                  Отменить заявку
+                                </Button>
                               </Stack>
                             </Paper>
                           ))
@@ -582,11 +608,15 @@ const FriendsPage = () => {
                       Друзья
                     </Typography>
                     <Typography sx={{ mt: 1, opacity: 0.8 }}>
-                      Отслеживайте наставников, тиммейтов и партнёров по учебе. Начинайте
-                      диалоги, делитесь роадмэпами или очищайте список, когда контакт
-                      становится неактивным.
+                      Отслеживайте наставников, тиммейтов и партнёров по учебе.
+                      Начинайте диалоги, делитесь роадмэпами или очищайте
+                      список, когда контакт становится неактивным.
                     </Typography>
-                    <Stack direction="row" spacing={1} sx={{ mt: 2, flexWrap: "wrap" }}>
+                    <Stack
+                      direction="row"
+                      spacing={1}
+                      sx={{ mt: 2, flexWrap: "wrap" }}
+                    >
                       <Chip
                         label={`${incomingRequests.length} входящих заявок`}
                         color="secondary"
@@ -669,7 +699,8 @@ const FriendsPage = () => {
                 >
                   <Typography variant="h6">Ничего не найдено</Typography>
                   <Typography sx={{ opacity: 0.7, mt: 1 }}>
-                    Попробуйте другой запрос или очистите поиск, чтобы увидеть весь список.
+                    Попробуйте другой запрос или очистите поиск, чтобы увидеть
+                    весь список.
                   </Typography>
                 </Paper>
               ) : (
@@ -709,21 +740,32 @@ const FriendsPage = () => {
                               .toUpperCase()}
                           </Avatar>
                           <Box sx={{ flex: 1 }}>
-                            <Stack direction="row" spacing={1} alignItems="center">
+                            <Stack
+                              direction="row"
+                              spacing={1}
+                              alignItems="center"
+                            >
                               <Typography variant="h6" sx={{ fontWeight: 700 }}>
                                 {friend.name}
                               </Typography>
-                              <Tooltip title={friend.online ? "В сети" : "Не в сети"} arrow>
+                              <Tooltip
+                                title={friend.online ? "В сети" : "Не в сети"}
+                                arrow
+                              >
                                 <CircleIcon
                                   fontSize="small"
                                   sx={{
-                                    color: friend.online ? "#4caf50" : "rgba(255,255,255,.4)",
+                                    color: friend.online
+                                      ? "#4caf50"
+                                      : "rgba(255,255,255,.4)",
                                     fontSize: 12,
                                   }}
                                 />
                               </Tooltip>
                             </Stack>
-                            <Typography sx={{ opacity: 0.7 }}>{friend.username}</Typography>
+                            <Typography sx={{ opacity: 0.7 }}>
+                              {friend.username}
+                            </Typography>
                           </Box>
                           <IconButton
                             color="error"
@@ -739,7 +781,9 @@ const FriendsPage = () => {
                           <Typography sx={{ fontWeight: 600 }}>
                             {friend.expertise}
                           </Typography>
-                          <Typography sx={{ opacity: 0.8 }}>{friend.focus}</Typography>
+                          <Typography sx={{ opacity: 0.8 }}>
+                            {friend.focus}
+                          </Typography>
                           <Chip
                             label={`${friend.sharedRoadmaps} общих роадмэпов`}
                             size="small"
@@ -790,7 +834,11 @@ const FriendsPage = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setPendingRemoval(null)}>Отмена</Button>
-          <Button color="error" variant="contained" onClick={handleRemoveFriend}>
+          <Button
+            color="error"
+            variant="contained"
+            onClick={handleRemoveFriend}
+          >
             Удалить
           </Button>
         </DialogActions>
@@ -800,4 +848,3 @@ const FriendsPage = () => {
 };
 
 export default FriendsPage;
-
