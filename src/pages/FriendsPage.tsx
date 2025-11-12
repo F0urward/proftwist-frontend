@@ -329,13 +329,8 @@ const FriendsPage = () => {
               sx={{ justifyContent: "space-between", borderRadius: 3 }}
             >
               <span>Заявки</span>
-              <Badge
-                color="error"
-                badgeContent={incomingRequests.length}
-                invisible={incomingRequests.length === 0}
-              >
-                <Chip size="small" label={totalRequests} />
-              </Badge>
+
+              <Chip size="small" label={totalRequests} />
             </Button>
           </Stack>
         </Paper>
