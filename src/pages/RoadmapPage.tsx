@@ -72,8 +72,6 @@ const RoadmapPage = () => {
     if (!info) return "public";
     if (info.is_public) return "public";
 
-    if (isSubscribed) return "saved";
-
     if (info.referenced_roadmap_info_id && info.referenced_roadmap_info_id !== "") {
       return "fork";
     }
@@ -420,18 +418,6 @@ const RoadmapPage = () => {
               </Button>
             </DialogActions>
           </Dialog>
-        </Stack>
-      );
-    }
-    if (type === "saved") {
-      return (
-        <Stack direction="row" spacing={2} alignItems="center" sx={{ width: "100%" }}>
-          <Stack sx={{ flex: 1 }} spacing={0.5}>
-            <Typography variant="body2" color="text.secondary">
-              Прогресс: {progress.done}/{progress.total} ({progress.percent}%)
-            </Typography>
-            <LinearProgress variant="determinate" value={progress.percent} />
-          </Stack>
         </Stack>
       );
     }
