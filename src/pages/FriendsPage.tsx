@@ -118,13 +118,19 @@ const mapFriendRequestSummary = (
   direction: "incoming" | "outgoing",
 ): FriendRequest => {
   const raw = request as Record<string, unknown>;
+  const fromProfile = asRecord(raw["from_user"]) ?? asRecord(raw["sender"]);
+  const toProfile = asRecord(raw["to_user"]) ?? asRecord(raw["recipient"]);
+  const userProfile = asRecord(raw["user"]);
+  const prioritized =
+    direction === "incoming"
+      ? [fromProfile, userProfile, toProfile]
+      : [toProfile, userProfile, fromProfile];
   const relatedProfiles = [
+    ...prioritized,
+    fromProfile,
+    toProfile,
+    userProfile,
     raw,
-    asRecord(raw["user"]),
-    asRecord(raw["from_user"]),
-    asRecord(raw["to_user"]),
-    asRecord(raw["sender"]),
-    asRecord(raw["recipient"]),
   ];
 
   const name =

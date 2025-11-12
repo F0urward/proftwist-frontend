@@ -17,6 +17,7 @@ import { useEffect, useState } from "react";
 import { checkIfAuthenticated, logout } from "../../store/slices/authSlice";
 import { AccountCircle, Logout } from "@mui/icons-material";
 import CreateRoadmapInfoModal from "../CreateRoadmapsinfoModal/CreateRoadmapsinfoModal";
+import type { User } from "../../types/auth";
 
 interface MenuEntry {
   title: string;
@@ -24,11 +25,29 @@ interface MenuEntry {
   onClick: () => void;
 }
 
+const resolveAvatarUrl = (user?: User | null): string | undefined => {
+  if (!user) return undefined;
+  const candidates = [
+    user.image,
+    (user as User & { avatar_url?: string }).avatar_url,
+    (user as User & { avatar?: string }).avatar,
+  ];
+  for (const candidate of candidates) {
+    if (typeof candidate === "string" && candidate.trim().length > 0) {
+      return candidate;
+    }
+  }
+  return undefined;
+};
+
 const Navbar = () => {
   const isLoggedIn = useAppSelector(
     (state: RootState) => state.auth.isLoggedIn,
   );
   const userData = useAppSelector((state: RootState) => state.auth.user);
+  const avatarUrl = resolveAvatarUrl(userData);
+  const avatarInitial =
+    userData?.username?.trim()?.charAt(0).toUpperCase() ?? "";
 
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -141,11 +160,13 @@ const Navbar = () => {
         {isLoggedIn ? (
           <>
             <Avatar
-              alt={userData ? userData.username.charAt(0).toUpperCase() : ""}
-              src="/static/images/avatar/1.jpg"
+              alt={userData?.username.charAt(0).toUpperCase() || "User avatar"}
+              src={avatarUrl}
               onClick={handleAvatarClick}
               sx={{ cursor: "pointer" }}
-            />
+            >
+              {!avatarUrl && avatarInitial}
+            </Avatar>
             <Menu
               anchorEl={anchorEl}
               keepMounted
