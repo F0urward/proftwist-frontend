@@ -12,6 +12,11 @@ export const roadmapinfoService = {
     return (data as any).roadmaps_info;
   },
 
+  async getByRoadmapId(roadmapId: string): Promise<RoadmapInfo> {
+    const { data } = await api.get(`/roadmapsinfo/roadmap/${roadmapId}`);
+    return data.roadmap_info;
+  },
+
   async getById(roadmapinfoId: string): Promise<RoadmapInfo | null> {
     try {
       const { data } = await api.get(`/roadmapsinfo/${roadmapinfoId}`)
@@ -38,6 +43,15 @@ export const roadmapinfoService = {
     return created as RoadmapInfo;
   },
 
+  async update( roadmapInfoId: string, payload: {category_id?: string;
+                                                  name?: string;
+                                                  description?: string;
+                                                  is_public?: boolean;
+                                                }): Promise<void> {
+    await api.put(`/roadmapsinfo/private/${roadmapInfoId}`, {...payload,});
+  },
+
+
   async updateGraph(roadmapId: string, nodes: any[], edges: any[]): Promise<void> {
     await api.put(`/roadmaps/${roadmapId}`, {
       nodes,
@@ -54,11 +68,31 @@ export const roadmapinfoService = {
     const { data } = await api.get("/roadmapsinfo/public/subscribed");
     return (data as any).roadmaps_info ?? data;
   },
+
   async subscribe(roadmapInfoId: string): Promise<void> {
     await api.post(`/roadmapsinfo/public/${roadmapInfoId}/subscribe`);
   },
+
+  async unsubscribe(roadmapInfoId: string): Promise<void> {
+    await api.delete(`/roadmapsinfo/public/${roadmapInfoId}/unsubscribe`);
+  },
+
+  async checkSubscription(roadmapInfoId: string): Promise<boolean> {
+    const { data } = await api.get(`/roadmapsinfo/public/${roadmapInfoId}/subscription`);
+    return data.is_subscribed ?? data.subscribed ?? false;
+  },
+
   async fork(roadmapInfoId: string): Promise<RoadmapInfo> {
     const { data } = await api.post(`/roadmapsinfo/public/${roadmapInfoId}/fork`);
     return (data as any).roadmap_info ?? data;
   },
+
+  async publish(roadmapInfoId: string): Promise<RoadmapInfo> {
+    const { data } = await api.post(`/roadmapsinfo/private/${roadmapInfoId}/publish`);
+    return (data as any).roadmap_info ?? data;
+  },
+
+  async delete(roadmapInfoId: string): Promise<void> {
+    await api.delete(`/roadmapsinfo/${roadmapInfoId}`);
+  }
 };

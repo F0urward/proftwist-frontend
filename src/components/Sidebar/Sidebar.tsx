@@ -3,13 +3,17 @@ import { Stack, Button, Snackbar, Alert } from "@mui/material";
 import Crop75Icon from "@mui/icons-material/Crop75";
 import TitleIcon from "@mui/icons-material/Title";
 import DownloadIcon from "@mui/icons-material/Download";
+import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import FileUploadIcon from "@mui/icons-material/FileUpload";
 import SaveIcon from "@mui/icons-material/Save";
 import { RootState, useAppDispatch, useAppSelector } from "../../store";
 import { useRef, useState } from "react";
 import { editorSliceActions } from "../../store/slices/editorSlice";
 import { useParams } from "react-router-dom";
+import { useEffect } from "react";
 import { roadmapService } from "../../api/roadmap.service";
+import { useNavigate } from "react-router-dom";
+import { roadmapinfoService } from "../../api/roadmapinfo.service";
 
 import { useNotification } from "../Notification/Notification";
 
@@ -27,11 +31,21 @@ export const Sidebar = ({ addNode }: SidebarProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dispatch = useAppDispatch();
   const { roadmap_id } = useParams();
+  const navigate = useNavigate();
 
   const nodes = useAppSelector((state: RootState) => state.editor.nodes);
   const edges = useAppSelector((state: RootState) => state.editor.edges);
+  const [roadmapInfoId, setRoadmapInfoId] = useState<string | null>(null);
 
   const { showNotification, Notification } = useNotification();
+
+  useEffect(() => {
+    if (!roadmap_id) return;
+    roadmapinfoService
+      .getByRoadmapId(roadmap_id)
+      .then((data) => setRoadmapInfoId(data.id))
+      .catch(() => setRoadmapInfoId(null));
+  }, [roadmap_id]);
 
   const handleFileChange = () => {
     if (!fileInputRef.current) return;
@@ -135,6 +149,22 @@ export const Sidebar = ({ addNode }: SidebarProps) => {
         gap="10px"
         sx={{ width: "300px", padding: "10px", background: "#000", height: "100%" }}
       >
+        { roadmapInfoId &&
+          <Button
+            variant="text"
+            startIcon={<ArrowBackIosNewIcon fontSize="small" />}
+            sx={{
+              mt: 2,
+              textTransform: "none",
+              justifyContent: "flex-start",
+            }}
+            onClick={() => {
+              navigate(`/roadmaps/${roadmapInfoId}`);
+            }}
+          >
+            К просмотру роадмапа
+          </Button>
+        }
         {actions.map(({ Icon, title, handleClick }) => (
           <Button
             key={title}
@@ -145,6 +175,7 @@ export const Sidebar = ({ addNode }: SidebarProps) => {
             {title}
           </Button>
         ))}
+
         <input
           ref={fileInputRef}
           type="file"
