@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Avatar,
   Badge,
@@ -21,8 +21,13 @@ import {
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import CircleIcon from "@mui/icons-material/Circle";
-import BaseLayout from "../components/BaseLayout/BaseLayout";
 import { useNavigate } from "react-router-dom";
+import BaseLayout from "../components/BaseLayout/BaseLayout";
+import {
+  FriendRequestSummary,
+  friendsService,
+  FriendSummary,
+} from "../api";
 
 type Friend = {
   id: string;
@@ -46,96 +51,166 @@ type FriendRequest = {
   direction: "incoming" | "outgoing";
 };
 
-const mockFriends: Friend[] = [
-  {
-    id: "mentor-mira",
-    name: "Mira Pavlova",
-    username: "@miracodes",
-    expertise: "Frontend / React",
-    focus: "Design Systems",
-    sharedRoadmaps: 4,
-    online: true,
-    chatId: "chat-mira",
-    avatar:
-      "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=300&q=80",
-  },
-  {
-    id: "mentor-max",
-    name: "Maxim Volkov",
-    username: "@maxvolkov",
-    expertise: "Backend / Go",
-    focus: "Highload Patterns",
-    sharedRoadmaps: 2,
-    online: false,
-    chatId: "chat-max",
-    avatar:
-      "https://images.unsplash.com/photo-1504593811423-6dd665756598?auto=format&fit=crop&w=300&q=80",
-  },
-  {
-    id: "mentor-sophia",
-    name: "Sofia Ivanova",
-    username: "@sivanova",
-    expertise: "Product / Research",
-    focus: "AI copilots",
-    sharedRoadmaps: 3,
-    online: true,
-    chatId: "chat-sofia",
-  },
-  {
-    id: "mentor-ilya",
-    name: "Ilya Petrov",
-    username: "@ipetrov",
-    expertise: "Data / ML",
-    focus: "Recommendation Systems",
-    sharedRoadmaps: 1,
-    online: false,
-    chatId: "chat-ilya",
-  },
-];
+const asRecord = (value: unknown): Record<string, unknown> | undefined =>
+  typeof value === "object" && value !== null
+    ? (value as Record<string, unknown>)
+    : undefined;
 
-const mockRequests: FriendRequest[] = [
-  {
-    id: "req-01",
-    name: "Elena Markova",
-    username: "@emarkova",
-    message: "Очень понравился твой AI-роадмэп — давай сотрудничать!",
-    mutualRoadmaps: 2,
-    direction: "incoming",
-    avatar:
-      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=300&q=80",
-  },
-  {
-    id: "req-02",
-    name: "Ivan Kuznetsov",
-    username: "@ivan_k",
-    message: "Работаю над ML-бенчмарками, буду рад познакомиться.",
-    mutualRoadmaps: 1,
-    direction: "incoming",
-  },
-  {
-    id: "req-03",
-    name: "Daria Smirnova",
-    username: "@daria-sm",
-    message: "Отправила приглашение вчера — жду подтверждения.",
-    mutualRoadmaps: 3,
-    direction: "outgoing",
-  },
-];
+const pickStringField = (
+  sources: Array<Record<string, unknown> | undefined>,
+  fields: string[],
+  fallback?: string,
+) => {
+  for (const source of sources) {
+    if (!source) continue;
+    for (const field of fields) {
+      const rawValue = source[field];
+      if (typeof rawValue === "string" && rawValue.trim().length > 0) {
+        return rawValue;
+      }
+    }
+  }
+  return fallback;
+};
+
+const pickNumberField = (
+  sources: Array<Record<string, unknown> | undefined>,
+  fields: string[],
+  fallback?: number,
+) => {
+  for (const source of sources) {
+    if (!source) continue;
+    for (const field of fields) {
+      const rawValue = source[field];
+      if (typeof rawValue === "number" && Number.isFinite(rawValue)) {
+        return rawValue;
+      }
+      if (typeof rawValue === "string") {
+        const parsed = Number(rawValue);
+        if (Number.isFinite(parsed)) {
+          return parsed;
+        }
+      }
+    }
+  }
+  return fallback;
+};
+
+const formatUsername = (value?: string) => {
+  if (!value || value.trim().length === 0) return "@friend";
+  return value.startsWith("@") ? value : `@${value}`;
+};
+
+const mapFriendSummary = (friend: FriendSummary): Friend => ({
+  id: friend.user_id,
+  name:
+    friend.display_name?.trim().length
+      ? friend.display_name
+      : friend.username ?? "Community member",
+  username: formatUsername(friend.username ?? friend.display_name ?? friend.user_id),
+  avatar: friend.avatar_url,
+  expertise: friend.expertise ?? "Curious builder",
+  focus: friend.focus ?? "Exploring collaboration opportunities",
+  sharedRoadmaps: friend.shared_roadmaps ?? 0,
+  online: Boolean(friend.online),
+  chatId: friend.chat_id ?? "",
+});
+
+const mapFriendRequestSummary = (
+  request: FriendRequestSummary,
+  direction: "incoming" | "outgoing",
+): FriendRequest => {
+  const raw = request as Record<string, unknown>;
+  const relatedProfiles = [
+    raw,
+    asRecord(raw["user"]),
+    asRecord(raw["from_user"]),
+    asRecord(raw["to_user"]),
+    asRecord(raw["sender"]),
+    asRecord(raw["recipient"]),
+  ];
+
+  const name =
+    pickStringField(relatedProfiles, ["display_name", "name"], "Community member") ??
+    "Community member";
+  const username =
+    pickStringField(relatedProfiles, ["username", "handle"], name) ?? name;
+  const avatar = pickStringField(
+    relatedProfiles,
+    ["avatar_url", "avatar", "photo", "photo_url"],
+  );
+  const mutualRoadmaps =
+    pickNumberField(
+      [raw],
+      ["mutual_roadmaps", "mutualRoadmaps", "shared_roadmaps"],
+      0,
+    ) ?? 0;
+  const message =
+    request.message ?? pickStringField([raw], ["note", "reason", "details"]);
+
+  return {
+    id: request.id,
+    name,
+    username: formatUsername(username),
+    avatar,
+    message,
+    mutualRoadmaps,
+    direction,
+  };
+};
+
 
 const FriendsPage = () => {
-  const [friends, setFriends] = useState<Friend[]>(mockFriends);
-  const [incomingRequests, setIncomingRequests] = useState<FriendRequest[]>(
-    mockRequests.filter((request) => request.direction === "incoming"),
-  );
-  const [outgoingRequests, setOutgoingRequests] = useState<FriendRequest[]>(
-    mockRequests.filter((request) => request.direction === "outgoing"),
-  );
+  const [friends, setFriends] = useState<Friend[]>([]);
+  const [incomingRequests, setIncomingRequests] = useState<FriendRequest[]>([]);
+  const [outgoingRequests, setOutgoingRequests] = useState<FriendRequest[]>([]);
   const [query, setQuery] = useState("");
   const [pendingRemoval, setPendingRemoval] = useState<Friend | null>(null);
   const [activeSection, setActiveSection] = useState<"requests" | "friends">(
     "friends",
   );
   const navigate = useNavigate();
+  const [isBootstrapping, setIsBootstrapping] = useState(true);
+
+  const fetchFriendsData = useCallback(async () => {
+    try {
+      const [{ data: friendsData }, { data: requestsData }] = await Promise.all([
+        friendsService.listFriends(),
+        friendsService.listFriendRequests(),
+      ]);
+
+      setFriends(
+        (friendsData?.friends ?? []).map((friend) => mapFriendSummary(friend)),
+      );
+      setIncomingRequests(
+        (requestsData?.received ?? []).map((request) =>
+          mapFriendRequestSummary(request, "incoming"),
+        ),
+      );
+      setOutgoingRequests(
+        (requestsData?.sent ?? []).map((request) =>
+          mapFriendRequestSummary(request, "outgoing"),
+        ),
+      );
+    } catch (error) {
+      console.error("Failed to load friends data", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        await fetchFriendsData();
+      } finally {
+        if (!cancelled) setIsBootstrapping(false);
+      }
+    };
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchFriendsData]);
 
   const filteredFriends = useMemo(() => {
     const lower = query.toLowerCase().trim();
@@ -148,39 +223,59 @@ const FriendsPage = () => {
     );
   }, [friends, query]);
 
-  const handleRemoveFriend = () => {
+  const handleRemoveFriend = async () => {
     if (!pendingRemoval) return;
-    setFriends((prev) => prev.filter((friend) => friend.id !== pendingRemoval.id));
-    setPendingRemoval(null);
+    try {
+      await friendsService.deleteFriend(pendingRemoval.id);
+      setFriends((prev) =>
+        prev.filter((friend) => friend.id !== pendingRemoval.id),
+      );
+      await fetchFriendsData();
+    } catch (error) {
+      console.error("Failed to remove friend", error);
+    } finally {
+      setPendingRemoval(null);
+    }
   };
 
-  const handleMessage = (friend: Friend) => {
-    navigate(`/chats?chat=${encodeURIComponent(friend.chatId)}`);
+  const handleMessage = async (friend: Friend) => {
+    try {
+      const { data } = await friendsService.createOrGetChat(friend.id);
+      const chatId = data?.chat_id ?? friend.chatId ?? friend.id;
+      navigate(`/chats?chat=${encodeURIComponent(chatId)}`);
+    } catch (error) {
+      console.error("Failed to start chat with friend", error);
+      const fallbackChatId = friend.chatId || friend.id;
+      navigate(`/chats?chat=${encodeURIComponent(fallbackChatId)}`);
+    }
   };
 
-  const buildFriendFromRequest = (request: FriendRequest): Friend => ({
-    id: request.id,
-    name: request.name,
-    username: request.username,
-    avatar: request.avatar,
-    expertise: "Новый контакт",
-    focus: request.message ?? "Ищем формат сотрудничества",
-    sharedRoadmaps: request.mutualRoadmaps,
-    online: false,
-    chatId: `chat-${request.id}`,
-  });
-
-  const handleAcceptRequest = (request: FriendRequest) => {
-    setFriends((prev) => [...prev, buildFriendFromRequest(request)]);
-    setIncomingRequests((prev) => prev.filter((item) => item.id !== request.id));
+  const handleAcceptRequest = async (request: FriendRequest) => {
+    try {
+      await friendsService.acceptFriendRequest(request.id);
+      setIncomingRequests((prev) => prev.filter((item) => item.id !== request.id));
+      await fetchFriendsData();
+    } catch (error) {
+      console.error("Failed to accept friend request", error);
+    }
   };
 
-  const handleDeclineRequest = (requestId: string) => {
-    setIncomingRequests((prev) => prev.filter((item) => item.id !== requestId));
+  const handleDeclineRequest = async (requestId: string) => {
+    try {
+      await friendsService.deleteFriendRequest(requestId);
+      setIncomingRequests((prev) => prev.filter((item) => item.id !== requestId));
+    } catch (error) {
+      console.error("Failed to decline friend request", error);
+    }
   };
 
-  const handleCancelRequest = (requestId: string) => {
-    setOutgoingRequests((prev) => prev.filter((item) => item.id !== requestId));
+  const handleCancelRequest = async (requestId: string) => {
+    try {
+      await friendsService.deleteFriendRequest(requestId);
+      setOutgoingRequests((prev) => prev.filter((item) => item.id !== requestId));
+    } catch (error) {
+      console.error("Failed to cancel friend request", error);
+    }
   };
 
   const totalRequests = incomingRequests.length + outgoingRequests.length;
@@ -240,7 +335,24 @@ const FriendsPage = () => {
         </Paper>
 
         <Stack sx={{ flex: 1 }} spacing={3}>
-          {activeSection === "requests" ? (
+          {isBootstrapping ? (
+            <Paper
+              elevation={0}
+              sx={{
+                p: 3,
+                borderRadius: 4,
+                border: "1px solid rgba(255,255,255,.08)",
+                bgcolor: "rgba(24,24,24,.85)",
+              }}
+            >
+              <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                Loading friends...
+              </Typography>
+              <Typography sx={{ opacity: 0.7 }}>
+                Fetching your friends and requests. One moment.
+              </Typography>
+            </Paper>
+          ) : activeSection === "requests" ? (
             <Paper
               elevation={0}
               sx={{
@@ -688,3 +800,4 @@ const FriendsPage = () => {
 };
 
 export default FriendsPage;
+

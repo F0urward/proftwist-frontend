@@ -46,7 +46,8 @@ import {
   mapUserFromApi,
   initialsFrom,
 } from "../utils/chat-utils";
-import { chatsService } from "../api";
+import { chatsService, friendsService } from "../api";
+import { useAppSelector } from "../store";
 import type { Chat, ChatMessage, ChatUser } from "../types/chat";
 
 type TabValue = "personal" | "group";
@@ -84,6 +85,17 @@ type ChatWindowProps = {
   typingNotice: string | null;
   composerProps: MessageComposerProps;
   onShowParticipants: () => void;
+};
+
+const normalizeUserId = (value: unknown): string | null => {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return String(value);
+  }
+  return null;
 };
 
 const ChatListItem = ({
@@ -531,6 +543,8 @@ const ChatsPage = () => {
     refreshChats,
     closeConnection,
   } = useChatManager();
+  const authUserId = useAppSelector((state) => state.auth.user?.id);
+  const resolvedUserId = authUserId ?? currentUserId;
 
   const [searchParams, setSearchParams] = useSearchParams();
   const chatQueryParam = searchParams.get("chat");
@@ -541,6 +555,13 @@ const ChatsPage = () => {
   const [participants, setParticipants] = useState<ChatUser[]>([]);
   const [participantsLoading, setParticipantsLoading] = useState(false);
   const [participantsError, setParticipantsError] = useState<string | null>(
+    null,
+  );
+  const [addingFriendId, setAddingFriendId] = useState<string | null>(null);
+  const [friendRequestSent, setFriendRequestSent] = useState<
+    Record<string, boolean>
+  >({});
+  const [friendRequestError, setFriendRequestError] = useState<string | null>(
     null,
   );
   const [leaveLoading, setLeaveLoading] = useState(false);
@@ -588,6 +609,9 @@ const ChatsPage = () => {
     setParticipantsLoading(true);
     setParticipantsError(null);
     setParticipants([]);
+    setFriendRequestSent({});
+    setFriendRequestError(null);
+    setAddingFriendId(null);
     try {
       const response =
         selectedChat.type === "group"
@@ -600,15 +624,45 @@ const ChatsPage = () => {
         : Array.isArray(response?.data)
           ? response.data
           : [];
-      const normalized = membersSource.map((member: any) =>
-        mapUserFromApi({
+      const normalized = membersSource.map((member: any) => {
+        const mapped = mapUserFromApi({
           id: member?.user_id ?? member?.id,
           name: member?.name ?? member?.username,
           username: member?.username,
           avatar: member?.avatar_url ?? member?.avatar,
           ...member,
-        }),
-      );
+        });
+
+        const candidateIds = new Set<string>();
+        [
+          member?.user_id,
+          member?.id,
+          member?.uuid,
+          member?.user?.id,
+          member?.user?.user_id,
+          mapped.id,
+        ].forEach((value) => {
+          const normalizedId = normalizeUserId(value);
+          if (normalizedId) candidateIds.add(normalizedId);
+        });
+
+        const isMarkedSelf = Boolean(
+          member?.is_self ??
+            member?.is_current_user ??
+            member?.is_me ??
+            member?.self ??
+            member?.current_user,
+        );
+
+        const isSelf =
+          isMarkedSelf || (resolvedUserId ? candidateIds.has(resolvedUserId) : false);
+
+        return {
+          ...mapped,
+          isCurrentUser: isSelf,
+          originalId: candidateIds.values().next().value ?? mapped.id,
+        };
+      });
       setParticipants(normalized);
     } catch (err) {
       console.error("Failed to load participants", err);
@@ -616,11 +670,38 @@ const ChatsPage = () => {
     } finally {
       setParticipantsLoading(false);
     }
-  }, [selectedChat]);
+  }, [selectedChat, resolvedUserId]);
 
   const handleCloseParticipants = useCallback(() => {
     setParticipantsOpen(false);
   }, []);
+
+  const handleAddFriend = useCallback(
+    async (user: ChatUser) => {
+      const targetId = normalizeUserId(user?.originalId ?? user?.id);
+      const isSelf =
+        user?.isCurrentUser ||
+        (resolvedUserId && targetId === resolvedUserId);
+
+      if (!targetId || isSelf) return;
+
+      setFriendRequestError(null);
+      setAddingFriendId(targetId);
+      try {
+        await friendsService.createFriendRequest({
+          target_user_id: targetId,
+          message: `Hi ${user?.nickname || user?.name || "there"}! Let's connect.`,
+        });
+        setFriendRequestSent((prev) => ({ ...prev, [targetId]: true }));
+      } catch (err) {
+        console.error("Failed to send friend request", err);
+        setFriendRequestError("Failed to send friend request");
+      } finally {
+        setAddingFriendId(null);
+      }
+    },
+    [resolvedUserId],
+  );
 
   const handleLeaveChat = useCallback(async () => {
     if (!selectedChat) return;
@@ -702,9 +783,32 @@ const ChatsPage = () => {
                   {participants.map((user) => {
                     const displayName = user.nickname || user.name || "User";
                     const initials = initialsFrom(displayName);
+                    const participantId = user.originalId ?? user.id;
+                    const normalizedParticipantId =
+                      normalizeUserId(participantId);
+                    const isCurrentUser =
+                      user.isCurrentUser ??
+                      (resolvedUserId && normalizedParticipantId
+                        ? normalizedParticipantId === resolvedUserId
+                        : user.id === currentUserId);
+                    const requestSent = participantId
+                      ? Boolean(friendRequestSent[participantId])
+                      : false;
+                    const isSubmitting = participantId
+                      ? addingFriendId === participantId
+                      : false;
+
                     return (
                       <ListItem key={user.id} disablePadding>
-                        <ListItemButton disableRipple>
+                        <ListItemButton
+                          disableRipple
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 2,
+                            py: 1,
+                          }}
+                        >
                           <ListItemAvatar>
                             <Avatar
                               {...(user.avatar ? { src: user.avatar } : {})}
@@ -720,13 +824,48 @@ const ChatsPage = () => {
                                 ? user.name
                                 : undefined
                             }
+                            sx={{ mr: 1 }}
                           />
+                          {!isCurrentUser && (
+                            <Button
+                              size="small"
+                              variant={requestSent ? "contained" : "outlined"}
+                              color={requestSent ? "success" : "primary"}
+                              disabled={
+                                !participantId || requestSent || isSubmitting
+                              }
+                              onClick={(event) => {
+                                event.preventDefault();
+                                event.stopPropagation();
+                                void handleAddFriend(user);
+                              }}
+                              sx={{ minWidth: 120 }}
+                            >
+                              {isSubmitting ? (
+                                <CircularProgress size={16} />
+                              ) : requestSent ? (
+                                "Request sent"
+                              ) : (
+                                "Add friend"
+                              )}
+                            </Button>
+                          )}
                         </ListItemButton>
                       </ListItem>
                     );
                   })}
                 </List>
               )}
+
+            {friendRequestError && (
+              <Typography
+                color="error"
+                variant="body2"
+                sx={{ mt: 2, textAlign: "center" }}
+              >
+                {friendRequestError}
+              </Typography>
+            )}
 
             {leaveError && (
               <Typography

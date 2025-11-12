@@ -1,8 +1,10 @@
-﻿export type ChatUser = {
+export type ChatUser = {
   id: string;
   name: string;
   nickname?: string;
   avatar?: string;
+  isCurrentUser?: boolean;
+  originalId?: string;
 };
 
 export type Chat = {
