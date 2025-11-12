@@ -3,13 +3,19 @@ import { Stack, Button, Snackbar, Alert } from "@mui/material";
 import Crop75Icon from "@mui/icons-material/Crop75";
 import TitleIcon from "@mui/icons-material/Title";
 import DownloadIcon from "@mui/icons-material/Download";
+import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import FileUploadIcon from "@mui/icons-material/FileUpload";
 import SaveIcon from "@mui/icons-material/Save";
 import { RootState, useAppDispatch, useAppSelector } from "../../store";
 import { useRef, useState } from "react";
 import { editorSliceActions } from "../../store/slices/editorSlice";
 import { useParams } from "react-router-dom";
+import { useEffect } from "react";
 import { roadmapService } from "../../api/roadmap.service";
+import { useNavigate } from "react-router-dom";
+import { roadmapinfoService } from "../../api/roadmapinfo.service";
+
+import { useNotification } from "../Notification/Notification";
 
 interface SidebarProps {
   addNode: (nodeType: "root" | "primary" | "secondary" | "text") => void;
@@ -25,23 +31,21 @@ export const Sidebar = ({ addNode }: SidebarProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dispatch = useAppDispatch();
   const { roadmap_id } = useParams();
+  const navigate = useNavigate();
 
   const nodes = useAppSelector((state: RootState) => state.editor.nodes);
   const edges = useAppSelector((state: RootState) => state.editor.edges);
+  const [roadmapInfoId, setRoadmapInfoId] = useState<string | null>(null);
 
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error" | "info">("info");
-  const handleCloseSnackbar = () => setSnackbarOpen(false);
+  const { showNotification, Notification } = useNotification();
 
-  const showNotification = (
-    message: string,
-    severity: "success" | "error" | "info" = "info",
-  ) => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
-  };
+  useEffect(() => {
+    if (!roadmap_id) return;
+    roadmapinfoService
+      .getByRoadmapId(roadmap_id)
+      .then((data) => setRoadmapInfoId(data.id))
+      .catch(() => setRoadmapInfoId(null));
+  }, [roadmap_id]);
 
   const handleFileChange = () => {
     if (!fileInputRef.current) return;
@@ -60,7 +64,6 @@ export const Sidebar = ({ addNode }: SidebarProps) => {
     };
 
     reader.onerror = () => {
-      // todo: write universal alert for all app's errors and use it here
       showNotification("Error reading file", "error");
     };
 
@@ -146,6 +149,22 @@ export const Sidebar = ({ addNode }: SidebarProps) => {
         gap="10px"
         sx={{ width: "300px", padding: "10px", background: "#000", height: "100%" }}
       >
+        { roadmapInfoId &&
+          <Button
+            variant="text"
+            startIcon={<ArrowBackIosNewIcon fontSize="small" />}
+            sx={{
+              mt: 2,
+              textTransform: "none",
+              justifyContent: "flex-start",
+            }}
+            onClick={() => {
+              navigate(`/roadmaps/${roadmapInfoId}`);
+            }}
+          >
+            К просмотру роадмапа
+          </Button>
+        }
         {actions.map(({ Icon, title, handleClick }) => (
           <Button
             key={title}
@@ -156,6 +175,7 @@ export const Sidebar = ({ addNode }: SidebarProps) => {
             {title}
           </Button>
         ))}
+
         <input
           ref={fileInputRef}
           type="file"
@@ -165,24 +185,7 @@ export const Sidebar = ({ addNode }: SidebarProps) => {
           accept="application/json,.json"
         />
       </Stack>
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={3000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        <Alert
-          severity={snackbarSeverity}
-          onClose={handleCloseSnackbar}
-          sx={{
-            backgroundColor: "#212121",
-            color: "#fff",
-            "& .MuiAlert-icon": { color: snackbarSeverity === "error" ? "#f44336" : "#BC57FF" },
-          }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
+      { Notification }
     </>
   );
 };

@@ -11,7 +11,7 @@ import EmptyState from "../components/EmptyState/EmptyState.tsx";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect, useMemo } from "react";
 
-const STORAGE_KEY = "selectedCategoryId";
+const STORAGE_KEY = "selectedCategoryIndex";
 
 const PersonalRoadmapsPage = () => {
     const [items, setItems] = useState<RoadmapInfo[]>([]);
@@ -21,46 +21,66 @@ const PersonalRoadmapsPage = () => {
     const navigate = useNavigate();
 
     const categoryNames = useMemo(
-        () => ["Все roadmaps", "Созданные roadmaps", "Сохранённые roadmaps"],
+        () => ["Все мои roadmaps", "Избранное", "Созданные roadmaps", "Форки", "Опубликованные roadmaps",],
         []
     );
 
+    useEffect(() => {
+        const savedIndex = localStorage.getItem(STORAGE_KEY);
+        if (savedIndex !== null) {
+            setSelected(parseInt(savedIndex, 10));
+        }
+    }, []);
+
     const handleSelect = (i: number) => {
         setSelected(i);
-        if (i === 0) {
-            localStorage.removeItem(STORAGE_KEY);
-        } else {
-            const id =(categoryNames[i - 1] as any)?.category_id;
-            if (id) localStorage.setItem(STORAGE_KEY, id);
-        }
+        localStorage.setItem(STORAGE_KEY, i.toString());
     };
-
-    const selectedCategoryId = useMemo(() => {
-        if (selected <= 0) return null;
-        const idx = selected - 1;
-        return idx ?? null;
-    }, [selected, categoryNames]);
     
     useEffect(() => {
         if (selected === -1) return;
 
         let cancelled = false;
+
         async function load() {
             try {
-                const data = await roadmapinfoService.getByUser();
+                let data: RoadmapInfo[] = [];
+
+                if (selected === 0) {
+                    // All roadmaps
+                    data = await roadmapinfoService.getByUser();
+                    let subscribed: RoadmapInfo[] = await roadmapinfoService.getSubscribed();
+                    data = [...data, ...subscribed];
+                } else if (selected === 1) {
+                    // Saved
+                    data = await roadmapinfoService.getSubscribed();
+                } else if (selected === 2) {
+                    // Created
+                    const all = await roadmapinfoService.getByUser();
+                    data = all.filter((r) => !r.is_public && (!r.referenced_roadmap_info_id || r.referenced_roadmap_info_id === ""));
+                } else if (selected === 3) {
+                    // Forks
+                    const all = await roadmapinfoService.getByUser();
+                    data = all.filter((r) => !r.is_public && (r.referenced_roadmap_info_id || r.referenced_roadmap_info_id != ""));
+                } else if (selected === 4) {
+                    // Published
+                    const all = await roadmapinfoService.getByUser();
+                    data = all.filter((r) => r.is_public);
+                }
                 if (!cancelled) setItems(data);
             } catch (e) {
-                console.error("Load roadmapsinfo failed:", e);
                 if (!cancelled) setItems([]);
             } finally {
-                if (!cancelled) {
-                    setInitialized(true);
-                }
+                if (!cancelled) setInitialized(true);
             }
         }
+
         load();
-        return () => { cancelled = true; };
-    }, [selectedCategoryId, selected]);
+        return () => {
+            cancelled = true;
+        };
+    }, [selected]);
+
 
     return (
         <BaseLayout>

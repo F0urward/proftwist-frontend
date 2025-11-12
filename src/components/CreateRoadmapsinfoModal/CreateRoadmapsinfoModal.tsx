@@ -5,13 +5,17 @@ import { roadmapinfoService } from "../../api/roadmapinfo.service.ts";
 import { categoryService } from "../../api/category.service.ts";
 import { Category } from "../../types/category.ts";
 import TextInput from "../TextInput/TextInput";
+import { RoadmapInfo } from "../../types/roadmapinfo.ts";
 
 interface Props {
     open: boolean;
     onClose: () => void;
+    mode?: "create" | "edit";
+    roadmapInfo?: RoadmapInfo | null;
+    onSave?: (updated: RoadmapInfo) => void;
 }
 
-const CreateRoadmapInfoModal = ({ open, onClose }: Props) => {
+const CreateRoadmapInfoModal = ({ open, onClose, mode = "create", roadmapInfo, onSave}: Props) => {
     const navigate = useNavigate();
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
@@ -19,7 +23,7 @@ const CreateRoadmapInfoModal = ({ open, onClose }: Props) => {
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
-    const [isPublic, setIsPublic] = useState(false);
+    const isEdit = mode === "edit";
 
     useEffect(() => {
         if (open) {
@@ -29,6 +33,18 @@ const CreateRoadmapInfoModal = ({ open, onClose }: Props) => {
             .catch(() => setCategories([]));
         }
     }, [open]);
+
+    useEffect(() => {
+        if (mode === "edit" && roadmapInfo) {
+            setName(roadmapInfo.name);
+            setDescription(roadmapInfo.description || "");
+            setCategoryId(roadmapInfo.category_id || "");
+        } else {
+            setName("");
+            setDescription("");
+            setCategoryId("");
+        }
+    }, [roadmapInfo, mode]);
 
     const handleSubmit = async () => {
         if (!name.trim()) {
@@ -44,34 +60,52 @@ const CreateRoadmapInfoModal = ({ open, onClose }: Props) => {
         setError("");
 
         try {
-            const newInfo = await roadmapinfoService.create({
-                category_id: categoryId,
-                name,
-                description,
-                is_public: isPublic,
-            });
+            if (mode === "create") {
+                const newInfo = await roadmapinfoService.create({
+                    category_id: categoryId,
+                    name,
+                    description,
+                    is_public: false,
+                });
 
-            onClose();
+                onClose();
 
-            const roadmapId = newInfo.roadmap_id ?? null;
+                const roadmapId = newInfo.roadmap_id ?? null;
 
-            navigate(`/roadmaps/${roadmapId}/edit`, {
-                state: { roadmapInfo: newInfo },
-            });
+                navigate(`/roadmaps/${roadmapId}/edit`, {
+                    state: { roadmapInfo: newInfo },
+                });
+            } else if (mode === "edit") {
+                await roadmapinfoService.update(roadmapInfo.id, {
+                    name,
+                    description,
+                    is_public: false,
+                });
+                const updated = await roadmapinfoService.getById(roadmapInfo.id);
+                if (onSave && updated) {
+                    onSave(updated);
+                }
+                onClose();
+            }
         } catch (e) {
             console.error("Ошибка при создании roadmap:", e);
-            setError("Не удалось создать roadmap");
+            if (isEdit) {
+                setError("Не удалось сохранить изменения о roadmap");
+            } else {
+                setError("Не удалось создать roadmap");
+            }
         } finally {
             setLoading(false);
         }
     };
 
-  return (
+    return (
         <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
             <DialogTitle 
                 variant="h4"
                 sx={{
                     alignSelf: "center",
+                    textAlign: "center",
                     fontFamily: '"TDAText", "Lato", sans-serif',
                     fontWeight: 900,
                     backgroundImage: "linear-gradient(90deg, #BC57FF, #FF4DCA)",
@@ -81,23 +115,25 @@ const CreateRoadmapInfoModal = ({ open, onClose }: Props) => {
                     WebkitTextFillColor: "transparent",
                 }}
             >
-                Создать новый roadmap
+                { isEdit ? "Редактировать информацию о roadmap" : "Создать новый roadmap" }
             </DialogTitle>
             <DialogContent>
                 <Stack spacing={3}>
-                    <TextInput
-                        select
-                        label="Категория"
-                        value={categoryId}
-                        onChange={(e) => setCategoryId(e.target.value)}
-                        required
-                    >
-                        {categories.map((cat) => (
-                        <MenuItem key={cat.category_id} value={cat.category_id}>
-                            {cat.name}
-                        </MenuItem>
-                        ))}
-                    </TextInput>
+                    { !isEdit && 
+                        <TextInput
+                            select
+                            label="Категория"
+                            value={categoryId}
+                            onChange={(e) => setCategoryId(e.target.value)}
+                            required
+                        >
+                            {categories.map((cat) => (
+                            <MenuItem key={cat.category_id} value={cat.category_id}>
+                                {cat.name}
+                            </MenuItem>
+                            ))}
+                        </TextInput>
+                    }
 
                     <TextField
                         label="Название"
@@ -116,26 +152,6 @@ const CreateRoadmapInfoModal = ({ open, onClose }: Props) => {
                         rows={3}
                     />
 
-                    <FormControlLabel
-                        control={
-                        <Switch
-                            checked={isPublic}
-                            onChange={(e) => setIsPublic(e.target.checked)}
-                            color="secondary"
-                            sx={{
-                                "& .MuiSwitch-track": {
-                                    backgroundColor: isPublic ? "#FF4DCA" : "#555",
-                                    opacity: 1,
-                                },
-                                "& .MuiSwitch-thumb": {
-                                    color: isPublic ? "secondary" : "#999",
-                                },
-                            }}
-                        />
-                        }
-                        label="Сделать публичным"
-                    />
-
                     {error && <div style={{ color: "red", fontSize: 14 }}>{error}</div>}
                 </Stack>
             </DialogContent>
@@ -147,7 +163,7 @@ const CreateRoadmapInfoModal = ({ open, onClose }: Props) => {
                     onClick={handleSubmit}
                     disabled={loading}
                 >
-                    {loading ? "Создание..." : "Создать"}
+                    {isEdit ? "Сохранить" : "Создать"}
                 </Button>
             </DialogActions>
         </Dialog>

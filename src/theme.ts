@@ -41,9 +41,10 @@ export const theme = createTheme({
         contained: {
           background: colors.gradientDark,
           border: 0,
-          boxShadow: "none",
           textTransform: "none",
+          fontWeight: 600,
           borderRadius: 10,
+          boxShadow: "none",
           "&:hover": {
             background: colors.gradientLight,
             boxShadow: "none",
@@ -160,6 +161,23 @@ export const theme = createTheme({
         root: {
           padding: "24px",
           paddingTop: 0,
+        },
+      },
+    },
+    MuiTooltip: {
+      styleOverrides: {
+        tooltip: {
+          backgroundColor: "#43244cff",
+          color: "#fff",
+          fontSize: "0.8rem",
+          fontWeight: 500,
+          borderRadius: 10,
+          padding: "8px 12px",
+          textAlign: "center",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+        },
+        arrow: {
+          color: "#43244cff",
         },
       },
     },

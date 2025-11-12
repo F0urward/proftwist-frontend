@@ -47,7 +47,7 @@ const RoadmapsPage = () => {
   }, [categories]);
 
   const categoryNames = useMemo(
-    () => ["Мои roadmaps", ...categories.map((c) => c.name)],
+    () => ["Все roadmaps", ...categories.map((c) => c.name)],
     [categories],
   );
 
