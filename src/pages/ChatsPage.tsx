@@ -525,6 +525,7 @@ const ChatWindow = ({
 };
 
 const ChatsPage = () => {
+  const authUserId = useAppSelector((state) => state.auth.user?.id);
   const {
     currentUserId,
     chats,
@@ -546,8 +547,7 @@ const ChatsPage = () => {
     typingNotice,
     refreshChats,
     closeConnection,
-  } = useChatManager();
-  const authUserId = useAppSelector((state) => state.auth.user?.id);
+  } = useChatManager(authUserId ?? undefined);
   const resolvedUserId = authUserId ?? currentUserId;
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -727,26 +727,26 @@ const ChatsPage = () => {
   return (
     <BaseLayout>
       <Stack direction="row" spacing={3}>
-        <ChatSidebar
-          tab={tab}
-          onTabChange={setTab}
-          query={query}
-          onQueryChange={setQuery}
-          chats={filteredChats}
-          chatsLoading={chatsLoading}
-          chatsError={chatsError}
-          selectedChatId={selectedChatId}
-          onSelectChat={selectChat}
-          currentUserId={currentUserId}
-        />
+          <ChatSidebar
+            tab={tab}
+            onTabChange={setTab}
+            query={query}
+            onQueryChange={setQuery}
+            chats={filteredChats}
+            chatsLoading={chatsLoading}
+            chatsError={chatsError}
+            selectedChatId={selectedChatId}
+            onSelectChat={selectChat}
+            currentUserId={resolvedUserId}
+          />
 
-        <ChatWindow
-          currentUserId={currentUserId}
-          selectedChat={selectedChat}
-          tab={tab}
-          messages={messages}
-          messagesLoading={messagesLoading}
-          messagesError={messagesError}
+          <ChatWindow
+            currentUserId={resolvedUserId}
+            selectedChat={selectedChat}
+            tab={tab}
+            messages={messages}
+            messagesLoading={messagesLoading}
+            messagesError={messagesError}
           typingNotice={typingNotice}
           composerProps={composerProps}
           onShowParticipants={handleOpenParticipants}
@@ -794,7 +794,7 @@ const ChatsPage = () => {
                       user.isCurrentUser ??
                       (resolvedUserId && normalizedParticipantId
                         ? normalizedParticipantId === resolvedUserId
-                        : user.id === currentUserId);
+                        : user.id === resolvedUserId);
                     const requestSent = participantId
                       ? Boolean(friendRequestSent[participantId])
                       : false;

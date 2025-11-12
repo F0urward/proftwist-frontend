@@ -87,7 +87,10 @@ type UseChatManagerResult = {
   closeConnection: () => void;
 };
 
-export const useChatManager = (): UseChatManagerResult => {
+export const useChatManager = (
+  preferredUserId?: string,
+): UseChatManagerResult => {
+  const currentUserId = preferredUserId ?? CURRENT_USER_ID;
   const [chats, setChats] = useState<Chat[]>([]);
   const [chatsLoading, setChatsLoading] = useState(false);
   const [chatsError, setChatsError] = useState<string | null>(null);
@@ -290,10 +293,10 @@ export const useChatManager = (): UseChatManagerResult => {
       const groupChats = extractChatList(groupResponse?.data);
       const normalized = [
         ...directChats.map((item) =>
-          mapChatFromApi(item, CURRENT_USER_ID, "personal"),
+          mapChatFromApi(item, currentUserId, "personal"),
         ),
         ...groupChats.map((item) =>
-          mapChatFromApi(item, CURRENT_USER_ID, "group"),
+          mapChatFromApi(item, currentUserId, "group"),
         ),
       ];
       setChats(normalized);
@@ -306,7 +309,7 @@ export const useChatManager = (): UseChatManagerResult => {
     } finally {
       if (!silent) setChatsLoading(false);
     }
-  }, []);
+  }, [currentUserId, fetchLatestMessagePreview]);
 
   useEffect(() => {
     fetchChats();
@@ -540,7 +543,7 @@ export const useChatManager = (): UseChatManagerResult => {
                 typingPayload?.userId ??
                 typingPayload?.user?.id ??
                 null;
-              if (typingUserId && typingUserId === CURRENT_USER_ID) {
+              if (typingUserId && typingUserId === currentUserId) {
                 return;
               }
 
@@ -628,7 +631,7 @@ export const useChatManager = (): UseChatManagerResult => {
       setWsReady(false);
       setTypingNotice(null);
     };
-  }, [connectRequested, dropMessage, sendWsMessage, commitMessage]);
+  }, [connectRequested, dropMessage, sendWsMessage, commitMessage, currentUserId]);
 
   useEffect(() => {
     const trimmed = draft.trim();
@@ -801,7 +804,7 @@ export const useChatManager = (): UseChatManagerResult => {
   }, []);
 
   return {
-    currentUserId: CURRENT_USER_ID,
+    currentUserId,
     chats,
     chatsLoading,
     chatsError,

@@ -94,6 +94,7 @@ const MessagesList = ({ chat, messages, currentUserId }: Props) => {
           <Stack spacing={1}>
             {items.map((m) => {
               const mine = m.senderId === currentUserId;
+
               const sender = byId.get(m.senderId) ?? FALLBACK_USER;
               const senderAlt = sender.name || sender.nickname || "User";
               const senderInitials = initialsFrom(senderAlt);
@@ -131,7 +132,13 @@ const MessagesList = ({ chat, messages, currentUserId }: Props) => {
                     </Avatar>
                   )}
 
-                  <Stack spacing={0.5} sx={{ maxWidth: "70%" }}>
+                  <Stack
+                    spacing={0.5}
+                    sx={{
+                      maxWidth: "70%",
+                      justifyContent: mine ? "end" : "start",
+                    }}
+                  >
                     <Box
                       sx={{
                         px: 1.5,
