@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { Button, Menu, MenuItem, ListItemIcon, ListItemText } from "@mui/material";
+import {
+  Button,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+} from "@mui/material";
 import { Map, Person } from "@mui/icons-material";
 import { NavLink, useLocation } from "react-router-dom";
 
@@ -8,7 +14,8 @@ const RoadmapsDropdown = () => {
   const open = Boolean(anchorEl);
 
   const { pathname } = useLocation();
-  const inRoadmapsSection = pathname.startsWith("/roadmaps") || pathname.startsWith("/personal");
+  const inRoadmapsSection =
+    pathname.startsWith("/roadmaps") || pathname.startsWith("/personal");
 
   const handleOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -24,14 +31,10 @@ const RoadmapsDropdown = () => {
         variant={inRoadmapsSection ? "contained" : "text"}
         onClick={handleOpen}
       >
-        Roadmaps
+        Роадмапы
       </Button>
 
-      <Menu
-        anchorEl={anchorEl}
-        open={open}
-        onClose={handleClose}
-      >
+      <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
         <MenuItem
           component={NavLink}
           to="/roadmaps"
@@ -43,18 +46,14 @@ const RoadmapsDropdown = () => {
           <ListItemIcon>
             <Map fontSize="small" sx={{ color: "#BC57FF" }} />
           </ListItemIcon>
-          <ListItemText primary="Официальные roadmaps" />
+          <ListItemText primary="Официальные роадмапы" />
         </MenuItem>
 
-        <MenuItem
-          component={NavLink}
-          to="/personal"
-          onClick={handleClose}
-        >
+        <MenuItem component={NavLink} to="/personal" onClick={handleClose}>
           <ListItemIcon>
             <Person fontSize="small" sx={{ color: "#BC57FF" }} />
           </ListItemIcon>
-          <ListItemText primary="Мои roadmaps" />
+          <ListItemText primary="Мои роадмапы" />
         </MenuItem>
       </Menu>
     </>

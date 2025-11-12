@@ -8,7 +8,7 @@ import {
   Menu,
   MenuItem,
   ListItemIcon,
-  ListItemText
+  ListItemText,
 } from "@mui/material";
 import { Link as RouterLink, NavLink, useNavigate } from "react-router-dom";
 import RoadmapsDropdown from "../RoadmapsDropdown/RoadmapsDropdown";
@@ -39,7 +39,7 @@ const Navbar = () => {
   const menuOptions: MenuEntry[] = [
     {
       title: "Профиль",
-      icon: <AccountCircle fontSize="small" sx={{ color: "#BC57FF" }}/>,
+      icon: <AccountCircle fontSize="small" sx={{ color: "#BC57FF" }} />,
       onClick() {
         navigate("/profile");
         setAnchorEl(null);
@@ -47,7 +47,7 @@ const Navbar = () => {
     },
     {
       title: "Выйти",
-      icon: <Logout fontSize="small" sx={{ color: "#BC57FF" }}/>,
+      icon: <Logout fontSize="small" sx={{ color: "#BC57FF" }} />,
       onClick() {
         dispatch(logout()).unwrap();
         navigate("/");
@@ -114,28 +114,28 @@ const Navbar = () => {
             <RoadmapsDropdown />
           ) : (
             <Button variant="text" component={NavLink} to="/roadmaps">
-              Roadmaps
+              Роадмапы
             </Button>
           )}
           <Button variant="text" component={NavLink} to="/materials">
             Материалы
           </Button>
 
-        { isLoggedIn &&
-          <Button variant="text" component={NavLink} to="/chats">
-            Чаты
-          </Button> 
-        }
-        { isLoggedIn &&
-          <Button variant="text" component={NavLink} to="/friends">
-            Friends
-          </Button>
-        }
-        { isLoggedIn &&
-          <Button variant="text" onClick={() => setIsCreateModalOpen(true)}>
-            Создать роадмап
-          </Button>
-        }
+          {isLoggedIn && (
+            <Button variant="text" component={NavLink} to="/chats">
+              Чаты
+            </Button>
+          )}
+          {isLoggedIn && (
+            <Button variant="text" component={NavLink} to="/friends">
+              Друзья
+            </Button>
+          )}
+          {isLoggedIn && (
+            <Button variant="text" onClick={() => setIsCreateModalOpen(true)}>
+              Создать роадмап
+            </Button>
+          )}
         </Box>
 
         {isLoggedIn ? (
@@ -154,9 +154,7 @@ const Navbar = () => {
             >
               {menuOptions.map(({ title, icon, onClick }) => (
                 <MenuItem key={title} onClick={onClick}>
-                  <ListItemIcon>
-                    {icon}
-                  </ListItemIcon>
+                  <ListItemIcon>{icon}</ListItemIcon>
                   <ListItemText primary={title} />
                 </MenuItem>
               ))}
@@ -178,16 +176,15 @@ const Navbar = () => {
             </Button>
           </Box>
         )}
-        { isLoggedIn && 
+        {isLoggedIn && (
           <CreateRoadmapInfoModal
             open={isCreateModalOpen}
             onClose={() => setIsCreateModalOpen(false)}
           />
-        }
+        )}
       </Toolbar>
     </AppBar>
   );
 };
 
 export default Navbar;
-

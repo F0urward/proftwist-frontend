@@ -210,8 +210,8 @@ const ChatSidebar = ({
           },
         }}
       >
-        <Tab value="personal" label="Personal" />
-        <Tab value="group" label="Group" />
+        <Tab value="personal" label="Личные" />
+        <Tab value="group" label="Групповые" />
       </Tabs>
     </Box>
 
@@ -219,7 +219,7 @@ const ChatSidebar = ({
       <TextField
         fullWidth
         size="small"
-        placeholder="Search chats"
+        placeholder="Поиск по чатам"
         value={query}
         onChange={(event) => onQueryChange(event.target.value)}
         slotProps={{
@@ -335,7 +335,7 @@ const MessageComposer = ({
         <TextField
           fullWidth
           size="small"
-          placeholder="Write a message"
+          placeholder="Напишите сообщение"
           value={draft}
           onChange={(event) => onDraftChange(event.target.value)}
           onKeyDown={(event) => {
@@ -418,8 +418,12 @@ const ChatWindow = ({
             direction="row"
             alignItems="center"
             spacing={2}
-            onClick={onShowParticipants}
-            sx={{ cursor: "pointer" }}
+            {...(tab === "group"
+              ? {
+                  sx: { userSelect: "none", cursor: "pointer" },
+                  onClick: onShowParticipants,
+                }
+              : { sx: { userSelect: "none" } })}
           >
             {(() => {
               const avatar = getChatAvatar(selectedChat, currentUserId);
@@ -486,7 +490,7 @@ const ChatWindow = ({
 
             {!messagesLoading && !messagesError && messages.length === 0 && (
               <Box sx={{ textAlign: "center", opacity: 0.7, mt: 4 }}>
-                Start the conversation
+                Начните общение
               </Box>
             )}
 
@@ -655,7 +659,8 @@ const ChatsPage = () => {
         );
 
         const isSelf =
-          isMarkedSelf || (resolvedUserId ? candidateIds.has(resolvedUserId) : false);
+          isMarkedSelf ||
+          (resolvedUserId ? candidateIds.has(resolvedUserId) : false);
 
         return {
           ...mapped,
@@ -680,8 +685,7 @@ const ChatsPage = () => {
     async (user: ChatUser) => {
       const targetId = normalizeUserId(user?.originalId ?? user?.id);
       const isSelf =
-        user?.isCurrentUser ||
-        (resolvedUserId && targetId === resolvedUserId);
+        user?.isCurrentUser || (resolvedUserId && targetId === resolvedUserId);
 
       if (!targetId || isSelf) return;
 

@@ -163,7 +163,7 @@ export const mapChatFromApi = (
     ),
     title: ensureString(
       pickFirstDefined(chat?.title, chat?.name, chat?.topic),
-      chatType === "group" ? "Group chat" : "Personal chat",
+      chatType === "group" ? "Групповой чат" : "Личный чат",
     ),
     type: chatType,
     participants,
