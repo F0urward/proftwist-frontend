@@ -30,33 +30,25 @@ type NodeSidebarProps = {
       materials?: Array<{ title: string; href: string }>;
       projects?: Array<{ title: string; href: string }>;
     };
+    description?: string;
   } | null;
 };
 
 const NodeSidebar = ({ open, onClose, node }: NodeSidebarProps) => {
   const navigate = useNavigate();
-
-  const [tab, setTab] = useState<"materials" | "projects">("materials");
   const isLoggedIn = useAppSelector((state) => state.auth.isLoggedIn);
 
   const title = node?.data?.label ?? "Навык";
 
   const description =
-    node?.data?.description ??
-    "Описание навыка пока не задано. Здесь будет краткое пояснение: что изучить и зачем это нужно. Описание навыка пока не задано. Здесь будет краткое пояснение: что изучить и зачем это нужно.";
+    node?.description ??
+    "Описание навыка пока не задано, но скоро появится! Заглядывайте сюда почаще :)";
 
   const materials = node?.data?.materials ?? [
     { title: "Ссылка 1", href: "#" },
     { title: "Ссылка 2", href: "#" },
     { title: "Ссылка 3", href: "#" },
   ];
-
-  const projects = node?.data?.projects ?? [
-    { title: "Проект 1", href: "#" },
-    { title: "Проект 2", href: "#" },
-  ];
-
-  const list = tab === "materials" ? materials : projects;
 
   return (
     <Drawer
@@ -88,7 +80,7 @@ const NodeSidebar = ({ open, onClose, node }: NodeSidebarProps) => {
       }}
     >
       <Box sx={{ p: { xs: 2.5, md: 3 }, position: "relative" }}>
-        <Stack direction="column" spacing={2}>
+        <Stack direction="column" spacing={4}>
           <Stack
             direction="row"
             alignItems="center"
@@ -165,9 +157,8 @@ const NodeSidebar = ({ open, onClose, node }: NodeSidebarProps) => {
                       );
 
                     try {
-                      const res = await chatsService.joinGroupChat(
-                        targetChatId,
-                      );
+                      const res =
+                        await chatsService.joinGroupChat(targetChatId);
                       const responseMessage = normalizeMessage(res?.data);
                       if (
                         (res.status >= 200 && res.status < 300) ||
@@ -203,42 +194,30 @@ const NodeSidebar = ({ open, onClose, node }: NodeSidebarProps) => {
           <Box
             sx={{
               borderRadius: 3,
-              overflow: "hidden",
               border: "1px solid rgba(255,255,255,.08)",
               background: "#181818",
+              overflow: "hidden",
             }}
           >
-            <Tabs
-              value={tab}
-              onChange={(_, v: "materials" | "projects") => setTab(v)}
-              variant="fullWidth"
+            <Typography
+              variant="h5"
               sx={{
-                "& .MuiTabs-indicator": { display: "none" },
-                "& .MuiTab-root": {
-                  color: "#fff",
-                  textTransform: "none",
-                  fontWeight: 600,
-                  "&.Mui-selected": {
-                    color: "#fff",
-                    bgcolor: "#733E97",
-                  },
-                },
+                fontWeight: 700,
+                m: 2,
+                fontFamily: '"TDAText", "Lato", sans-serif',
+                backgroundImage: "linear-gradient(90deg, #BC57FF, #FF4DCA)",
+                backgroundClip: "text",
+                color: "transparent",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                textAlign: "center",
               }}
             >
-              <Tab label="Материалы" value="materials" />
-              <Tab label="Проекты" value="projects" />
-            </Tabs>
-          </Box>
+              Материалы
+            </Typography>
 
-          <Box
-            sx={{
-              borderRadius: 3,
-              border: "1px solid rgba(255,255,255,.08)",
-              background: "#181818",
-            }}
-          >
             <List disablePadding>
-              {list.map((item, i) => (
+              {materials.map((item, i) => (
                 <ListItem
                   key={`${item.title}-${i}`}
                   disablePadding
@@ -261,10 +240,13 @@ const NodeSidebar = ({ open, onClose, node }: NodeSidebarProps) => {
                     rel="noopener noreferrer"
                     sx={{
                       borderBottom:
-                        i !== list.length - 1
+                        i !== materials.length - 1
                           ? "1px solid rgba(255,255,255,.12)"
                           : "none",
                       py: 1.25,
+                      "&:hover": {
+                        backgroundColor: "rgba(188, 87, 255, 0.10)",
+                      },
                     }}
                   >
                     <ListItemText
