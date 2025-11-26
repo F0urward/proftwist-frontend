@@ -62,6 +62,8 @@ const ProfileView = () => {
     const file = e.target.files[0];
     try {
       await authService.uploadAvatar(file);
+      const me = await authService.getMe();
+      dispatch(checkIfAuthenticated());
       showNotification("Аватар успешно обновлён", "success");
     } catch {
       showNotification("Ошибка загрузки аватара", "error");
@@ -75,9 +77,7 @@ const ProfileView = () => {
         email: data.email,
       });
       const me = await authService.getMe();
-
       dispatch(checkIfAuthenticated());
-      console.log(result);
       showNotification("Профиль успешно обновлён", "success");
       setOpen(false);
     } catch (err) {
@@ -140,12 +140,12 @@ const ProfileView = () => {
       <Box sx={{ p: 3 }}>
         <Grid container spacing={3} alignItems="center">
           <Avatar
+            alt={user ? user.username.charAt(0).toUpperCase() : ""}
             src={user?.image || "/static/images/avatar/1.jpg"}
             sx={{
               width: 96,
               height: 96,
-              bgcolor: alpha("#BC57FF", 0.15),
-              border: "1px solid rgba(255,255,255,.12)",
+              fontSize: 48,
             }}
           ></Avatar>
           <Stack spacing={1.5}>
@@ -173,19 +173,18 @@ const ProfileView = () => {
             <Stack spacing={3}>
               <Stack direction="row" spacing={2} alignItems="center">
                 <Avatar
+                  alt={user ? user.username.charAt(0).toUpperCase() : ""}
                   src={user?.image}
                   sx={{
                     width: 72,
                     height: 72,
                     fontSize: 24,
-                    bgcolor: alpha("#BC57FF", 0.15),
-                    border: "1px solid rgba(255,255,255,.12)",
                   }}
                 ></Avatar>
                 <input
                   ref={fileRef}
                   type="file"
-                  accept="image/*"
+                  accept="image/png, image/jpg, image/jpeg"
                   hidden
                   onChange={handlePickAvatar}
                 />
