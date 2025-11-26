@@ -7,10 +7,8 @@ import {
   List,
   ListItem,
   ListItemButton,
-  ListItemText,
+  Avatar,
   Stack,
-  Tab,
-  Tabs,
   Typography,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
@@ -18,11 +16,14 @@ import { East } from "@mui/icons-material";
 import { useAppSelector } from "../../store";
 import { chatsService } from "../../api";
 import { useNavigate } from "react-router-dom";
+import { materialsService } from "../../api/material.service";
+import { Material } from "../../types/material";
+import { useEffect } from "react";
 
 type NodeSidebarProps = {
   open: boolean;
   onClose: () => void;
-  node?: {
+  node: {
     id: string;
     data?: {
       label?: string;
@@ -31,7 +32,7 @@ type NodeSidebarProps = {
       projects?: Array<{ title: string; href: string }>;
     };
     description?: string;
-  } | null;
+  };
 };
 
 const NodeSidebar = ({ open, onClose, node }: NodeSidebarProps) => {
@@ -44,11 +45,23 @@ const NodeSidebar = ({ open, onClose, node }: NodeSidebarProps) => {
     node?.description ??
     "Описание навыка пока не задано, но скоро появится! Заглядывайте сюда почаще :)";
 
-  const materials = node?.data?.materials ?? [
-    { title: "Ссылка 1", href: "#" },
-    { title: "Ссылка 2", href: "#" },
-    { title: "Ссылка 3", href: "#" },
-  ];
+  const [materials, setMaterials] = useState<Material[]>([]);
+
+  useEffect(() => {
+    if (!open || !node?.id) return;
+
+    async function load() {
+      try {
+        const data = await materialsService.getByNode(node.id);
+        setMaterials(data);
+      } catch (e) {
+        console.error("Failed to load materials for node", e);
+        setMaterials([]);
+      }
+    }
+
+    load();
+  }, [open, node?.id]);
 
   return (
     <Drawer
@@ -216,48 +229,101 @@ const NodeSidebar = ({ open, onClose, node }: NodeSidebarProps) => {
               Материалы
             </Typography>
 
-            <List disablePadding>
-              {materials.map((item, i) => (
-                <ListItem
-                  key={`${item.title}-${i}`}
-                  disablePadding
-                  secondaryAction={
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        height: "100%",
-                      }}
-                    >
-                      <East fontSize="small" />
-                    </Box>
-                  }
-                >
-                  <ListItemButton
-                    component="a"
-                    href={item.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    sx={{
-                      borderTop: "1px solid rgba(255,255,255,.12)",
-                      py: 1.25,
-                      "&:hover": {
-                        backgroundColor: "rgba(188, 87, 255, 0.10)",
-                      },
-                    }}
+            {materials.length === 0 ? (
+              <Box
+                sx={{
+                  textAlign: "center",
+                  py: 2,
+                  px: 2,
+                  color: "#fff",
+                  fontSize: "0.95rem",
+                  borderTop: "1px solid rgba(255,255,255,.12)",
+                }}
+              >
+                <Typography sx={{ mb: 1 }}>
+                  Здесь пока нет материалов
+                </Typography>
+                <Typography sx={{ fontSize: "0.85rem", opacity: 0.8 }}>
+                  Но вы всегда можете добавить свои материалы
+                </Typography>
+              </Box>
+            ) : (
+              <List disablePadding>
+                {materials.map((item, i) => (
+                  <ListItem
+                    key={`${item.name}-${i}`}
+                    disablePadding
+                    secondaryAction={
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          height: "100%",
+                        }}
+                      >
+                        <East fontSize="small" />
+                      </Box>
+                    }
                   >
-                    <ListItemText
-                      primary={item.title}
-                      slotProps={{
-                        primary: {
-                          sx: { fontWeight: 500 },
+                    <ListItemButton
+                      component="a"
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      sx={{
+                        borderTop: "1px solid rgba(255,255,255,.12)",
+                        py: 2,
+                        "&:hover": {
+                          backgroundColor: "rgba(188, 87, 255, 0.10)",
                         },
                       }}
-                    />
-                  </ListItemButton>
-                </ListItem>
-              ))}
-            </List>
+                    >
+                      <Stack
+                        direction="column"
+                        sx={{ width: "100%" }}
+                        spacing={0.5}
+                      >
+                        <Typography sx={{ fontWeight: 500 }}>
+                          {item.name}
+                        </Typography>
+
+                        {item.author && (
+                          <Stack
+                            direction="row"
+                            spacing={1}
+                            alignItems="center"
+                          >
+                            <Avatar
+                              alt={
+                                item.author
+                                  ? item.author.username.charAt(0).toUpperCase()
+                                  : ""
+                              }
+                              src={
+                                item.author?.avatar_url ||
+                                "/static/images/avatar/1.jpg"
+                              }
+                              sx={{
+                                width: 30,
+                                height: 30,
+                              }}
+                            />
+                            <Typography
+                              sx={{
+                                fontSize: "0.8rem",
+                                color: "rgba(255,255,255,0.6)",
+                              }}
+                            >
+                              {item.author.username}
+                            </Typography>
+                          </Stack>
+                        )}
+                      </Stack>
+                    </ListItemButton>
+                  </ListItem>
+                ))}
+              </List>
+            )}
           </Box>
         </Stack>
       </Box>
