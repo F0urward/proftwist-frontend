@@ -117,9 +117,6 @@ const Navbar = () => {
               Roadmaps
             </Button>
           )}
-          <Button variant="text" component={NavLink} to="/materials">
-            Материалы
-          </Button>
 
           {isLoggedIn && (
             <Button variant="text" component={NavLink} to="/chats">
