@@ -19,6 +19,7 @@ import { useNavigate } from "react-router-dom";
 import { materialsService } from "../../api/material.service";
 import { Material } from "../../types/material";
 import { useEffect } from "react";
+import AddMaterialModal from "../AddMaterialModal/AddMaterialModal";
 
 type NodeSidebarProps = {
   open: boolean;
@@ -33,11 +34,13 @@ type NodeSidebarProps = {
     };
     description?: string;
   };
+  notify: (message: string, type?: "success" | "error") => void;
 };
 
-const NodeSidebar = ({ open, onClose, node }: NodeSidebarProps) => {
+const NodeSidebar = ({ open, onClose, node, notify }: NodeSidebarProps) => {
   const navigate = useNavigate();
   const isLoggedIn = useAppSelector((state) => state.auth.isLoggedIn);
+  const [materialModal, setMaterialModal] = useState(false);
 
   const title = node?.data?.label ?? "Навык";
 
@@ -325,6 +328,23 @@ const NodeSidebar = ({ open, onClose, node }: NodeSidebarProps) => {
               </List>
             )}
           </Box>
+          {isLoggedIn && (
+            <>
+              <Button
+                variant="contained"
+                onClick={() => setMaterialModal(true)}
+              >
+                Добавить материал
+              </Button>
+              <AddMaterialModal
+                open={materialModal}
+                nodeId={node?.id}
+                onClose={() => setMaterialModal(false)}
+                onSave={(mat) => setMaterials((prev) => [mat, ...prev])}
+                notify={notify}
+              />
+            </>
+          )}
         </Stack>
       </Box>
     </Drawer>
