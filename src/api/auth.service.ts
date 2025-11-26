@@ -15,7 +15,7 @@ export const authService = {
     return (res.data as any).user ?? res;
   },
 
-  async update(data: { nickname?: string; email?: string; password?: string; new_password?: string }): Promise<User> {
+  async update(data: { username?: string; email?: string }): Promise<User> {
     const res = await api.put("/auth", data, { withCredentials: true });
     return (res.data as any).user ?? res;
   },
