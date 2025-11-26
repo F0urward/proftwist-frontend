@@ -239,10 +239,7 @@ const NodeSidebar = ({ open, onClose, node }: NodeSidebarProps) => {
                     target="_blank"
                     rel="noopener noreferrer"
                     sx={{
-                      borderBottom:
-                        i !== materials.length - 1
-                          ? "1px solid rgba(255,255,255,.12)"
-                          : "none",
+                      borderTop: "1px solid rgba(255,255,255,.12)",
                       py: 1.25,
                       "&:hover": {
                         backgroundColor: "rgba(188, 87, 255, 0.10)",
