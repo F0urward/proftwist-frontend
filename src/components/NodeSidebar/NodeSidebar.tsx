@@ -22,6 +22,7 @@ import { materialsService } from "../../api/material.service";
 import { Material } from "../../types/material";
 import { useEffect } from "react";
 import AddMaterialModal from "../AddMaterialModal/AddMaterialModal";
+import ConfirmModal from "../ConfirmModal/ConfirmModal";
 
 type NodeSidebarProps = {
   open: boolean;
@@ -44,6 +45,10 @@ const NodeSidebar = ({ open, onClose, node, notify }: NodeSidebarProps) => {
   const isLoggedIn = useAppSelector((state) => state.auth.isLoggedIn);
   const [materialModal, setMaterialModal] = useState(false);
   const currentUserId = useAppSelector((state) => state.auth.user?.id);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [materialToDelete, setMaterialToDelete] = useState<Material | null>(
+    null,
+  );
 
   const title = node?.data?.label ?? "Навык";
 
@@ -69,15 +74,19 @@ const NodeSidebar = ({ open, onClose, node, notify }: NodeSidebarProps) => {
     load();
   }, [open, node?.id]);
 
-  const handleDeleteMaterial = async (materialId: string) => {
+  const handleDelete = async () => {
+    if (!materialToDelete) return;
+
     try {
-      await materialsService.delete(materialId);
-      setMaterials((prev) => prev.filter((m) => m.id !== materialId));
+      await materialsService.delete(materialToDelete.id);
+      setMaterials((prev) => prev.filter((m) => m.id !== materialToDelete.id));
       notify("Материал удалён", "success");
-    } catch (e) {
-      console.error("Failed to delete material", e);
+    } catch {
       notify("Не удалось удалить материал", "error");
     }
+
+    setDeleteOpen(false);
+    setMaterialToDelete(null);
   };
 
   return (
@@ -281,7 +290,10 @@ const NodeSidebar = ({ open, onClose, node, notify }: NodeSidebarProps) => {
                           >
                             <IconButton
                               edge="end"
-                              onClick={() => handleDeleteMaterial(item.id)}
+                              onClick={() => {
+                                setMaterialToDelete(item);
+                                setDeleteOpen(true);
+                              }}
                               sx={{
                                 color: "rgba(255,255,255,0.7)",
                                 "&:hover": { color: "#FF4DCA" },
@@ -355,6 +367,23 @@ const NodeSidebar = ({ open, onClose, node, notify }: NodeSidebarProps) => {
                 })}
               </List>
             )}
+            <ConfirmModal
+              open={deleteOpen}
+              onClose={() => setDeleteOpen(false)}
+              onConfirm={handleDelete}
+              title="Удаление материала"
+              message={
+                <>
+                  Вы уверены, что хотите удалить материал:
+                  <br />
+                  <strong>{materialToDelete?.name}</strong>?
+                  <br />
+                  Это действие <strong>нельзя будет отменить</strong>.
+                </>
+              }
+              confirmText="Удалить"
+              confirmColor="error"
+            />
           </Box>
           {isLoggedIn && (
             <>
