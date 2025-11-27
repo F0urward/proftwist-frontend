@@ -8,10 +8,12 @@ import {
   ListItem,
   ListItemButton,
   Avatar,
+  Tooltip,
   Stack,
   Typography,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import { East } from "@mui/icons-material";
 import { useAppSelector } from "../../store";
 import { chatsService } from "../../api";
@@ -41,6 +43,7 @@ const NodeSidebar = ({ open, onClose, node, notify }: NodeSidebarProps) => {
   const navigate = useNavigate();
   const isLoggedIn = useAppSelector((state) => state.auth.isLoggedIn);
   const [materialModal, setMaterialModal] = useState(false);
+  const currentUserId = useAppSelector((state) => state.auth.user?.id);
 
   const title = node?.data?.label ?? "Навык";
 
@@ -65,6 +68,17 @@ const NodeSidebar = ({ open, onClose, node, notify }: NodeSidebarProps) => {
 
     load();
   }, [open, node?.id]);
+
+  const handleDeleteMaterial = async (materialId: string) => {
+    try {
+      await materialsService.delete(materialId);
+      setMaterials((prev) => prev.filter((m) => m.id !== materialId));
+      notify("Материал удалён", "success");
+    } catch (e) {
+      console.error("Failed to delete material", e);
+      notify("Не удалось удалить материал", "error");
+    }
+  };
 
   return (
     <Drawer
@@ -252,79 +266,93 @@ const NodeSidebar = ({ open, onClose, node, notify }: NodeSidebarProps) => {
               </Box>
             ) : (
               <List disablePadding>
-                {materials.map((item, i) => (
-                  <ListItem
-                    key={`${item.name}-${i}`}
-                    disablePadding
-                    secondaryAction={
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          height: "100%",
-                        }}
-                      >
-                        <East fontSize="small" />
-                      </Box>
-                    }
-                  >
-                    <ListItemButton
-                      component="a"
-                      href={item.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      sx={{
-                        borderTop: "1px solid rgba(255,255,255,.12)",
-                        py: 2,
-                        "&:hover": {
-                          backgroundColor: "rgba(188, 87, 255, 0.10)",
-                        },
-                      }}
-                    >
-                      <Stack
-                        direction="column"
-                        sx={{ width: "100%" }}
-                        spacing={0.5}
-                      >
-                        <Typography sx={{ fontWeight: 500 }}>
-                          {item.name}
-                        </Typography>
+                {materials.map((item, i) => {
+                  const isAuthor = item.author?.id === currentUserId;
 
-                        {item.author && (
-                          <Stack
-                            direction="row"
-                            spacing={1}
-                            alignItems="center"
+                  return (
+                    <ListItem
+                      key={`${item.name}-${i}`}
+                      disablePadding
+                      secondaryAction={
+                        isAuthor ? (
+                          <Tooltip
+                            title="Автор может удалить свой материал"
+                            arrow
                           >
-                            <Avatar
-                              alt={
-                                item.author
-                                  ? item.author.username.charAt(0).toUpperCase()
-                                  : ""
-                              }
-                              src={
-                                item.author?.avatar_url ||
-                                "/static/images/avatar/1.jpg"
-                              }
+                            <IconButton
+                              edge="end"
+                              onClick={() => handleDeleteMaterial(item.id)}
                               sx={{
-                                width: 30,
-                                height: 30,
-                              }}
-                            />
-                            <Typography
-                              sx={{
-                                fontSize: "0.8rem",
-                                color: "rgba(255,255,255,0.6)",
+                                color: "rgba(255,255,255,0.7)",
+                                "&:hover": { color: "#FF4DCA" },
                               }}
                             >
-                              {item.author.username}
-                            </Typography>
-                          </Stack>
-                        )}
-                      </Stack>
-                    </ListItemButton>
-                  </ListItem>
-                ))}
+                              <DeleteOutlineIcon />
+                            </IconButton>
+                          </Tooltip>
+                        ) : (
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              height: "100%",
+                            }}
+                          >
+                            <East fontSize="small" />
+                          </Box>
+                        )
+                      }
+                    >
+                      <ListItemButton
+                        component="a"
+                        href={item.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        sx={{
+                          borderTop: "1px solid rgba(255,255,255,.12)",
+                          py: 2,
+                          "&:hover": {
+                            backgroundColor: "rgba(188, 87, 255, 0.10)",
+                          },
+                        }}
+                      >
+                        <Stack
+                          direction="column"
+                          sx={{ width: "100%" }}
+                          spacing={0.5}
+                        >
+                          <Typography sx={{ fontWeight: 500 }}>
+                            {item.name}
+                          </Typography>
+
+                          {item.author && (
+                            <Stack
+                              direction="row"
+                              spacing={1}
+                              alignItems="center"
+                            >
+                              <Avatar
+                                alt={item.author.username
+                                  .charAt(0)
+                                  .toUpperCase()}
+                                src={item.author.avatar_url}
+                                sx={{ width: 30, height: 30 }}
+                              />
+                              <Typography
+                                sx={{
+                                  fontSize: "0.8rem",
+                                  color: "rgba(255,255,255,0.6)",
+                                }}
+                              >
+                                {item.author.username}
+                              </Typography>
+                            </Stack>
+                          )}
+                        </Stack>
+                      </ListItemButton>
+                    </ListItem>
+                  );
+                })}
               </List>
             )}
           </Box>
