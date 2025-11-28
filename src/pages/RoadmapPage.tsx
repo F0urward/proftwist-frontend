@@ -1,8 +1,24 @@
 import "@xyflow/react/dist/style.css";
-import { Box, Button, Stack, LinearProgress, Typography, Tooltip, Dialog, DialogActions, DialogTitle, DialogContent } from "@mui/material";
+import {
+  Box,
+  Button,
+  Stack,
+  LinearProgress,
+  Typography,
+  Tooltip,
+  Dialog,
+  DialogActions,
+  DialogTitle,
+  DialogContent,
+} from "@mui/material";
 import { ReactFlow } from "@xyflow/react";
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { useNavigate, useParams, useLocation, Link as RouterLink } from "react-router-dom";
+import {
+  useNavigate,
+  useParams,
+  useLocation,
+  Link as RouterLink,
+} from "react-router-dom";
 import { useAppDispatch, useAppSelector, RootState } from "../store";
 import { viewSliceActions } from "../store/slices/viewSlice";
 import { edgeTypes, nodeTypes } from "../consts";
@@ -59,7 +75,7 @@ const RoadmapPage = () => {
   const [categoryName, setCategoryName] = useState<string>("");
 
   const { nodes, edges } = useAppSelector((s: RootState) => s.editor);
-  
+
   const [selectedNode, setSelectedNode] = useState<any | null>(null);
   const closeSidebar = useCallback(() => setSelectedNode(null), []);
 
@@ -72,7 +88,10 @@ const RoadmapPage = () => {
     if (!info) return "public";
     if (info.is_public) return "public";
 
-    if (info.referenced_roadmap_info_id && info.referenced_roadmap_info_id !== "") {
+    if (
+      info.referenced_roadmap_info_id &&
+      info.referenced_roadmap_info_id !== ""
+    ) {
       return "fork";
     }
 
@@ -95,7 +114,9 @@ const RoadmapPage = () => {
     }
 
     load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [id]);
 
   useEffect(() => {
@@ -103,7 +124,7 @@ const RoadmapPage = () => {
 
     async function loadCategory() {
       try {
-        const category = await categoryService.getById(info.category_id);;
+        const category = await categoryService.getById(info.category_id);
         setCategoryName(category.name);
       } catch (e) {
         setCategoryName("Без категории");
@@ -144,7 +165,9 @@ const RoadmapPage = () => {
     }
 
     loadFlow();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [info?.roadmap_id, dispatch]);
 
   useEffect(() => {
@@ -168,7 +191,7 @@ const RoadmapPage = () => {
       animated: false,
       style: { stroke: "#EDEDED", strokeWidth: 1.5 },
     }),
-    []
+    [],
   );
 
   const styledNodes = useMemo(
@@ -177,7 +200,7 @@ const RoadmapPage = () => {
         ...n,
         data: { ...n.data, readOnly: true },
       })),
-    [nodes]
+    [nodes],
   );
 
   const handleSubscribe = async () => {
@@ -249,7 +272,10 @@ const RoadmapPage = () => {
     }
   };
 
-  const graphHeight = useMemo(() => estimateGraphHeight(styledNodes), [styledNodes]);
+  const graphHeight = useMemo(
+    () => estimateGraphHeight(styledNodes),
+    [styledNodes],
+  );
   const progress = useMemo(() => getProgress(styledNodes), [styledNodes]);
 
   const CategoryBadge = () => {
@@ -280,26 +306,49 @@ const RoadmapPage = () => {
       return (
         <Stack direction="column" spacing={2} alignItems="center">
           <CategoryBadge />
-          <Stack direction="row" spacing={4} alignItems="center" sx={{ width: "100%" }}>
-              { !isSubscribed && 
-                <Tooltip arrow title="Добавить роадмап в избранное для быстрого доступа и отслеживания прогресса">
-                  <Button variant="contained" onClick={handleSubscribe} startIcon={<BookmarkAddOutlinedIcon />}>
-                    Добавить в избранное
-                  </Button>
-                </Tooltip>
-              } 
-              { isSubscribed && 
-                <Tooltip arrow title="Дайте этому roadmap еще один шанс :)">
-                  <Button variant="contained" onClick={handleUnsubscribe} startIcon={<BookmarkRemoveOutlinedIcon />}>
-                    Удалить из избранного
-                  </Button>
-                </Tooltip>
-              }
-              <Tooltip arrow title="Создать копию роадмапа, чтобы редактировать под себя">
-                <Button variant="contained" onClick={handleFork} startIcon={<CallSplitOutlinedIcon />}>
-                  Сделать форк
+          <Stack
+            direction="row"
+            spacing={4}
+            alignItems="center"
+            sx={{ width: "100%" }}
+          >
+            {!isSubscribed && (
+              <Tooltip
+                arrow
+                title="Добавить роадмап в избранное для быстрого доступа и отслеживания прогресса"
+              >
+                <Button
+                  variant="contained"
+                  onClick={handleSubscribe}
+                  startIcon={<BookmarkAddOutlinedIcon />}
+                >
+                  Добавить в избранное
                 </Button>
               </Tooltip>
+            )}
+            {isSubscribed && (
+              <Tooltip arrow title="Дайте этому roadmap еще один шанс :)">
+                <Button
+                  variant="contained"
+                  onClick={handleUnsubscribe}
+                  startIcon={<BookmarkRemoveOutlinedIcon />}
+                >
+                  Удалить из избранного
+                </Button>
+              </Tooltip>
+            )}
+            <Tooltip
+              arrow
+              title="Создать копию роадмапа, чтобы редактировать под себя"
+            >
+              <Button
+                variant="contained"
+                onClick={handleFork}
+                startIcon={<CallSplitOutlinedIcon />}
+              >
+                Сделать форк
+              </Button>
+            </Tooltip>
           </Stack>
         </Stack>
       );
@@ -308,7 +357,12 @@ const RoadmapPage = () => {
       return (
         <Stack direction="column" spacing={2} alignItems="center">
           <CategoryBadge />
-          <Stack direction="row" spacing={4} alignItems="center" sx={{ width: "100%" }}>
+          <Stack
+            direction="row"
+            spacing={4}
+            alignItems="center"
+            sx={{ width: "100%" }}
+          >
             {/*<Stack sx={{ flex: 1 }} spacing={0.5}>
               <Typography variant="body1">
                 Прогресс: {progress.done}/{progress.total} ({progress.percent}%)
@@ -325,15 +379,15 @@ const RoadmapPage = () => {
               }}
             />
             </Stack>*/}
-            <Button 
-              variant="contained" 
+            <Button
+              variant="contained"
               startIcon={<EditOutlinedIcon />}
               onClick={() => setModalOpen(true)}
             >
               Редактировать описание
             </Button>
-            <Button 
-              variant="contained" 
+            <Button
+              variant="contained"
               startIcon={<DeviceHubOutlinedIcon />}
               onClick={() => {
                 const roadmapId = info?.roadmap_id ?? incoming?.roadmap_id;
@@ -342,7 +396,8 @@ const RoadmapPage = () => {
                     state: { roadmapInfo: info },
                   });
                 }
-            }}>
+              }}
+            >
               Редактировать roadmap
             </Button>
             <Tooltip
@@ -356,7 +411,7 @@ const RoadmapPage = () => {
               >
                 Опубликовать роадмап
               </Button>
-              </Tooltip>
+            </Tooltip>
             <CreateRoadmapInfoModal
               open={modalOpen}
               mode="edit"
@@ -373,17 +428,25 @@ const RoadmapPage = () => {
               maxWidth="xs"
               fullWidth
             >
-              <DialogTitle sx={{textAlign: "center",}}>Подтвердите публикацию</DialogTitle>
+              <DialogTitle sx={{ textAlign: "center" }}>
+                Подтвердите публикацию
+              </DialogTitle>
               <DialogContent>
                 <Typography>
                   Вы уверены, что хотите опубликовать роадмап?
                   <br />
-                  <strong>После публикации его нельзя будет редактировать.</strong>
+                  <strong>
+                    После публикации его нельзя будет редактировать.
+                  </strong>
                 </Typography>
               </DialogContent>
               <DialogActions>
                 <Button onClick={() => setConfirmOpen(false)}>Отмена</Button>
-                <Button variant="contained" color="primary" onClick={confirmPublish}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={confirmPublish}
+                >
                   Опубликовать
                 </Button>
               </DialogActions>
@@ -403,7 +466,9 @@ const RoadmapPage = () => {
             maxWidth="xs"
             fullWidth
           >
-            <DialogTitle sx={{textAlign: "center",}}>Удаление роадмапа</DialogTitle>
+            <DialogTitle sx={{ textAlign: "center" }}>
+              Удаление роадмапа
+            </DialogTitle>
             <DialogContent>
               <Typography>
                 Вы уверены, что хотите удалить этот роадмап?
@@ -430,23 +495,35 @@ const RoadmapPage = () => {
 
   const titleText = notFound
     ? "Роадмап не найден"
-    : (info?.name) ||
-    (type === "public" ? "Официальный роадмап" : type === "owned" ? "Мой роадмап" : "Сохранённый роадмап");
+    : info?.name ||
+      (type === "public"
+        ? "Официальный роадмап"
+        : type === "owned"
+          ? "Мой роадмап"
+          : "Сохранённый роадмап");
 
   const subtitleText = notFound
     ? "На странице роадмапов вы точно найдете то, что ищете"
-    : (info?.description) ||
-    (type === "public"
-      ? "Изучите профессию по проверенному плану"
-      : type === "owned"
-      ? "Ваш персональный план: можно редактировать и отслеживать прогресс"
-      : "Вы сохранили этот роадмап и отслеживаете прогресс");
+    : info?.description ||
+      (type === "public"
+        ? "Изучите профессию по проверенному плану"
+        : type === "owned"
+          ? "Ваш персональный план: можно редактировать и отслеживать прогресс"
+          : "Вы сохранили этот роадмап и отслеживаете прогресс");
 
   const showFlow = !notFound && (nodes.length > 0 || edges.length > 0);
 
   return (
     <BaseLayout justifyContent="flex-start">
-      <Box sx={{ position: "relative", display: "flex", width: "100%", justifyContent: "center", alignItems: "flex-start" }}>
+      <Box
+        sx={{
+          position: "relative",
+          display: "flex",
+          width: "100%",
+          justifyContent: "center",
+          alignItems: "flex-start",
+        }}
+      >
         <Button
           component={RouterLink}
           to={backLink.to}
@@ -461,16 +538,11 @@ const RoadmapPage = () => {
         >
           {backLink.label}
         </Button>
-        <TitlePaper
-            title={titleText}
-            subtitle={subtitleText}
-        >
-          {!notFound && (
-            <HeaderActions />
-          )}
+        <TitlePaper title={titleText} subtitle={subtitleText}>
+          {!notFound && <HeaderActions />}
         </TitlePaper>
       </Box>
-      
+
       <Box
         sx={{
           position: "relative",
@@ -479,7 +551,7 @@ const RoadmapPage = () => {
           overflow: "visible",
         }}
       >
-        { showFlow && (
+        {showFlow && (
           <ReactFlow
             nodes={styledNodes}
             edges={edges}
@@ -495,18 +567,27 @@ const RoadmapPage = () => {
             zoomOnScroll={false}
             zoomOnPinch={true}
             panOnScroll={false}
-            panOnDrag={false} 
+            panOnDrag={false}
             nodesDraggable={false}
             nodesConnectable={false}
             elementsSelectable={false}
             connectOnClick={false}
-            style={{ position: "absolute", inset: 0, background: "transparent" }}
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: "transparent",
+            }}
             onNodeClick={(_, node) => setSelectedNode(node)}
           ></ReactFlow>
         )}
-        <NodeSidebar open={!!selectedNode} node={selectedNode} onClose={closeSidebar} />
+        <NodeSidebar
+          open={!!selectedNode}
+          node={selectedNode}
+          onClose={closeSidebar}
+          notify={showNotification}
+        />
       </Box>
-      { Notification }
+      {Notification}
     </BaseLayout>
   );
 };

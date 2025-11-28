@@ -14,7 +14,6 @@ import RegisterPage from "./pages/RegisterPage.tsx";
 import RoadmapsPage from "./pages/RoadmapsPage.tsx";
 import RoadmapPage from "./pages/RoadmapPage.tsx";
 import LoginPage from "./pages/LoginPage.tsx";
-import MaterialsPage from "./pages/MaterialsPage.tsx";
 import PersonalRoadmapsPage from "./pages/PersonalRoadmapsPage.tsx";
 import ChatsPage from "./pages/ChatsPage.tsx";
 import ProfilePage from "./pages/ProfilePage.tsx";
@@ -34,7 +33,10 @@ const App = () => {
               <Navbar />
               <Routes>
                 <Route element={<PrivateRoute />}>
-                  <Route path="/roadmaps/:roadmap_id/edit" element={<CreatorPage />} />
+                  <Route
+                    path="/roadmaps/:roadmap_id/edit"
+                    element={<CreatorPage />}
+                  />
                   <Route path="/profile" element={<ProfilePage />} />
                   <Route path="/personal" element={<PersonalRoadmapsPage />} />
                   <Route path="/chats" element={<ChatsPage />} />
@@ -48,7 +50,6 @@ const App = () => {
                 <Route path="/view" element={<ViewerPage />} />
                 <Route path="/roadmaps" element={<RoadmapsPage />} />
                 <Route path="/roadmaps/:id" element={<RoadmapPage />} />
-                <Route path="/materials" element={<MaterialsPage />} />
                 <Route
                   path="/auth/vk/callback"
                   element={<AuthVKCallbackPage />}

@@ -4,37 +4,11 @@ import { Link as RouterLink, useNavigate } from "react-router-dom";
 import TitlePaper from "../components/TitlePaper/TitlePaper";
 import BaseLayout from "../components/BaseLayout/BaseLayout";
 import TextInput from "../components/TextInput/TextInput";
-import { z } from "zod";
+import { registerSchema, SignupFormData } from "../utils/entrySchemas";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RootState, useAppDispatch, useAppSelector } from "../store";
 import { signup, login } from "../store/slices/authSlice";
-
-export const registerSchema = z
-  .object({
-    username: z
-      .string()
-      .min(3, "Никнейм должен содержать хотя бы 3 символа")
-      .max(20, "Никнейм максимально может содержать 20 символов")
-      .regex(
-        /^[a-zA-Z0-9_]+$/,
-        "Никнейм может содержать только буквы, цифры и нижнее подчеркивание",
-      )
-      .nonempty("Введите никнейм"),
-    email: z.email("Некорректный адрес почты").nonempty("Введите адрес почты"),
-    password: z
-      .string()
-      .min(8, "Пароль должен содержать хотя бы 8 символов")
-      .regex(/.*\d.*/, "Пароль должен содержать хотя бы одну цифру")
-      .nonempty("Введите пароль"),
-    passwordRepeat: z.string().nonempty("Пожалуйста, повторите пароль"),
-  })
-  .refine((data) => data.password === data.passwordRepeat, {
-    message: "Пароли должны совпадать",
-    path: ["passwordRepeat"], // Attach error to passwordRepeat field
-  });
-
-export type SignupFormData = z.infer<typeof registerSchema>;
 
 const RegisterPage = () => {
   const dispatch = useAppDispatch();

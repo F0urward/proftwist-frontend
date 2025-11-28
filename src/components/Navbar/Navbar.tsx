@@ -136,9 +136,6 @@ const Navbar = () => {
               Роадмапы
             </Button>
           )}
-          <Button variant="text" component={NavLink} to="/materials">
-            Материалы
-          </Button>
 
           {isLoggedIn && (
             <Button variant="text" component={NavLink} to="/chats">
@@ -160,8 +157,12 @@ const Navbar = () => {
         {isLoggedIn ? (
           <>
             <Avatar
-              alt={userData?.username.charAt(0).toUpperCase() || "User avatar"}
-              src={avatarUrl}
+              alt={
+                userData
+                  ? userData.username.charAt(0).toUpperCase()
+                  : "User avatar"
+              }
+              src={userData?.image || "/static/images/avatar/1.jpg"}
               onClick={handleAvatarClick}
               sx={{ cursor: "pointer" }}
             >

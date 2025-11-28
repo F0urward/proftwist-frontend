@@ -38,7 +38,7 @@ export const CustomNode = ({
       dispatch(editorSliceActions.markElementAsSelected(id));
       dispatch(editorSliceActions.openNodeEditor(id));
     },
-    [dispatch, id]
+    [dispatch, id],
   );
 
   return (
@@ -56,6 +56,15 @@ export const CustomNode = ({
           background: background,
           border: isSelected ? "1px solid #FFF" : "none",
           boxSizing: "border-box",
+          cursor: "pointer",
+          transition: "all 0.25s ease",
+          transformOrigin: "center",
+
+          "&:hover": {
+            transform: "scale(1.06)",
+            boxShadow: "0 0 18px rgba(188, 87, 255, 0.65)",
+            zIndex: 10,
+          },
         }}
       >
         <Typography>{label}</Typography>
