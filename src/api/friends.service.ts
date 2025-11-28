@@ -46,16 +46,16 @@ export const friendsService = {
   deleteFriend: (friendId: string) => api.delete(`/friends/${friendId}`),
 
   listFriendRequests: () =>
-    api.get<FriendRequestsResponse>("/friend-requests"),
+    api.get<FriendRequestsResponse>("/friends/requests"),
 
   acceptFriendRequest: (requestId: string) =>
-    api.post(`/friend-requests/${requestId}/accept`),
+    api.post(`/friends/requests/${requestId}/accept`),
 
   deleteFriendRequest: (requestId: string) =>
-    api.delete(`/friend-requests/${requestId}`),
+    api.delete(`/friends/requests/${requestId}`),
 
   createFriendRequest: (payload: CreateFriendRequestPayload) =>
-    api.post("/friend-requests", payload),
+    api.post("/friends/requests", payload),
 
   createOrGetChat: (friendId: string) =>
     api.post<{ chat_id: string }>(`/friends/${friendId}/chat`),
