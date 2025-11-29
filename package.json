@@ -16,6 +16,7 @@
     "@mui/icons-material": "^7.3.5",
     "@mui/material": "^7.3.5",
     "@reduxjs/toolkit": "^2.11.0",
+    "@vitejs/plugin-react-swc": "^4.2.2",
     "@xyflow/react": "^12.9.3",
     "axios": "^1.13.2",
     "prettier": "^3.7.2",
