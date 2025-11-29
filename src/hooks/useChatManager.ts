@@ -246,11 +246,19 @@ export const useChatManager = (
   }, []);
 
   const requestMessages = useCallback(
-    async (chatId: string, limit = 50) => {
-      const { data } = await chatsService.getMessages(chatId, {
-        limit,
-        offset: 0,
-      });
+    async (
+      chatId: string,
+      chatType: "direct" | "group",
+      limit = 50,
+    ) => {
+      const { data } = await chatsService.getMessages(
+        chatId,
+        {
+          limit,
+          offset: 0,
+        },
+        chatType,
+      );
       const list = extractMessageList(data);
       return list
         .map((item) => mapMessageFromApi(item, chatId))
@@ -263,9 +271,9 @@ export const useChatManager = (
   );
 
   const fetchLatestMessagePreview = useCallback(
-    async (chatId: string) => {
+    async (chatId: string, chatType: "direct" | "group") => {
       try {
-        const items = await requestMessages(chatId, 1);
+        const items = await requestMessages(chatId, chatType, 1);
         const last = items[items.length - 1];
         if (last) {
           syncParticipantFromMessage(last);
@@ -301,7 +309,8 @@ export const useChatManager = (
       ];
       setChats(normalized);
       normalized.forEach((chat) => {
-        void fetchLatestMessagePreview(chat.id);
+        const chatType = chat.type === "group" ? "group" : "direct";
+        void fetchLatestMessagePreview(chat.id, chatType);
       });
     } catch (err) {
       console.error("Failed to load chats", err);
@@ -326,6 +335,16 @@ export const useChatManager = (
     selectedIdRef.current = selectedChatId;
   }, [selectedChatId]);
 
+  const selectedChat = useMemo(
+    () => chats.find((chat) => chat.id === selectedChatId) ?? null,
+    [chats, selectedChatId],
+  );
+  const selectedChatType: "direct" | "group" | null = selectedChat
+    ? selectedChat.type === "group"
+      ? "group"
+      : "direct"
+    : null;
+
   useEffect(() => {
     if (!selectedChatId) {
       clearMessages();
@@ -341,7 +360,8 @@ export const useChatManager = (
     setMessagesLoading(true);
     setMessagesError(null);
 
-    requestMessages(selectedChatId)
+    const chatType = selectedChatType ?? "direct";
+    requestMessages(selectedChatId, chatType)
       .then((items) => {
         if (!active) return;
         replaceMessages(items);
@@ -369,6 +389,7 @@ export const useChatManager = (
     };
   }, [
     selectedChatId,
+    selectedChatType,
     requestMessages,
     clearMessages,
     replaceMessages,
@@ -786,11 +807,6 @@ export const useChatManager = (
     setTypingNotice(null);
     setConnectRequested(true);
   }, []);
-
-  const selectedChat = useMemo(
-    () => chats.find((chat) => chat.id === selectedChatId) ?? null,
-    [chats, selectedChatId],
-  );
 
   const closeConnection = useCallback(() => {
     const ws = wsRef.current;

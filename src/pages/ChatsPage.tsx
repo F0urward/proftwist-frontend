@@ -553,7 +553,7 @@ const ChatsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const chatQueryParam = searchParams.get("chat");
 
-  const [tab, setTab] = useState<TabValue>("group");
+  const [tab, setTab] = useState<TabValue>("personal");
   const [query, setQuery] = useState("");
   const [participantsOpen, setParticipantsOpen] = useState(false);
   const [participants, setParticipants] = useState<ChatUser[]>([]);
@@ -727,26 +727,26 @@ const ChatsPage = () => {
   return (
     <BaseLayout>
       <Stack direction="row" spacing={3}>
-          <ChatSidebar
-            tab={tab}
-            onTabChange={setTab}
-            query={query}
-            onQueryChange={setQuery}
-            chats={filteredChats}
-            chatsLoading={chatsLoading}
-            chatsError={chatsError}
-            selectedChatId={selectedChatId}
-            onSelectChat={selectChat}
-            currentUserId={resolvedUserId}
-          />
+        <ChatSidebar
+          tab={tab}
+          onTabChange={setTab}
+          query={query}
+          onQueryChange={setQuery}
+          chats={filteredChats}
+          chatsLoading={chatsLoading}
+          chatsError={chatsError}
+          selectedChatId={selectedChatId}
+          onSelectChat={selectChat}
+          currentUserId={resolvedUserId}
+        />
 
-          <ChatWindow
-            currentUserId={resolvedUserId}
-            selectedChat={selectedChat}
-            tab={tab}
-            messages={messages}
-            messagesLoading={messagesLoading}
-            messagesError={messagesError}
+        <ChatWindow
+          currentUserId={resolvedUserId}
+          selectedChat={selectedChat}
+          tab={tab}
+          messages={messages}
+          messagesLoading={messagesLoading}
+          messagesError={messagesError}
           typingNotice={typingNotice}
           composerProps={composerProps}
           onShowParticipants={handleOpenParticipants}

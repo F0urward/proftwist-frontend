@@ -75,8 +75,14 @@ export const chatsService = {
 
   joinGroupChat: (chatId: string) => api.post(`/chats/group/${chatId}/join`),
 
-  getMessages: (chatId: string, params?: ChatMessagesQuery) =>
-    api.get(`/chats/group/${chatId}/messages`, { params }),
+  getMessages: (
+    chatId: string,
+    params?: ChatMessagesQuery,
+    type: ChatType = "group",
+  ) => {
+    const basePath = type === "direct" ? "/chats/direct" : "/chats/group";
+    return api.get(`${basePath}/${chatId}/messages`, { params });
+  },
 
   leaveChat: (chatId: string, type: "group" | "direct") => {
     switch (type) {
