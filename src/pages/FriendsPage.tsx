@@ -44,6 +44,7 @@ type FriendRequest = {
   avatar?: string;
   message?: string;
   mutualRoadmaps: number;
+  status?: string;
   direction: "incoming" | "outgoing";
 };
 
@@ -155,6 +156,11 @@ const mapFriendRequestSummary = (
     ) ?? 0;
   const message =
     request.message ?? pickStringField([raw], ["note", "reason", "details"]);
+  const statusSource =
+    typeof request.status === "string"
+      ? request.status
+      : pickStringField([raw], ["status"]);
+  const status = statusSource?.toLowerCase();
 
   return {
     id: request.id,
@@ -163,6 +169,7 @@ const mapFriendRequestSummary = (
     avatar,
     message,
     mutualRoadmaps,
+    status,
     direction,
   };
 };
@@ -270,7 +277,7 @@ const FriendsPage = () => {
 
   const handleDeclineRequest = async (requestId: string) => {
     try {
-      await friendsService.deleteFriendRequest(requestId);
+      await friendsService.declineFriendRequest(requestId);
       setIncomingRequests((prev) =>
         prev.filter((item) => item.id !== requestId),
       );
@@ -291,6 +298,61 @@ const FriendsPage = () => {
   };
 
   const totalRequests = incomingRequests.length + outgoingRequests.length;
+  const normalizeStatus = (value?: string) =>
+    value?.toLowerCase().trim() || "pending";
+  const pendingStatuses = new Set(["pending", "sent", "requested"]);
+  const isPendingStatus = (status?: string) =>
+    pendingStatuses.has(normalizeStatus(status));
+  const canActOnIncoming = (status?: string) => {
+    const normalized = normalizeStatus(status);
+    return !["accepted", "approved", "accept"].includes(normalized);
+  };
+  const getOutgoingAction = (status?: string) => {
+    const normalized = normalizeStatus(status);
+    if (normalized === "rejected" || normalized === "declined") {
+      return { label: "Отменить подписку", disabled: false };
+    }
+    if (pendingStatuses.has(normalized)) {
+      return { label: "Отменить заявку", disabled: false };
+    }
+    return { label: "Отменить", disabled: false };
+  };
+  const getStatusChip = (status?: string) => {
+    const normalized = normalizeStatus(status);
+    const capitalized =
+      normalized.charAt(0).toUpperCase() + normalized.slice(1);
+    const statusMap: Record<
+      string,
+      {
+        label: string;
+        color:
+          | "default"
+          | "primary"
+          | "secondary"
+          | "error"
+          | "info"
+          | "success"
+          | "warning";
+      }
+    > = {
+      pending: { label: "Pending", color: "warning" },
+      sent: { label: "Sent", color: "info" },
+      requested: { label: "Pending", color: "warning" },
+      accepted: { label: "Accepted", color: "success" },
+      approved: { label: "Accepted", color: "success" },
+      accept: { label: "Accepted", color: "success" },
+      reject: { label: "Rejected", color: "error" },
+      rejected: { label: "Rejected", color: "error" },
+      decline: { label: "Rejected", color: "error" },
+      declined: { label: "Rejected", color: "error" },
+      canceled: { label: "Canceled", color: "default" },
+      cancelled: { label: "Canceled", color: "default" },
+      revoked: { label: "Canceled", color: "default" },
+      blocked: { label: "Blocked", color: "error" },
+      failed: { label: "Failed", color: "error" },
+    };
+    return statusMap[normalized] ?? { label: capitalized, color: "default" };
+  };
 
   return (
     <BaseLayout justifyContent="flex-start">
@@ -423,81 +485,102 @@ const FriendsPage = () => {
                             Пока нечего проверять.
                           </Typography>
                         ) : (
-                          incomingRequests.map((request) => (
-                            <Paper
-                              key={request.id}
-                              elevation={0}
-                              sx={{
-                                borderRadius: 3,
-                                border: "1px solid rgba(255,255,255,.08)",
-                                p: 2,
-                              }}
-                            >
-                              <Stack
-                                direction="row"
-                                spacing={2}
-                                alignItems="center"
+                          incomingRequests.map((request) => {
+                            const statusChip = getStatusChip(request.status);
+                            const isPending = canActOnIncoming(request.status);
+                            const normalizedStatus =
+                              normalizeStatus(request.status);
+                            const hideDeclineButton =
+                              normalizedStatus === "rejected" ||
+                              normalizedStatus === "declined";
+                            return (
+                              <Paper
+                                key={request.id}
+                                elevation={0}
+                                sx={{
+                                  borderRadius: 3,
+                                  border: "1px solid rgba(255,255,255,.08)",
+                                  p: 2,
+                                }}
                               >
-                                <Avatar
-                                  src={request.avatar}
-                                  alt={request.name}
-                                  sx={{ width: 48, height: 48 }}
+                                <Stack
+                                  direction="row"
+                                  spacing={2}
+                                  alignItems="center"
                                 >
-                                  {request.name
-                                    .split(" ")
-                                    .map((segment) => segment[0])
-                                    .slice(0, 2)
-                                    .join("")
-                                    .toUpperCase()}
-                                </Avatar>
-                                <Box sx={{ flex: 1 }}>
-                                  <Typography sx={{ fontWeight: 600 }}>
-                                    {request.name}
-                                  </Typography>
-                                  <Typography sx={{ opacity: 0.7 }}>
-                                    {request.username}
-                                  </Typography>
-                                  {request.message && (
-                                    <Typography
-                                      sx={{
-                                        mt: 0.5,
-                                        opacity: 0.7,
-                                        fontSize: 14,
-                                      }}
+                                  <Avatar
+                                    src={request.avatar}
+                                    alt={request.name}
+                                    sx={{ width: 48, height: 48 }}
+                                  >
+                                    {request.name
+                                      .split(" ")
+                                      .map((segment) => segment[0])
+                                      .slice(0, 2)
+                                      .join("")
+                                      .toUpperCase()}
+                                  </Avatar>
+                                  <Box sx={{ flex: 1 }}>
+                                    <Stack
+                                      direction="row"
+                                      spacing={1}
+                                      alignItems="center"
+                                      flexWrap="wrap"
                                     >
-                                      {request.message}
+                                      <Typography sx={{ fontWeight: 600 }}>
+                                        {request.name}
+                                      </Typography>
+                                      <Chip
+                                        label={statusChip.label}
+                                        color={statusChip.color}
+                                        size="small"
+                                        variant="outlined"
+                                      />
+                                    </Stack>
+                                    <Typography sx={{ opacity: 0.7 }}>
+                                      {request.username}
                                     </Typography>
+                                    {request.message && (
+                                      <Typography
+                                        sx={{
+                                          mt: 0.5,
+                                          opacity: 0.7,
+                                          fontSize: 14,
+                                        }}
+                                      >
+                                        {request.message}
+                                      </Typography>
+                                    )}
+                                  </Box>
+                                </Stack>
+                                <Stack
+                                  direction={{ xs: "column", sm: "row" }}
+                                  spacing={1}
+                                  sx={{ mt: 2 }}
+                                >
+                                  <Button
+                                    variant="contained"
+                                    onClick={() => handleAcceptRequest(request)}
+                                    disabled={!isPending}
+                                  >
+                                    Принять
+                                  </Button>
+                                  {!hideDeclineButton && (
+                                    <Button
+                                      variant="outlined"
+                                      color="inherit"
+                                      onClick={() =>
+                                        handleDeclineRequest(request.id)
+                                      }
+                                      disabled={!isPending}
+                                    >
+                                      Отклонить
+                                    </Button>
                                   )}
-                                  {/* <Chip
-                                    label={`${request.mutualRoadmaps} общих роадмэпов`}
-                                    size="small"
-                                    sx={{ mt: 1 }}
-                                  /> */}
-                                </Box>
-                              </Stack>
-                              <Stack
-                                direction={{ xs: "column", sm: "row" }}
-                                spacing={1}
-                                sx={{ mt: 2 }}
-                              >
-                                <Button
-                                  variant="contained"
-                                  onClick={() => handleAcceptRequest(request)}
-                                >
-                                  Принять
-                                </Button>
-                                <Button
-                                  variant="outlined"
-                                  color="inherit"
-                                  onClick={() =>
-                                    handleDeclineRequest(request.id)
-                                  }
-                                >
-                                  Отклонить
-                                </Button>
-                              </Stack>
-                            </Paper>
-                          ))
+                                </Stack>
+                              </Paper>
+                            );
+                          })
                         )}
                       </Stack>
                     </Grid>
@@ -511,75 +594,87 @@ const FriendsPage = () => {
                             Нет активных приглашений.
                           </Typography>
                         ) : (
-                          outgoingRequests.map((request) => (
-                            <Paper
-                              key={request.id}
-                              elevation={0}
-                              sx={{
-                                borderRadius: 3,
-                                border: "1px solid rgba(255,255,255,.08)",
-                                p: 2,
-                              }}
-                            >
-                              <Stack
-                                direction="row"
-                                spacing={2}
-                                alignItems="center"
+                          outgoingRequests.map((request) => {
+                            const statusChip = getStatusChip(request.status);
+                            const { label: cancelLabel, disabled } =
+                              getOutgoingAction(request.status);
+                            return (
+                              <Paper
+                                key={request.id}
+                                elevation={0}
+                                sx={{
+                                  borderRadius: 3,
+                                  border: "1px solid rgba(255,255,255,.08)",
+                                  p: 2,
+                                }}
                               >
-                                <Avatar
-                                  src={request.avatar}
-                                  alt={request.name}
-                                  sx={{ width: 48, height: 48 }}
+                                <Stack
+                                  direction="row"
+                                  spacing={2}
+                                  alignItems="center"
                                 >
-                                  {request.name
-                                    .split(" ")
-                                    .map((segment) => segment[0])
-                                    .slice(0, 2)
-                                    .join("")
-                                    .toUpperCase()}
-                                </Avatar>
-                                <Box sx={{ flex: 1 }}>
-                                  <Typography sx={{ fontWeight: 600 }}>
-                                    {request.name}
-                                  </Typography>
-                                  <Typography sx={{ opacity: 0.7 }}>
-                                    {request.username}
-                                  </Typography>
-                                  {request.message && (
-                                    <Typography
-                                      sx={{
-                                        mt: 0.5,
-                                        opacity: 0.7,
-                                        fontSize: 14,
-                                      }}
+                                  <Avatar
+                                    src={request.avatar}
+                                    alt={request.name}
+                                    sx={{ width: 48, height: 48 }}
+                                  >
+                                    {request.name
+                                      .split(" ")
+                                      .map((segment) => segment[0])
+                                      .slice(0, 2)
+                                      .join("")
+                                      .toUpperCase()}
+                                  </Avatar>
+                                  <Box sx={{ flex: 1 }}>
+                                    <Stack
+                                      direction="row"
+                                      spacing={1}
+                                      alignItems="center"
+                                      flexWrap="wrap"
                                     >
-                                      {/* {request.message} */}
+                                      <Typography sx={{ fontWeight: 600 }}>
+                                        {request.name}
+                                      </Typography>
+                                      <Chip
+                                        label={statusChip.label}
+                                        color={statusChip.color}
+                                        size="small"
+                                        variant="outlined"
+                                      />
+                                    </Stack>
+                                    <Typography sx={{ opacity: 0.7 }}>
+                                      {request.username}
                                     </Typography>
-                                  )}
-                                  {/* <Chip
-                                    label={`${request.mutualRoadmaps} общих роадмэпов`}
-                                    size="small"
-                                    sx={{ mt: 1 }}
-                                  /> */}
-                                </Box>
-                              </Stack>
-                              <Stack
-                                direction={{ xs: "column", sm: "row" }}
-                                spacing={1}
-                                sx={{ mt: 2 }}
-                              >
-                                <Button
-                                  variant="outlined"
-                                  color="error"
-                                  onClick={() =>
-                                    handleCancelRequest(request.id)
-                                  }
+                                    {request.message && (
+                                      <Typography
+                                        sx={{
+                                          mt: 0.5,
+                                          opacity: 0.7,
+                                          fontSize: 14,
+                                        }}
+                                      >
+                                        {request.message}
+                                      </Typography>
+                                    )}
+                                  </Box>
+                                </Stack>
+                                <Stack
+                                  direction={{ xs: "column", sm: "row" }}
+                                  spacing={1}
+                                  sx={{ mt: 2 }}
                                 >
-                                  Отменить заявку
-                                </Button>
-                              </Stack>
-                            </Paper>
-                          ))
+                                  <Button
+                                    variant="outlined"
+                                    color="error"
+                                    onClick={() => handleCancelRequest(request.id)}
+                                    disabled={disabled}
+                                  >
+                                    {cancelLabel}
+                                  </Button>
+                                </Stack>
+                              </Paper>
+                            );
+                          })
                         )}
                       </Stack>
                     </Grid>

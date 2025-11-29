@@ -98,6 +98,30 @@ const normalizeUserId = (value: unknown): string | null => {
   return null;
 };
 
+type FriendshipUiState =
+  | { status: "none" }
+  | { status: "pending"; isSender?: boolean }
+  | { status: "rejected"; isSender?: boolean }
+  | { status: "accepted"; isSender?: boolean };
+
+const getFriendshipUiState = (
+  user: ChatUser,
+  hasLocalPending: boolean,
+): FriendshipUiState => {
+  if (hasLocalPending) {
+    return { status: "pending", isSender: true };
+  }
+
+  if (!user.friendshipStatus) return { status: "none" };
+
+  const { status, isSender } = user.friendshipStatus;
+  if (status === "accepted") return { status: "accepted", isSender };
+  if (status === "rejected") return { status: "rejected", isSender };
+  if (status === "pending") return { status: "pending", isSender };
+
+  return { status: "none" };
+};
+
 const ChatListItem = ({
   chat,
   isSelected,
@@ -697,6 +721,20 @@ const ChatsPage = () => {
           message: `Hi ${user?.nickname || user?.name || "there"}! Let's connect.`,
         });
         setFriendRequestSent((prev) => ({ ...prev, [targetId]: true }));
+        setParticipants((prev) =>
+          prev.map((participant) => {
+            const participantId = normalizeUserId(
+              participant.originalId ?? participant.id,
+            );
+            if (participantId && participantId === targetId) {
+              return {
+                ...participant,
+                friendshipStatus: { status: "pending", isSender: true },
+              };
+            }
+            return participant;
+          }),
+        );
       } catch (err) {
         console.error("Failed to send friend request", err);
         setFriendRequestError("Failed to send friend request");
@@ -790,17 +828,59 @@ const ChatsPage = () => {
                     const participantId = user.originalId ?? user.id;
                     const normalizedParticipantId =
                       normalizeUserId(participantId);
+                    const participantKey =
+                      normalizedParticipantId ?? participantId ?? user.id;
                     const isCurrentUser =
                       user.isCurrentUser ??
                       (resolvedUserId && normalizedParticipantId
                         ? normalizedParticipantId === resolvedUserId
                         : user.id === resolvedUserId);
-                    const requestSent = participantId
-                      ? Boolean(friendRequestSent[participantId])
+                    const requestSent = participantKey
+                      ? Boolean(friendRequestSent[participantKey])
                       : false;
-                    const isSubmitting = participantId
-                      ? addingFriendId === participantId
+                    const isSubmitting = participantKey
+                      ? addingFriendId === participantKey
                       : false;
+                    const friendshipState = getFriendshipUiState(
+                      user,
+                      requestSent,
+                    );
+
+                    let actionLabel = "Add friend";
+                    let actionVariant: "outlined" | "contained" = "outlined";
+                    let actionColor: "primary" | "secondary" | "success" =
+                      "primary";
+                    let actionDisabled =
+                      !participantKey || requestSent || isSubmitting;
+
+                    if (friendshipState.status === "pending") {
+                      actionLabel = "Request sent";
+                      actionVariant = "contained";
+                      actionDisabled = true;
+                    } else if (friendshipState.status === "rejected") {
+                      actionLabel = "Subscribed";
+                      actionVariant = "outlined";
+                      actionColor = "secondary";
+                      actionDisabled = true;
+                    } else if (friendshipState.status === "accepted") {
+                      actionLabel = "Friend";
+                      actionVariant = "contained";
+                      actionColor = "success";
+                      actionDisabled = true;
+                    }
+
+                    const requestSentState = friendshipState.status === "pending";
+                    const actionSx = {
+                      minWidth: 120,
+                      ...(requestSentState
+                        ? {
+                            color: "#fff",
+                            "&.Mui-disabled": {
+                              color: "#fff",
+                            },
+                          }
+                        : {}),
+                    };
 
                     return (
                       <ListItem key={user.id} disablePadding>
@@ -833,24 +913,20 @@ const ChatsPage = () => {
                           {!isCurrentUser && (
                             <Button
                               size="small"
-                              variant={requestSent ? "contained" : "outlined"}
-                              color={requestSent ? "success" : "primary"}
-                              disabled={
-                                !participantId || requestSent || isSubmitting
-                              }
+                              variant={actionVariant}
+                              color={actionColor}
+                              disabled={actionDisabled}
                               onClick={(event) => {
                                 event.preventDefault();
                                 event.stopPropagation();
                                 void handleAddFriend(user);
                               }}
-                              sx={{ minWidth: 120 }}
+                              sx={actionSx}
                             >
                               {isSubmitting ? (
                                 <CircularProgress size={16} />
-                              ) : requestSent ? (
-                                "Request sent"
                               ) : (
-                                "Add friend"
+                                actionLabel
                               )}
                             </Button>
                           )}

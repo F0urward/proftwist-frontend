@@ -54,6 +54,9 @@ export const friendsService = {
   deleteFriendRequest: (requestId: string) =>
     api.delete(`/friends/requests/${requestId}`),
 
+  declineFriendRequest: (requestId: string) =>
+    api.post(`/friends/requests/${requestId}/reject`),
+
   createFriendRequest: (payload: CreateFriendRequestPayload) =>
     api.post("/friends/requests", payload),
 

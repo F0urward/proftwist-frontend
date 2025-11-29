@@ -56,6 +56,72 @@ const extractListFromPayload = (
 export const ensureString = (value: unknown, fallback: string): string =>
   toNonEmptyString(value) ?? fallback;
 
+const normalizeFriendshipStatus = (
+  value: unknown,
+): ChatUser["friendshipStatus"] => {
+  if (!value) return undefined;
+
+  if (typeof value === "boolean") {
+    return value ? { status: "accepted" } : undefined;
+  }
+
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === "accepted" || normalized === "friend") {
+      return { status: "accepted" };
+    }
+    if (
+      normalized === "pending" ||
+      normalized === "sent" ||
+      normalized === "requested" ||
+      normalized === "request_sent" ||
+      normalized === "waiting"
+    ) {
+      return { status: "pending" };
+    }
+    if (normalized === "rejected" || normalized === "declined") {
+      return { status: "rejected" };
+    }
+    return undefined;
+  }
+
+  if (typeof value === "object") {
+    const rawStatus = optionalString(
+      (value as any).status ??
+        (value as any).state ??
+        (value as any).value ??
+        (value as any).friend_status,
+    );
+    const isSender =
+      typeof (value as any).is_sender === "boolean"
+        ? (value as any).is_sender
+        : typeof (value as any).isSender === "boolean"
+          ? (value as any).isSender
+          : undefined;
+
+    if (!rawStatus) return undefined;
+    const normalized = rawStatus.trim().toLowerCase();
+
+    if (normalized === "accepted" || normalized === "friend") {
+      return { status: "accepted", isSender };
+    }
+    if (
+      normalized === "pending" ||
+      normalized === "sent" ||
+      normalized === "requested" ||
+      normalized === "request_sent" ||
+      normalized === "waiting"
+    ) {
+      return { status: "pending", isSender };
+    }
+    if (normalized === "rejected" || normalized === "declined") {
+      return { status: "rejected", isSender };
+    }
+  }
+
+  return undefined;
+};
+
 export const initialsFrom = (value: string): string =>
   value
     .trim()
@@ -107,6 +173,19 @@ export const mapUserFromApi = (user: any): ChatUser => {
       user.nickname ?? user.username ?? user.display_name,
     ),
     avatar: optionalString(user.avatar ?? user.avatar_url ?? user.image),
+    friendshipStatus:
+      normalizeFriendshipStatus(
+        user.friendship_status ??
+          user.friend_status ??
+          user.friendshipStatus ??
+          user.friendship ??
+          user.friendStatus ??
+          user.friendship_state ??
+          user.friendshipState,
+      ) ??
+      normalizeFriendshipStatus(
+        typeof user.is_friend === "boolean" ? user.is_friend : undefined,
+      ),
   };
 };
 

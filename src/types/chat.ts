@@ -1,3 +1,10 @@
+export type FriendshipStatusValue = "pending" | "accepted" | "rejected";
+
+export type FriendshipStatus = {
+  status: FriendshipStatusValue;
+  isSender?: boolean;
+};
+
 export type ChatUser = {
   id: string;
   name: string;
@@ -5,6 +12,7 @@ export type ChatUser = {
   avatar?: string;
   isCurrentUser?: boolean;
   originalId?: string;
+  friendshipStatus?: FriendshipStatus;
 };
 
 export type Chat = {
