@@ -27,7 +27,7 @@ export default defineConfig({
         },
       },
       "/ws": {
-        target: "ws://localhost:8080",
+        target: "ws://localhost:8998/api/v1/chats",
         changeOrigin: true,
         ws: true,
       },
