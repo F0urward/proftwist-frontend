@@ -156,14 +156,29 @@ export const mapChatFromApi = (
     participants.push({ id: currentUserId, name: "You" });
   }
 
+  const companion =
+    chatType === "personal"
+      ? participants.find((participant) => participant.id !== currentUserId)
+      : undefined;
+  const personalTitleFallback =
+    companion?.name ?? companion?.nickname ?? undefined;
+
+  const fallbackTitle =
+    chatType === "group" ? "Group chat" : personalTitleFallback ?? "Personal chat";
+
   return {
     id: ensureString(
       pickFirstDefined(chat?.id, chat?.chat_id, chat?.uuid),
       `chat-${randomId()}`,
     ),
     title: ensureString(
-      pickFirstDefined(chat?.title, chat?.name, chat?.topic),
-      chatType === "group" ? "Групповой чат" : "Личный чат",
+      pickFirstDefined(
+        chat?.title,
+        chat?.name,
+        chat?.topic,
+        personalTitleFallback,
+      ),
+      fallbackTitle,
     ),
     type: chatType,
     participants,
