@@ -528,6 +528,42 @@ export const useChatManager = (
             };
             commitMessage(systemMessage);
           } else if (
+            ["member_joined", "chat_member_joined", "user_joined"].includes(
+              eventType ?? "",
+            ) &&
+            chatId
+          ) {
+            const joinedUserId =
+              payload?.user_id ??
+              payload?.userId ??
+              payload?.user?.id ??
+              "system";
+            const joinedUserName =
+              payload?.username ??
+              payload?.user_name ??
+              payload?.user?.name ??
+              payload?.user?.username ??
+              "Someone";
+            const systemMessage: ChatMessage = {
+              id:
+                payload?.event_id ??
+                payload?.id ??
+                payload?.message_id ??
+                `system-${Date.now()}`,
+              chatId,
+              senderId: joinedUserId,
+              text: `${joinedUserName} joined the chat`,
+              kind: "system",
+              createdAt:
+                payload?.timestamp ??
+                payload?.created_at ??
+                new Date().toISOString(),
+              senderName: joinedUserName,
+              senderNickname: payload?.username ?? payload?.user_name,
+              senderAvatar: payload?.avatar_url ?? payload?.user?.avatar_url,
+            };
+            commitMessage(systemMessage);
+          } else if (
             (eventType === "typing" || eventType === "typing_notification") &&
             chatId
           ) {
