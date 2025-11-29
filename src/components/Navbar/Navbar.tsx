@@ -202,6 +202,12 @@ const Navbar = () => {
               open={Boolean(anchorEl)}
               onClose={handleMenuClose}
             >
+              <MenuItem disabled>
+                <ListItemText
+                  primary={userData?.username}
+                  sx={{ color: "white" }}
+                />
+              </MenuItem>
               {menuOptions.map(({ title, icon, onClick }) => (
                 <MenuItem key={title} onClick={onClick}>
                   <ListItemIcon>{icon}</ListItemIcon>
