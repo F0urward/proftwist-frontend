@@ -103,23 +103,38 @@ const Navbar = () => {
           px: { xs: 3, md: 20 },
         }}
       >
-        <Typography
-          variant="h6"
+        <Box
           component={RouterLink}
           to="/roadmaps"
           sx={{
-            fontFamily: '"TDAText"',
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
             textDecoration: "none",
-            fontWeight: 700,
-            backgroundImage: "linear-gradient(90deg, #BC57FF 0%, #FF4DCA 100%)",
-            backgroundClip: "text",
-            WebkitBackgroundClip: "text",
-            color: "transparent",
-            WebkitTextFillColor: "transparent",
           }}
         >
-          ProfTwist
-        </Typography>
+          <Box
+            component="img"
+            src="/images/logo.webp"
+            alt="ProfTwist logo"
+            sx={{ width: 32, height: 32, borderRadius: "8px" }}
+          />
+          <Typography
+            variant="h6"
+            sx={{
+              fontFamily: '"TDAText"',
+              fontWeight: 700,
+              backgroundImage:
+                "linear-gradient(90deg, #BC57FF 0%, #FF4DCA 100%)",
+              backgroundClip: "text",
+              WebkitBackgroundClip: "text",
+              color: "transparent",
+              WebkitTextFillColor: "transparent",
+            }}
+          >
+            ProfTwist
+          </Typography>
+        </Box>
 
         <Box
           sx={{
