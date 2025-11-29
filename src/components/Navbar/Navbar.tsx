@@ -25,6 +25,15 @@ interface MenuEntry {
   onClick: () => void;
 }
 
+const isDefaultAvatar = (url?: string) => {
+  if (!url) return false;
+  const normalized = url.trim().replace(/^\/+/, "");
+  return (
+    normalized === "avatars/default.jpg" ||
+    normalized.endsWith("/avatars/default.jpg")
+  );
+};
+
 const resolveAvatarUrl = (user?: User | null): string | undefined => {
   if (!user) return undefined;
   const candidates = [
@@ -33,7 +42,11 @@ const resolveAvatarUrl = (user?: User | null): string | undefined => {
     (user as User & { avatar?: string }).avatar,
   ];
   for (const candidate of candidates) {
-    if (typeof candidate === "string" && candidate.trim().length > 0) {
+    if (
+      typeof candidate === "string" &&
+      candidate.trim().length > 0 &&
+      !isDefaultAvatar(candidate)
+    ) {
       return candidate;
     }
   }
@@ -177,7 +190,7 @@ const Navbar = () => {
                   ? userData.username.charAt(0).toUpperCase()
                   : "User avatar"
               }
-              src={userData?.image || "/static/images/avatar/1.jpg"}
+              src={avatarUrl}
               onClick={handleAvatarClick}
               sx={{ cursor: "pointer" }}
             >
