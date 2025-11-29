@@ -778,20 +778,21 @@ const FriendsPage = () => {
                           </IconButton>
                         </Stack>
 
-                        {/* <Stack spacing={1.5}>
+                        <Stack spacing={1.5}>
+                          {/*
                           <Typography sx={{ fontWeight: 600 }}>
                             {friend.expertise}
                           </Typography>
                           <Typography sx={{ opacity: 0.8 }}>
                             {friend.focus}
-                          </Typography>
+                          </Typography> */}
                           <Chip
-                            label={`${friend.sharedRoadmaps} общих роадмэпов`}
+                            label={`${friend.sharedRoadmaps} общих роадмапов`}
                             size="small"
                             variant="outlined"
                             sx={{ alignSelf: "flex-start" }}
                           />
-                        </Stack> */}
+                        </Stack>
 
                         <Box
                           sx={{
