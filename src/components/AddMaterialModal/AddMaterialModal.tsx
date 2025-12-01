@@ -16,6 +16,7 @@ interface AddMaterialModalProps {
   open: boolean;
   onClose: () => void;
   nodeId: string;
+  roadmapId: string;
   onSave?: (m: Material) => void;
   notify: (message: string, type?: "success" | "error") => void;
 }
@@ -24,6 +25,7 @@ const AddMaterialModal = ({
   open,
   onClose,
   nodeId,
+  roadmapId,
   onSave,
   notify,
 }: AddMaterialModalProps) => {
@@ -54,10 +56,9 @@ const AddMaterialModal = ({
     setError("");
 
     try {
-      const created = await materialsService.create({
+      const created = await materialsService.create(roadmapId, nodeId, {
         name,
         url,
-        roadmap_node_id: nodeId,
       });
       notify("Материал успешно добавлен!", "success");
       if (onSave) onSave(created);

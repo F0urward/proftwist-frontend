@@ -390,7 +390,7 @@ const RoadmapPage = () => {
               variant="contained"
               startIcon={<DeviceHubOutlinedIcon />}
               onClick={() => {
-                const roadmapId = info?.roadmap_id ?? incoming?.roadmap_id;
+                const roadmapId = info?.roadmap_id;
                 if (roadmapId) {
                   navigate(`/roadmaps/${roadmapId}/edit`, {
                     state: { roadmapInfo: info },
@@ -583,6 +583,7 @@ const RoadmapPage = () => {
         <NodeSidebar
           open={!!selectedNode}
           node={selectedNode}
+          roadmapId={info?.roadmap_id ?? ""}
           onClose={closeSidebar}
           notify={showNotification}
         />

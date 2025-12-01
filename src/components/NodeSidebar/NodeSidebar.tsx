@@ -37,10 +37,17 @@ type NodeSidebarProps = {
     };
     description?: string;
   };
+  roadmapId: string;
   notify: (message: string, type?: "success" | "error") => void;
 };
 
-const NodeSidebar = ({ open, onClose, node, notify }: NodeSidebarProps) => {
+const NodeSidebar = ({
+  open,
+  onClose,
+  node,
+  roadmapId,
+  notify,
+}: NodeSidebarProps) => {
   const navigate = useNavigate();
   const isLoggedIn = useAppSelector((state) => state.auth.isLoggedIn);
   const [materialModal, setMaterialModal] = useState(false);
@@ -63,7 +70,7 @@ const NodeSidebar = ({ open, onClose, node, notify }: NodeSidebarProps) => {
 
     async function load() {
       try {
-        const data = await materialsService.getByNode(node.id);
+        const data = await materialsService.getByNode(roadmapId, node.id);
         setMaterials(data);
       } catch (e) {
         console.error("Failed to load materials for node", e);
@@ -78,7 +85,7 @@ const NodeSidebar = ({ open, onClose, node, notify }: NodeSidebarProps) => {
     if (!materialToDelete) return;
 
     try {
-      await materialsService.delete(materialToDelete.id);
+      await materialsService.delete(roadmapId, node.id, materialToDelete.id);
       setMaterials((prev) => prev.filter((m) => m.id !== materialToDelete.id));
       notify("Материал удалён", "success");
     } catch {
@@ -395,6 +402,7 @@ const NodeSidebar = ({ open, onClose, node, notify }: NodeSidebarProps) => {
               </Button>
               <AddMaterialModal
                 open={materialModal}
+                roadmapId={roadmapId}
                 nodeId={node?.id}
                 onClose={() => setMaterialModal(false)}
                 onSave={(mat) => setMaterials((prev) => [mat, ...prev])}

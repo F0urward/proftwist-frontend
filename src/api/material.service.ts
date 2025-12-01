@@ -2,8 +2,10 @@ import { api } from "./axios";
 import { Material } from "../types/material";
 
 export const materialsService = {
-  async getByNode(nodeId: string): Promise<Material[]> {
-    const { data } = await api.get(`/materials/node/${nodeId}`);
+  async getByNode(roadmapId: string, nodeId: string): Promise<Material[]> {
+    const { data } = await api.get(
+      `/roadmaps/${roadmapId}/nodes/${nodeId}/materials`,
+    );
     return (data as any).materials ?? data;
   },
 
@@ -12,16 +14,25 @@ export const materialsService = {
     return (data as any).materials ?? data;
   },
 
-  async create(payload: {
-    name: string;
-    url: string;
-    roadmap_node_id: string;
-  }): Promise<Material> {
-    const { data } = await api.post("/materials", payload);
+  async create(
+    roadmapId: string,
+    nodeId: string,
+    payload: { name: string; url: string },
+  ): Promise<Material> {
+    const { data } = await api.post(
+      `/roadmaps/${roadmapId}/nodes/${nodeId}/materials`,
+      payload,
+    );
     return (data as any).material ?? data;
   },
 
-  async delete(materialId: string): Promise<void> {
-    await api.delete(`/materials/${materialId}`);
+  async delete(
+    roadmapId: string,
+    nodeId: string,
+    materialId: string,
+  ): Promise<void> {
+    await api.delete(
+      `/roadmaps/${roadmapId}/nodes/${nodeId}/materials/${materialId}`,
+    );
   },
 };
