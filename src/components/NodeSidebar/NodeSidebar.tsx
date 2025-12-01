@@ -24,6 +24,8 @@ import { useEffect } from "react";
 import AddMaterialModal from "../AddMaterialModal/AddMaterialModal";
 import ConfirmModal from "../ConfirmModal/ConfirmModal";
 
+type RoadmapType = "public" | "owned" | "saved" | "fork";
+
 type NodeSidebarProps = {
   open: boolean;
   onClose: () => void;
@@ -38,6 +40,7 @@ type NodeSidebarProps = {
     description?: string;
   };
   roadmapId: string;
+  type: RoadmapType;
   notify: (message: string, type?: "success" | "error") => void;
 };
 
@@ -46,6 +49,7 @@ const NodeSidebar = ({
   onClose,
   node,
   roadmapId,
+  type,
   notify,
 }: NodeSidebarProps) => {
   const navigate = useNavigate();
@@ -164,7 +168,7 @@ const NodeSidebar = ({
 
           <Typography variant="body1">{description}</Typography>
 
-          {isLoggedIn && (
+          {isLoggedIn && (type === "public" || type === "saved") && (
             <Button
               fullWidth
               variant="contained"

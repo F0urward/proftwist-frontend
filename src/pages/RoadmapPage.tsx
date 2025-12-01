@@ -585,6 +585,7 @@ const RoadmapPage = () => {
           node={selectedNode}
           roadmapId={info?.roadmap_id ?? ""}
           onClose={closeSidebar}
+          type={type}
           notify={showNotification}
         />
       </Box>
