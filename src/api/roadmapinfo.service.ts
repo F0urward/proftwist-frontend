@@ -30,6 +30,18 @@ export const roadmapinfoService = {
     }
   },
 
+  async searchPublic(
+    query: string,
+    categoryId?: string,
+  ): Promise<RoadmapInfo[]> {
+    const params: any = { q: query };
+    if (categoryId) params.category_id = categoryId;
+
+    const { data } = await api.get("/roadmapsinfo/public/search", { params });
+
+    return (data as any).roadmaps_info;
+  },
+
   async create(payload: {
     category_id: string;
     name: string;

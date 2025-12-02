@@ -1,4 +1,5 @@
-import { Box, Paper, Stack } from "@mui/material";
+import { Box, Paper, Stack, TextField, IconButton } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
 import ItemCard from "../components/ItemCard/ItemCard.tsx";
 import CategoryList from "../components/CategoryList/CategoryList.tsx";
 import BaseLayout from "../components/BaseLayout/BaseLayout.tsx";
@@ -15,9 +16,19 @@ const STORAGE_KEY = "selectedCategoryId";
 const RoadmapsPage = () => {
   const [items, setItems] = useState<RoadmapInfo[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
   const [selected, setSelected] = useState(-1);
   const [initialized, setInitialized] = useState(false);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setDebouncedSearch(search.trim());
+    }, 300);
+
+    return () => clearTimeout(timeout);
+  }, [search]);
 
   useEffect(() => {
     (async () => {
@@ -73,9 +84,18 @@ const RoadmapsPage = () => {
     let cancelled = false;
     async function load() {
       try {
-        const data = selectedCategoryId
-          ? await roadmapinfoService.getByCategory(selectedCategoryId)
-          : await roadmapinfoService.getAllRoadmapsInfo();
+        let data;
+
+        if (debouncedSearch) {
+          data = await roadmapinfoService.searchPublic(
+            debouncedSearch,
+            selectedCategoryId ?? undefined,
+          );
+        } else {
+          data = selectedCategoryId
+            ? await roadmapinfoService.getByCategory(selectedCategoryId)
+            : await roadmapinfoService.getAllRoadmapsInfo();
+        }
         if (!cancelled) setItems(data);
       } catch (e) {
         console.error("Load roadmapsinfo failed:", e);
@@ -90,7 +110,7 @@ const RoadmapsPage = () => {
     return () => {
       cancelled = true;
     };
-  }, [selectedCategoryId, selected]);
+  }, [selectedCategoryId, selected, debouncedSearch]);
 
   return (
     <BaseLayout>
@@ -115,6 +135,27 @@ const RoadmapsPage = () => {
         />
 
         <Paper variant="outlined" sx={{ p: { xs: 2, md: 3 } }}>
+          <TextField
+            fullWidth
+            placeholder="Поиск по roadmaps..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            sx={{ mb: 2 }}
+            slotProps={{
+              input: {
+                endAdornment: search ? (
+                  <IconButton
+                    size="small"
+                    onClick={() => setSearch("")}
+                    sx={{ mr: 1, color: "#fff" }}
+                  >
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
+                ) : null,
+              },
+            }}
+          />
+
           {!(items && items.length) && initialized && <EmptyState></EmptyState>}
           {items && (
             <Stack spacing={2}>
