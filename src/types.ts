@@ -8,6 +8,7 @@ export interface Node {
   id: string;
   type: "customNode";
   data: NodeData;
+  description?: string;
   position: { x: number; y: number };
 }
 

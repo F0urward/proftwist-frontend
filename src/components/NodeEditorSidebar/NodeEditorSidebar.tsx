@@ -8,6 +8,7 @@ type NodeEditorSidebarProps = {
   node: Node | null;
   onClose: () => void;
   onLabelChange: (value: string) => void;
+  onDescriptionChange: (value: string) => void;
 };
 
 export const NodeEditorSidebar = ({
@@ -15,8 +16,10 @@ export const NodeEditorSidebar = ({
   node,
   onClose,
   onLabelChange,
+  onDescriptionChange,
 }: NodeEditorSidebarProps) => {
   const label = useMemo(() => (node?.data as any)?.label ?? "", [node]);
+  const description = useMemo(() => (node as any)?.description ?? "", [node]);
   const nodeType = useMemo(() => (node?.data as any)?.type ?? "Node", [node]);
 
   if (!open || !node) {
@@ -68,6 +71,31 @@ export const NodeEditorSidebar = ({
             label="Название"
             value={label}
             onChange={(event) => onLabelChange(event.target.value)}
+            multiline
+            minRows={3}
+            variant="filled"
+            fullWidth
+            slotProps={{
+              input: {
+                sx: {
+                  bgcolor: "rgba(255,255,255,0.06)",
+                  borderRadius: 2,
+                  color: "#fff",
+                },
+              },
+              inputLabel: {
+                sx: {
+                  color: "rgba(255,255,255,0.6)",
+                  "&.Mui-focused": { color: "#fff" },
+                },
+              },
+            }}
+          />
+
+          <TextField
+            label="Описание"
+            value={description}
+            onChange={(event) => onDescriptionChange(event.target.value)}
             multiline
             minRows={3}
             variant="filled"

@@ -142,6 +142,20 @@ export const CreatorPage = () => {
     [dispatch, editingNodeId],
   );
 
+  const handleDescriptionChange = useCallback(
+    (value: string) => {
+      if (!editingNodeId) return;
+
+      dispatch(
+        editorSliceActions.updateNode({
+          id: editingNodeId,
+          description: value,
+        }),
+      );
+    },
+    [dispatch, editingNodeId],
+  );
+
   if (loading) {
     return (
       <Stack
@@ -187,6 +201,7 @@ export const CreatorPage = () => {
         node={editingNode}
         onClose={handleCloseEditor}
         onLabelChange={handleLabelChange}
+        onDescriptionChange={handleDescriptionChange}
       />
     </Stack>
   );

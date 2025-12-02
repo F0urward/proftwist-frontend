@@ -25,10 +25,16 @@ const editorSlice = createSlice({
       state.nodes.push(action.payload);
     },
     updateNode: (state, action) => {
-      const { id, data } = action.payload;
+      const { id, data, description } = action.payload;
       const node = state.nodes.find((node) => node.id === id);
-      if (node) {
+      if (!node) return;
+
+      if (data) {
         node.data = { ...node.data, ...data };
+      }
+
+      if (description !== undefined) {
+        node.description = description;
       }
     },
 
@@ -48,7 +54,7 @@ const editorSlice = createSlice({
                 variant: type,
               },
             }
-          : edge
+          : edge,
       );
     },
 
