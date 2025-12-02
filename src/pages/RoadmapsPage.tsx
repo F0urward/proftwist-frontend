@@ -165,7 +165,7 @@ const RoadmapsPage = () => {
                   title={roadmap.name}
                   description={roadmap.description}
                   to={`/roadmaps/${roadmap.id}`}
-                  state={{ type: "official", roadmap }}
+                  state={{ type: "official", roadmap, from: "all" }}
                 />
               ))}
             </Stack>

@@ -84,6 +84,9 @@ const RoadmapPage = () => {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
+  const location = useLocation();
+  const from = location.state?.from ?? null;
+
   const type: RoadmapType = useMemo(() => {
     if (!info) return "public";
     if (info.is_public) return "public";
@@ -93,6 +96,10 @@ const RoadmapPage = () => {
       info.referenced_roadmap_info_id !== ""
     ) {
       return "fork";
+    }
+
+    if (isSubscribed) {
+      return "saved";
     }
 
     return "owned";
@@ -488,10 +495,21 @@ const RoadmapPage = () => {
     }
   };
 
-  const backLink =
-    type === "public"
-      ? { to: "/roadmaps", label: "Ко всем роадмапам" }
-      : { to: "/personal", label: "К моим роадмапам" };
+  const backLink = useMemo(() => {
+    if (type === "owned" || type === "fork") {
+      return { to: "/personal", label: "К моим роадмапам" };
+    }
+
+    if (type === "saved" || type === "public") {
+      if (from === "personal") {
+        return { to: "/personal", label: "К моим роадмапам" };
+      } else {
+        return { to: "/roadmaps", label: "Ко всем роадмапам" };
+      }
+    }
+
+    return { to: "/roadmaps", label: "Ко всем роадмапам" };
+  }, [type, from]);
 
   const titleText = notFound
     ? "Роадмап не найден"
