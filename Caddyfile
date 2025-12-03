@@ -1,12 +1,12 @@
 prof-twist.ru {
   # API -> upstream
   handle_path /api/* {
-    reverse_proxy 95.163.182.138:8080
+    reverse_proxy http://95.163.182.138:8998/api/v1
   }
 
   # WebSocket proxy for /ws
   handle /ws* {
-    reverse_proxy 95.163.182.138:8080
+    reverse_proxy ws://95.163.182.138:8998/api/v1/chats
   }
 
   # Frontend (SPA)
