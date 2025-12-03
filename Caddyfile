@@ -2,29 +2,17 @@ prof-twist.ru {
   # API -> upstream
   handle_path /api/* {
     rewrite * /api/v1{path}
-    reverse_proxy http://traefik:80 {
-      header_up Host {host}
-      header_up X-Real-IP {remote_host}
-      header_up X-Forwarded-For {remote_host}
-      header_up X-Forwarded-Proto {scheme}
+    reverse_proxy traefik:80 {
+      transparent
     }
   }
-
   # WebSocket proxy for /ws
-  handle /ws* {
-    rewrite * /api/v1/chats
-    reverse_proxy http://traefik:80 {
-      # Force HTTP/1.1 to keep the Upgrade handshake intact for WSS
-      transport http {
-        versions h1.1
-      }
-      header_up Host {host}
-      header_up X-Real-IP {remote_host}
-      header_up X-Forwarded-For {remote_host}
-      header_up X-Forwarded-Proto {scheme}
+  handle_path /ws/* {
+    rewrite * /api/v1/chats{path}?{query}
+    reverse_proxy traefik:80 {
+      transparent
     }
   }
-
   # Frontend (SPA)
   handle {
     root * /usr/share/caddy
