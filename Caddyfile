@@ -2,13 +2,13 @@ prof-twist.ru {
   # API -> upstream
   handle_path /api/* {
     rewrite * /api/v1{path}
-    reverse_proxy localhost:8998
+    reverse_proxy 95.163.182.138:8998
   }
 
   # WebSocket proxy for /ws
   handle /ws* {
     rewrite * /api/v1/chats
-    reverse_proxy localhost:8998
+    reverse_proxy 95.163.182.138:8998
   }
 
   # Frontend (SPA)
