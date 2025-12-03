@@ -2,16 +2,12 @@ prof-twist.ru {
   # API -> upstream
   handle_path /api/* {
     rewrite * /api/v1{path}
-    reverse_proxy traefik:80 {
-      transparent
-    }
+    reverse_proxy traefik:80
   }
   # WebSocket proxy for /ws
   handle_path /ws/* {
     rewrite * /api/v1/chats{path}?{query}
-    reverse_proxy traefik:80 {
-      transparent
-    }
+    reverse_proxy traefik:80
   }
   # Frontend (SPA)
   handle {
