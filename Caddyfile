@@ -7,7 +7,13 @@ prof-twist.ru {
   # WebSocket proxy for /ws
   handle_path /ws/* {
     rewrite * /api/v1/chats{path}?{query}
-    reverse_proxy traefik:80
+    # Always hop to the upstream over plain WS/HTTP even if the client uses WSS
+    reverse_proxy http://traefik:80 {
+      transport http {
+        versions 1.1
+      }
+      header_up X-Forwarded-Proto http
+    }
   }
   # Frontend (SPA)
   handle {
