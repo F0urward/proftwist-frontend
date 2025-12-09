@@ -36,7 +36,7 @@ const RegisterPage = () => {
       ).unwrap();
 
       await dispatch(
-        login({ email: data.email, password: data.password })
+        login({ email: data.email, password: data.password }),
       ).unwrap();
 
       navigate("/");
@@ -58,8 +58,9 @@ const RegisterPage = () => {
         onSubmit={handleSubmit(onSubmit)}
       >
         <Stack spacing={3}>
-          {error && 
-            <Alert severity="error"
+          {error && (
+            <Alert
+              severity="error"
               sx={{
                 borderRadius: "10px",
                 background: "linear-gradient(90deg, #d23a95ff, #bc3b57ff)",
@@ -70,10 +71,11 @@ const RegisterPage = () => {
                 },
                 display: "flex",
                 justifyContent: "center",
-            }}>
+              }}
+            >
               {error}
             </Alert>
-          }
+          )}
           <TextInput
             label="Никнейм"
             placeholder="Придумайте свой ник"
@@ -83,7 +85,7 @@ const RegisterPage = () => {
             helperText={errors.username?.message}
           />
           <TextInput
-            label="Email"
+            label="Электронная почта"
             type="email"
             placeholder="example@email.com"
             autoComplete="email"

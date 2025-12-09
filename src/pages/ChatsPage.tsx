@@ -175,7 +175,7 @@ const ChatListItem = ({
           primary={chat.title}
           secondary={
             <Typography component="span" sx={{ opacity: 0.8, fontSize: 13 }}>
-              {chat.lastMessage || "No messages yet"}
+              {chat.lastMessage || "Сообщений пока нет"}
             </Typography>
           }
           slotProps={{
@@ -256,7 +256,7 @@ const ChatSidebar = ({
             endAdornment: query ? (
               <InputAdornment position="end">
                 <IconButton
-                  aria-label="Clear"
+                  aria-label="Очистить"
                   onClick={() => onQueryChange("")}
                   size="small"
                   sx={{ color: "#fff" }}
@@ -279,7 +279,7 @@ const ChatSidebar = ({
       <List disablePadding>
         {chatsLoading && (
           <Box sx={{ p: 3, textAlign: "center", opacity: 0.7 }}>
-            Loading chats...
+            Загрузка чатов...
           </Box>
         )}
 
@@ -296,7 +296,7 @@ const ChatSidebar = ({
 
         {!chatsLoading && !chatsError && chats.length === 0 && (
           <Box sx={{ p: 3, textAlign: "center", opacity: 0.7 }}>
-            No chats found
+            Чаты не найдены
           </Box>
         )}
 
@@ -343,7 +343,7 @@ const MessageComposer = ({
 
       <Stack direction="row" spacing={2} alignItems="flex-end">
         <IconButton
-          aria-label="Attach file"
+          aria-label="Прикрепить файл"
           sx={{ color: "#fff", height: 44, width: 20 }}
           onClick={() => fileInputRef.current?.click()}
         >
@@ -480,7 +480,7 @@ const ChatWindow = ({
           </Stack>
         ) : (
           <Typography variant="h6" sx={{ opacity: 0.6 }}>
-            Select a chat to start
+            Выберите чат, чтобы начать
           </Typography>
         )}
       </Box>
@@ -494,7 +494,7 @@ const ChatWindow = ({
               alignContent: "center",
             }}
           >
-            <Typography>Select a chat to get started</Typography>
+            <Typography>Выберите чат, чтобы начать общение</Typography>
           </Box>
         )}
 
@@ -502,7 +502,7 @@ const ChatWindow = ({
           <>
             {messagesLoading && (
               <Box sx={{ textAlign: "center", opacity: 0.7, mt: 4 }}>
-                Loading messages...
+                Загрузка сообщений...
               </Box>
             )}
 
@@ -695,7 +695,7 @@ const ChatsPage = () => {
       setParticipants(normalized);
     } catch (err) {
       console.error("Failed to load participants", err);
-      setParticipantsError("Failed to load participants");
+      setParticipantsError("Не удалось загрузить участников");
     } finally {
       setParticipantsLoading(false);
     }
@@ -718,7 +718,7 @@ const ChatsPage = () => {
       try {
         await friendsService.createFriendRequest({
           target_user_id: targetId,
-          message: `Hi ${user?.nickname || user?.name || "there"}! Let's connect.`,
+          message: `Привет, ${user?.nickname || user?.name || "друг"}! Давайте общаться.`,
         });
         setFriendRequestSent((prev) => ({ ...prev, [targetId]: true }));
         setParticipants((prev) =>
@@ -737,7 +737,7 @@ const ChatsPage = () => {
         );
       } catch (err) {
         console.error("Failed to send friend request", err);
-        setFriendRequestError("Failed to send friend request");
+        setFriendRequestError("Не удалось отправить заявку в друзья");
       } finally {
         setAddingFriendId(null);
       }
@@ -756,7 +756,7 @@ const ChatsPage = () => {
       await refreshChats({ silent: true });
     } catch (err) {
       console.error("Failed to leave chat", err);
-      setLeaveError("Failed to leave chat");
+      setLeaveError("Не удалось покинуть чат");
     } finally {
       setLeaveLoading(false);
     }
@@ -796,7 +796,7 @@ const ChatsPage = () => {
           fullWidth
           maxWidth="xs"
         >
-          <DialogTitle>Chat participants</DialogTitle>
+          <DialogTitle>Участники чата</DialogTitle>
           <DialogContent dividers>
             {participantsLoading && (
               <Box sx={{ textAlign: "center", py: 4 }}>
@@ -814,7 +814,7 @@ const ChatsPage = () => {
               !participantsError &&
               participants.length === 0 && (
                 <Typography sx={{ textAlign: "center", opacity: 0.8 }}>
-                  No participants
+                  Нет участников
                 </Typography>
               )}
 
@@ -823,7 +823,8 @@ const ChatsPage = () => {
               participants.length > 0 && (
                 <List disablePadding>
                   {participants.map((user) => {
-                    const displayName = user.nickname || user.name || "User";
+                    const displayName =
+                      user.nickname || user.name || "Пользователь";
                     const initials = initialsFrom(displayName);
                     const participantId = user.originalId ?? user.id;
                     const normalizedParticipantId =
@@ -846,7 +847,7 @@ const ChatsPage = () => {
                       requestSent,
                     );
 
-                    let actionLabel = "Add friend";
+                    let actionLabel = "Добавить в друзья";
                     let actionVariant: "outlined" | "contained" = "outlined";
                     let actionColor: "primary" | "secondary" | "success" =
                       "primary";
@@ -854,16 +855,16 @@ const ChatsPage = () => {
                       !participantKey || requestSent || isSubmitting;
 
                     if (friendshipState.status === "pending") {
-                      actionLabel = "Request sent";
+                      actionLabel = "Заявка отправлена";
                       actionVariant = "contained";
                       actionDisabled = true;
                     } else if (friendshipState.status === "rejected") {
-                      actionLabel = "Subscribed";
+                      actionLabel = "Подписаны";
                       actionVariant = "outlined";
                       actionColor = "secondary";
                       actionDisabled = true;
                     } else if (friendshipState.status === "accepted") {
-                      actionLabel = "Friend";
+                      actionLabel = "В друзьях";
                       actionVariant = "contained";
                       actionColor = "success";
                       actionDisabled = true;
@@ -965,7 +966,7 @@ const ChatsPage = () => {
                 onClick={handleLeaveChat}
                 disabled={leaveLoading}
               >
-                {leaveLoading ? "Leaving..." : "Leave chat"}
+                {leaveLoading ? "Выход..." : "Покинуть чат"}
               </Button>
             </Box>
           </DialogContent>

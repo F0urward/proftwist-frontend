@@ -206,7 +206,7 @@ const ProfileView = () => {
               />
 
               <TextInput
-                label="Email"
+                label="Электронная почта"
                 type="email"
                 placeholder="Введите почту"
                 {...register("email")}

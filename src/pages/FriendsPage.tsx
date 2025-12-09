@@ -102,13 +102,13 @@ const mapFriendSummary = (friend: FriendSummary): Friend => ({
   id: friend.user_id,
   name: friend.display_name?.trim().length
     ? friend.display_name
-    : (friend.username ?? "Community member"),
+    : (friend.username ?? "Участник сообщества"),
   username: formatUsername(
     friend.username ?? friend.display_name ?? friend.user_id,
   ),
   avatar: friend.avatar_url,
-  expertise: friend.expertise ?? "Curious builder",
-  focus: friend.focus ?? "Exploring collaboration opportunities",
+  expertise: friend.expertise ?? "Исследователь",
+  focus: friend.focus ?? "Ищет возможности для сотрудничества",
   sharedRoadmaps: friend.shared_roadmaps ?? 0,
   online: Boolean(friend.online),
   chatId: friend.chat_id ?? "",
@@ -138,8 +138,8 @@ const mapFriendRequestSummary = (
     pickStringField(
       relatedProfiles,
       ["display_name", "name"],
-      "Community member",
-    ) ?? "Community member";
+      "Участник сообщества",
+    ) ?? "Участник сообщества";
   const username =
     pickStringField(relatedProfiles, ["username", "handle"], name) ?? name;
   const avatar = pickStringField(relatedProfiles, [
@@ -335,21 +335,21 @@ const FriendsPage = () => {
           | "warning";
       }
     > = {
-      pending: { label: "Pending", color: "warning" },
-      sent: { label: "Sent", color: "info" },
-      requested: { label: "Pending", color: "warning" },
-      accepted: { label: "Accepted", color: "success" },
-      approved: { label: "Accepted", color: "success" },
-      accept: { label: "Accepted", color: "success" },
-      reject: { label: "Rejected", color: "error" },
-      rejected: { label: "Rejected", color: "error" },
-      decline: { label: "Rejected", color: "error" },
-      declined: { label: "Rejected", color: "error" },
-      canceled: { label: "Canceled", color: "default" },
-      cancelled: { label: "Canceled", color: "default" },
-      revoked: { label: "Canceled", color: "default" },
-      blocked: { label: "Blocked", color: "error" },
-      failed: { label: "Failed", color: "error" },
+      pending: { label: "В ожидании", color: "warning" },
+      sent: { label: "Отправлено", color: "info" },
+      requested: { label: "В ожидании", color: "warning" },
+      accepted: { label: "Принято", color: "success" },
+      approved: { label: "Принято", color: "success" },
+      accept: { label: "Принято", color: "success" },
+      reject: { label: "Отклонено", color: "error" },
+      rejected: { label: "Отклонено", color: "error" },
+      decline: { label: "Отклонено", color: "error" },
+      declined: { label: "Отклонено", color: "error" },
+      canceled: { label: "Отменено", color: "default" },
+      cancelled: { label: "Отменено", color: "default" },
+      revoked: { label: "Отменено", color: "default" },
+      blocked: { label: "Заблокировано", color: "error" },
+      failed: { label: "Ошибка", color: "error" },
     };
     return statusMap[normalized] ?? { label: capitalized, color: "default" };
   };
@@ -415,10 +415,10 @@ const FriendsPage = () => {
               }}
             >
               <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                Loading friends...
+                Загрузка списка друзей...
               </Typography>
               <Typography sx={{ opacity: 0.7 }}>
-                Fetching your friends and requests. One moment.
+                Получаем информацию о друзьях и заявках. Пожалуйста, подождите.
               </Typography>
             </Paper>
           ) : activeSection === "requests" ? (

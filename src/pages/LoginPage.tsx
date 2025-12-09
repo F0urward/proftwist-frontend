@@ -15,9 +15,7 @@ const loginSchema = z.object({
   email: z
     .email({ message: "Некорректный адрес почты" })
     .nonempty("Введите почту"),
-  password: z
-    .string()
-    .nonempty("Введите пароль"),
+  password: z.string().nonempty("Введите пароль"),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -40,7 +38,7 @@ const LoginPage = () => {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      await dispatch(login(data)).unwrap();;
+      await dispatch(login(data)).unwrap();
       navigate("/");
     } catch (error) {
       console.error("Login failed:", error);
@@ -77,8 +75,9 @@ const LoginPage = () => {
         onSubmit={handleSubmit(onSubmit)}
       >
         <Stack spacing={3}>
-          {error && 
-            <Alert severity="error"
+          {error && (
+            <Alert
+              severity="error"
               sx={{
                 borderRadius: "10px",
                 background: "linear-gradient(90deg, #d23a95ff, #bc3b57ff)",
@@ -89,12 +88,13 @@ const LoginPage = () => {
                 },
                 display: "flex",
                 justifyContent: "center",
-            }}>
+              }}
+            >
               {error}
             </Alert>
-          }
+          )}
           <TextInput
-            label="Email"
+            label="Электронная почта"
             type="email"
             placeholder="example@email.com"
             autoComplete="email"
@@ -107,7 +107,9 @@ const LoginPage = () => {
             type="password"
             placeholder="Введите ваш пароль"
             autoComplete="current-password"
-            {...register("password", { onChange: () => dispatch(clearError()) })}
+            {...register("password", {
+              onChange: () => dispatch(clearError()),
+            })}
             error={!!errors.password}
             helperText={errors.password?.message}
           />

@@ -64,7 +64,7 @@ export const Sidebar = ({ addNode }: SidebarProps) => {
     };
 
     reader.onerror = () => {
-      showNotification("Error reading file", "error");
+      showNotification("Ошибка при чтении файла", "error");
     };
 
     reader.readAsText(file);

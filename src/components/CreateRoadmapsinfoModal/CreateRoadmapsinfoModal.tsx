@@ -106,11 +106,11 @@ const CreateRoadmapInfoModal = ({
         onClose();
       }
     } catch (e) {
-      console.error("Ошибка при создании roadmap:", e);
+      console.error("Ошибка при создании роадмапа:", e);
       if (isEdit) {
-        setError("Не удалось сохранить изменения о roadmap");
+        setError("Не удалось сохранить изменения о роадмапе");
       } else {
-        setError("Не удалось создать roadmap");
+        setError("Не удалось создать роадмап");
       }
     } finally {
       setLoading(false);
@@ -134,8 +134,8 @@ const CreateRoadmapInfoModal = ({
         }}
       >
         {isEdit
-          ? "Редактировать информацию о roadmap"
-          : "Создать новый roadmap"}
+          ? "Редактировать информацию о роадмапе"
+          : "Создать новый роадмап"}
       </DialogTitle>
       <DialogContent>
         <Stack spacing={3}>

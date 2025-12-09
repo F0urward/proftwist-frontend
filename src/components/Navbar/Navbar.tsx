@@ -129,7 +129,7 @@ const Navbar = () => {
           <Box
             component="img"
             src="/images/logo.webp"
-            alt="ProfTwist logo"
+            alt="Логотип ProfTwist"
             sx={{ width: 32, height: 32, borderRadius: "8px" }}
           />
           <Typography
@@ -188,7 +188,7 @@ const Navbar = () => {
               alt={
                 userData
                   ? userData.username.charAt(0).toUpperCase()
-                  : "User avatar"
+                  : "Аватар пользователя"
               }
               src={avatarUrl}
               onClick={handleAvatarClick}

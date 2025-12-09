@@ -20,7 +20,7 @@ export const NodeEditorSidebar = ({
 }: NodeEditorSidebarProps) => {
   const label = useMemo(() => (node?.data as any)?.label ?? "", [node]);
   const description = useMemo(() => (node as any)?.description ?? "", [node]);
-  const nodeType = useMemo(() => (node?.data as any)?.type ?? "Node", [node]);
+  const nodeType = useMemo(() => (node?.data as any)?.type ?? "Нода", [node]);
 
   if (!open || !node) {
     return null;

@@ -174,7 +174,7 @@ const NodeSidebar = ({
               variant="contained"
               onClick={async () => {
                 if (!node?.id) {
-                  alert("Chat ID is not available for this node.");
+                  alert("Идентификатор чата для этой ноды недоступен.");
                   return;
                 }
                 try {
@@ -217,7 +217,7 @@ const NodeSidebar = ({
                         redirectToChat();
                         return;
                       }
-                      alert("Failed joining chats");
+                      alert("Не удалось подключиться к чату");
                     } catch (joinError) {
                       const alreadyMemberResponse = normalizeMessage(
                         (joinError as any)?.response?.data,
@@ -229,11 +229,11 @@ const NodeSidebar = ({
                       throw joinError;
                     }
                   } else {
-                    alert("Chat ID is not available for this node.");
+                    alert("Идентификатор чата для этой ноды недоступен.");
                   }
                 } catch (error) {
                   console.error("Failed to open chat for this node.", error);
-                  alert("Failed to open chat for this node.");
+                  alert("Не удалось открыть чат для этой ноды.");
                 }
               }}
             >

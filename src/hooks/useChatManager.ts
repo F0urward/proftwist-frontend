@@ -197,7 +197,10 @@ export const useChatManager = (
             ...chat.participants,
             {
               id: message.senderId,
-              name: message.senderName ?? message.senderNickname ?? "User",
+              name:
+                message.senderName ??
+                message.senderNickname ??
+                "Пользователь",
               nickname: message.senderNickname,
               avatar: message.senderAvatar,
             },
@@ -314,7 +317,7 @@ export const useChatManager = (
       });
     } catch (err) {
       console.error("Failed to load chats", err);
-      if (!silent) setChatsError("Failed to load chats");
+      if (!silent) setChatsError("Не удалось загрузить список чатов");
     } finally {
       if (!silent) setChatsLoading(false);
     }
@@ -378,7 +381,7 @@ export const useChatManager = (
           err,
         );
         clearMessages();
-        setMessagesError("Failed to load messages");
+        setMessagesError("Не удалось загрузить сообщения");
       })
       .finally(() => {
         if (active) setMessagesLoading(false);
@@ -507,7 +510,7 @@ export const useChatManager = (
               payload?.user_name ??
               payload?.user?.name ??
               payload?.user?.username ??
-              "Someone";
+              "Кто-то";
             const systemMessage: ChatMessage = {
               id:
                 payload?.event_id ??
@@ -516,7 +519,7 @@ export const useChatManager = (
                 `system-${Date.now()}`,
               chatId,
               senderId: leftUserId,
-              text: `${leftUserName} left the chat`,
+              text: `${leftUserName} вышел из чата`,
               kind: "system",
               createdAt:
                 payload?.timestamp ??
@@ -543,7 +546,7 @@ export const useChatManager = (
               payload?.user_name ??
               payload?.user?.name ??
               payload?.user?.username ??
-              "Someone";
+              "Кто-то";
             const systemMessage: ChatMessage = {
               id:
                 payload?.event_id ??
@@ -552,7 +555,7 @@ export const useChatManager = (
                 `system-${Date.now()}`,
               chatId,
               senderId: joinedUserId,
-              text: `${joinedUserName} joined the chat`,
+              text: `${joinedUserName} присоединился к чату`,
               kind: "system",
               createdAt:
                 payload?.timestamp ??
@@ -612,7 +615,7 @@ export const useChatManager = (
                 typingPayload?.user_name ??
                 typingPayload?.user_id ??
                 typingPayload?.userId ??
-                "Someone";
+                "Кто-то";
 
               if (typingIndicatorTimeoutRef.current) {
                 clearTimeout(typingIndicatorTimeoutRef.current);
@@ -627,7 +630,7 @@ export const useChatManager = (
               if (typingFlag === true || typedMessage) {
                 const notice = typedMessage
                   ? `${displayName}: ${typedMessage}`
-                  : `${displayName} is typing...`;
+                  : `${displayName} печатает...`;
                 setTypingNotice(notice);
                 typingIndicatorTimeoutRef.current = setTimeout(() => {
                   setTypingNotice(null);
@@ -783,7 +786,7 @@ export const useChatManager = (
     if (!trimmed) return;
 
     if (attachment) {
-      setMessagesError("File attachments are not supported yet.");
+      setMessagesError("Отправка файлов пока не поддерживается.");
       return;
     }
 
@@ -830,7 +833,7 @@ export const useChatManager = (
       setAttachment(null);
     } catch (err) {
       console.error("Failed to send message", err);
-      setMessagesError("Failed to send message");
+      setMessagesError("Не удалось отправить сообщение");
       setDraft(trimmed);
     } finally {
       setIsSending(false);

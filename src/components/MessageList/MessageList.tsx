@@ -22,7 +22,7 @@ export type MessageLite = {
   createdAt: string;
 };
 
-const FALLBACK_USER: UserLite = { id: "unknown", name: "User" };
+const FALLBACK_USER: UserLite = { id: "unknown", name: "Пользователь" };
 
 const initialsFrom = (s: string) =>
   s
@@ -30,7 +30,7 @@ const initialsFrom = (s: string) =>
     .split(/\s+/)
     .slice(0, 2)
     .map((w) => w[0]?.toUpperCase() ?? "")
-    .join("") || "U";
+    .join("") || "П";
 
 const formatTime = (iso: string) =>
   new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -96,7 +96,8 @@ const MessagesList = ({ chat, messages, currentUserId }: Props) => {
               const mine = m.senderId === currentUserId;
 
               const sender = byId.get(m.senderId) ?? FALLBACK_USER;
-              const senderAlt = sender.name || sender.nickname || "User";
+              const senderAlt =
+                sender.name || sender.nickname || "Пользователь";
               const senderInitials = initialsFrom(senderAlt);
 
               if (m.kind === "system") {
@@ -156,7 +157,7 @@ const MessagesList = ({ chat, messages, currentUserId }: Props) => {
                           variant="caption"
                           sx={{ opacity: 0.7, display: "block" }}
                         >
-                          {sender.nickname || sender.name || "User"}
+                          {sender.nickname || sender.name || "Пользователь"}
                         </Typography>
                       )}
                       <Typography>{m.text}</Typography>

@@ -22,11 +22,11 @@ const PersonalRoadmapsPage = () => {
 
   const categoryNames = useMemo(
     () => [
-      "Все мои roadmaps",
+      "Все мои роадмапы",
       "Избранное",
-      "Созданные roadmaps",
+      "Созданные роадмапы",
       "Форки",
-      "Опубликованные roadmaps",
+      "Опубликованные роадмапы",
     ],
     [],
   );
@@ -106,7 +106,7 @@ const PersonalRoadmapsPage = () => {
       >
         <>
           <Button variant="contained" onClick={() => setModalOpen(true)}>
-            Создать свой roadmap
+            Создать свой роадмап
           </Button>
         </>
       </TitlePaper>
