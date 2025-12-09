@@ -8,7 +8,7 @@ export const registerSchema = z
       .max(20, "Никнейм максимально может содержать 20 символов")
       .regex(
         /^[a-zA-Z0-9_]+$/,
-        "Никнейм может содержать только буквы, цифры и нижнее подчеркивание",
+        "Никнейм может содержать только латинские буквы, цифры и нижнее подчеркивание",
       )
       .nonempty("Введите никнейм"),
     email: z.email("Некорректный адрес почты").nonempty("Введите адрес почты"),
@@ -47,10 +47,7 @@ export const profileSchema = z
       .optional()
       .or(z.literal("")),
 
-    passwordRepeat: z
-      .string()
-      .optional()
-      .or(z.literal("")),
+    passwordRepeat: z.string().optional().or(z.literal("")),
   })
   .refine(
     (data) => {
