@@ -67,6 +67,7 @@ const RoadmapPage = () => {
   const dispatch = useAppDispatch();
   const { id } = useParams();
   const isLoggedIn = useAppSelector((state) => state.auth.isLoggedIn);
+  const currentUser = useAppSelector((state) => state.auth.user);
 
   const [info, setInfo] = useState<RoadmapInfo | null>(null);
   const [notFound, setNotFound] = useState(false);
@@ -86,6 +87,11 @@ const RoadmapPage = () => {
 
   const location = useLocation();
   const from = location.state?.from ?? null;
+
+  const isAuthor = useMemo(() => {
+    if (!info || !currentUser) return false;
+    return info.author_id === currentUser.id;
+  }, [info, currentUser]);
 
   const type: RoadmapType = useMemo(() => {
     if (!info) return "public";
@@ -319,7 +325,7 @@ const RoadmapPage = () => {
             alignItems="center"
             sx={{ width: "100%" }}
           >
-            {!isSubscribed && (
+            {!isSubscribed && !isAuthor && (
               <Tooltip
                 arrow
                 title="Добавить роадмап в избранное для быстрого доступа и отслеживания прогресса"
