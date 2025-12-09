@@ -1,13 +1,13 @@
 services:
   react-flow-roadmap:
     image: rasulovarsen/react-flow-roadmap:latest
+    build: .
     container_name: react-flow-roadmap
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./caddy_data:/data
-      - ./caddy_config:/config
+      - ./certs:/etc/ssl/live:ro
     restart: unless-stopped
     networks:
       - proftwist-network

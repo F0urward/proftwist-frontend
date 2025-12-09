@@ -453,7 +453,7 @@ export const useChatManager = (
       }
 
       const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-      const wsUrl = `${protocol}://${window.location.host}/ws`;
+      const wsUrl = `${protocol}://${window.location.host}/api/v1/chats/ws`;
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
 

@@ -1,2 +1,17 @@
 node_modules/
 dist/
+
+# Never send secrets or local config into the build context
+certs/
+*.pem
+*.key
+*.crt
+*.der
+*.p12
+*.pfx
+.env
+.env.*
+
+# Misc local state
+.git
+*.log

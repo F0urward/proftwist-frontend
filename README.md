@@ -11,3 +11,7 @@
 ## Manual equivalents
 - Docker: `docker compose pull && docker compose up -d`
 - Local dev: `yarn && yarn dev`
+
+## Runtime notes
+- The production container now serves the app with nginx. TLS certs are expected at `./certs/prof-twist.ru/fullchain.pem` and `./certs/prof-twist.ru/privkey.pem`, which are mounted into `/etc/ssl/live` by `docker-compose.yml`.
+- Build locally with `docker compose up -d --build` to produce the nginx-based image from the included `Dockerfile`.
