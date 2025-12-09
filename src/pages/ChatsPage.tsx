@@ -342,7 +342,7 @@ const MessageComposer = ({
       )}
 
       <Stack direction="row" spacing={2} alignItems="flex-end">
-        <IconButton
+        {/*<IconButton
           aria-label="Прикрепить файл"
           sx={{ color: "#fff", height: 44, width: 20 }}
           onClick={() => fileInputRef.current?.click()}
@@ -354,7 +354,7 @@ const MessageComposer = ({
           type="file"
           style={{ display: "none" }}
           onChange={handleFileChange}
-        />
+        />*/}
 
         <TextField
           fullWidth
@@ -870,7 +870,8 @@ const ChatsPage = () => {
                       actionDisabled = true;
                     }
 
-                    const requestSentState = friendshipState.status === "pending";
+                    const requestSentState =
+                      friendshipState.status === "pending";
                     const actionSx = {
                       minWidth: 120,
                       ...(requestSentState
