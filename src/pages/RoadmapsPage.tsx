@@ -58,7 +58,7 @@ const RoadmapsPage = () => {
   }, [categories]);
 
   const categoryNames = useMemo(
-    () => ["Все roadmaps", ...categories.map((c) => c.name)],
+    () => ["Все роадмапы", ...categories.map((c) => c.name)],
     [categories],
   );
 
@@ -115,7 +115,7 @@ const RoadmapsPage = () => {
   return (
     <BaseLayout>
       <TitlePaper
-        title="Roadmaps"
+        title="Роадмапы"
         subtitle="Начните свой карьерный путь вместе с нами"
       ></TitlePaper>
 
@@ -137,7 +137,7 @@ const RoadmapsPage = () => {
         <Paper variant="outlined" sx={{ p: { xs: 2, md: 3 } }}>
           <TextField
             fullWidth
-            placeholder="Поиск по roadmaps..."
+            placeholder="Поиск по роадмапам..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             sx={{ mb: 2 }}

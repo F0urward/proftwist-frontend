@@ -128,7 +128,7 @@ export const initialsFrom = (value: string): string =>
     .split(/\s+/)
     .slice(0, 2)
     .map((segment) => segment[0]?.toUpperCase() ?? "")
-    .join("") || "U";
+    .join("") || "П";
 
 export const sameDay = (a: Date, b: Date) =>
   a.getFullYear() === b.getFullYear() &&
@@ -148,11 +148,11 @@ export const formatChatTime = (value: unknown): string | undefined => {
   return date.toLocaleDateString();
 };
 
-export const FALLBACK_USER: ChatUser = { id: "unknown", name: "User" };
+export const FALLBACK_USER: ChatUser = { id: "unknown", name: "Пользователь" };
 
 export const mapUserFromApi = (user: any): ChatUser => {
   if (!user || typeof user !== "object") {
-    return { id: `user-${randomId()}`, name: "User" };
+    return { id: `user-${randomId()}`, name: "Пользователь" };
   }
 
   const id = ensureString(
@@ -168,7 +168,7 @@ export const mapUserFromApi = (user: any): ChatUser => {
 
   return {
     id,
-    name: ensureString(nameSource, "User"),
+    name: ensureString(nameSource, "Пользователь"),
     nickname: optionalString(
       user.nickname ?? user.username ?? user.display_name,
     ),
@@ -232,7 +232,7 @@ export const mapChatFromApi = (
 
   const participants = participantsSource.map(mapUserFromApi);
   if (!participants.some((participant) => participant.id === currentUserId)) {
-    participants.push({ id: currentUserId, name: "You" });
+    participants.push({ id: currentUserId, name: "Вы" });
   }
 
   const companion =
@@ -243,7 +243,9 @@ export const mapChatFromApi = (
     companion?.name ?? companion?.nickname ?? undefined;
 
   const fallbackTitle =
-    chatType === "group" ? "Group chat" : personalTitleFallback ?? "Personal chat";
+    chatType === "group"
+      ? "Групповой чат"
+      : personalTitleFallback ?? "Личный чат";
 
   return {
     id: ensureString(
@@ -387,7 +389,7 @@ export const getChatAvatar = (
   | { alt: string; initials: string }
   | { src: string; alt: string; initials: string } => {
   if (chat.type === "group") {
-    const alt = chat.title || "Group";
+    const alt = chat.title || "Группа";
     const initials = initialsFrom(alt);
     if (chat.groupAvatar && chat.groupAvatar.length > 0) {
       return { src: chat.groupAvatar, alt, initials };
@@ -396,7 +398,7 @@ export const getChatAvatar = (
   }
 
   const other = getOtherUser(chat, meId);
-  const alt = other.name || other.nickname || "User";
+  const alt = other.name || other.nickname || "Пользователь";
   const initials = initialsFrom(alt);
   if (other.avatar && other.avatar.length > 0) {
     return { src: other.avatar, alt, initials };

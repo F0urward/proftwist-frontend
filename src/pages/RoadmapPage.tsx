@@ -221,10 +221,10 @@ const RoadmapPage = () => {
     try {
       const roadmapInfoId = info.id;
       await roadmapinfoService.subscribe(roadmapInfoId);
-      showNotification("Roadmap добавлен в избранное!", "success");
+      showNotification("Роадмап добавлен в избранное!", "success");
       setIsSubscribed(true);
     } catch (e) {
-      showNotification("Не удалось добавить roadmap в избранное", "error");
+      showNotification("Не удалось добавить роадмап в избранное", "error");
     }
   };
 
@@ -233,10 +233,10 @@ const RoadmapPage = () => {
     try {
       const roadmapInfoId = info.id;
       await roadmapinfoService.unsubscribe(roadmapInfoId);
-      showNotification("Roadmap удален из избранного", "success");
+      showNotification("Роадмап удалён из избранного", "success");
       setIsSubscribed(false);
     } catch (e) {
-      showNotification("Не удалось удалить roadmap из избранного", "error");
+      showNotification("Не удалось удалить роадмап из избранного", "error");
     }
   };
 
@@ -245,7 +245,7 @@ const RoadmapPage = () => {
     try {
       const roadmapInfoId = info.id;
       const newRoadmap = await roadmapinfoService.fork(roadmapInfoId);
-      showNotification("Форк roadmap успешно создан!", "success");
+      showNotification("Форк роадмапа успешно создан!", "success");
       navigate(`/roadmaps/${newRoadmap.id}`);
     } catch (e) {
       console.error("Ошибка при форке:", e);
@@ -340,7 +340,7 @@ const RoadmapPage = () => {
               </Tooltip>
             )}
             {isSubscribed && (
-              <Tooltip arrow title="Дайте этому roadmap еще один шанс :)">
+              <Tooltip arrow title="Дайте этому роадмапу ещё один шанс :)">
                 <Button
                   variant="contained"
                   onClick={handleUnsubscribe}
@@ -411,7 +411,7 @@ const RoadmapPage = () => {
                 }
               }}
             >
-              Редактировать roadmap
+              Редактировать роадмап
             </Button>
             <Tooltip
               arrow

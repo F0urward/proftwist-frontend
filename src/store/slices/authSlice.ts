@@ -40,7 +40,9 @@ export const signup = createAsyncThunk<
       const response = await authService.register(credentials);
       return response;
     } catch (error) {
-      return rejectWithValue(error.response.data.message || "Signup failed");
+    return rejectWithValue(
+      error.response.data.message || "Не удалось завершить регистрацию",
+    );
     }
   },
 );
@@ -54,7 +56,9 @@ export const login = createAsyncThunk<
     const response = await authService.login(credentials);
     return response.data;
   } catch (error: any) {
-    return rejectWithValue(error.response.data.message || "Login failed");
+    return rejectWithValue(
+      error.response.data.message || "Не удалось выполнить вход",
+    );
   }
 });
 
@@ -65,7 +69,9 @@ export const logout = createAsyncThunk<void, void, { rejectValue: string }>(
     try {
       await authService.logout();
     } catch (error: any) {
-      return rejectWithValue(error.response.data.message || "Logout failed");
+    return rejectWithValue(
+      error.response.data.message || "Не удалось выйти из аккаунта",
+    );
     }
   },
 );
@@ -126,7 +132,7 @@ const authSlice = createSlice({
       logout.rejected,
       (state, action: PayloadAction<string | undefined>) => {
         state.isLoading = false;
-        state.error = action.payload || "Logout failed";
+        state.error = action.payload || "Не удалось выйти из аккаунта";
         state.hasResolvedAuth = true;
       },
     );
