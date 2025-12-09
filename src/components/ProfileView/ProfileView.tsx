@@ -103,7 +103,17 @@ const ProfileView = () => {
       }
     }
     getMe();
-  }, [user]);
+  }, [user, reset, showNotification]);
+
+  useEffect(() => {
+    if (!user) return;
+    reset({
+      username: user.username || "",
+      email: user.email || "",
+      password: "",
+      passwordRepeat: "",
+    });
+  }, [user, reset]);
 
   return (
     <Paper
