@@ -488,8 +488,9 @@ const FriendsPage = () => {
                           incomingRequests.map((request) => {
                             const statusChip = getStatusChip(request.status);
                             const isPending = canActOnIncoming(request.status);
-                            const normalizedStatus =
-                              normalizeStatus(request.status);
+                            const normalizedStatus = normalizeStatus(
+                              request.status,
+                            );
                             const hideDeclineButton =
                               normalizedStatus === "rejected" ||
                               normalizedStatus === "declined";
@@ -666,7 +667,9 @@ const FriendsPage = () => {
                                   <Button
                                     variant="outlined"
                                     color="error"
-                                    onClick={() => handleCancelRequest(request.id)}
+                                    onClick={() =>
+                                      handleCancelRequest(request.id)
+                                    }
                                     disabled={disabled}
                                   >
                                     {cancelLabel}
@@ -873,14 +876,14 @@ const FriendsPage = () => {
                           </IconButton>
                         </Stack>
 
-                        <Stack spacing={1.5}>
-                          {/*
+                        {/*<Stack spacing={1.5}>
+                          
                           <Typography sx={{ fontWeight: 600 }}>
                             {friend.expertise}
                           </Typography>
                           <Typography sx={{ opacity: 0.8 }}>
                             {friend.focus}
-                          </Typography> */}
+                          </Typography>
                           <Chip
                             label={`${friend.sharedRoadmaps} общих роадмапов`}
                             size="small"
@@ -888,6 +891,7 @@ const FriendsPage = () => {
                             sx={{ alignSelf: "flex-start" }}
                           />
                         </Stack>
+                        */}
 
                         <Box
                           sx={{
