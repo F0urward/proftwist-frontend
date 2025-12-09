@@ -1,14 +1,20 @@
 prof-twist.ru {
   # API -> upstream
   handle_path /api/* {
-    reverse_proxy http://95.163.182.138:8998/api/v1
+    rewrite * /api/v1{path}
+    reverse_proxy traefik:80
   }
-
   # WebSocket proxy for /ws
-  handle /ws* {
-    reverse_proxy ws://95.163.182.138:8998/api/v1/chats
+  handle_path /ws/* {
+    rewrite * /api/v1/chats{path}?{query}
+    # Always hop to the upstream over plain WS/HTTP even if the client uses WSS
+    reverse_proxy http://traefik:80 {
+      transport http {
+        versions 1.1
+      }
+      header_up X-Forwarded-Proto http
+    }
   }
-
   # Frontend (SPA)
   handle {
     root * /usr/share/caddy
