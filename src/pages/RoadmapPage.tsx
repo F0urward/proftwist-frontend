@@ -3,7 +3,6 @@ import {
   Box,
   Button,
   Stack,
-  LinearProgress,
   Typography,
   Tooltip,
   Dialog,
@@ -39,21 +38,11 @@ import PublicOutlinedIcon from "@mui/icons-material/PublicOutlined";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import { useNotification } from "../components/Notification/Notification";
 import CreateRoadmapInfoModal from "../components/CreateRoadmapsinfoModal/CreateRoadmapsinfoModal";
+import { useRef } from "react";
+import CenterFocusStrongIcon from "@mui/icons-material/CenterFocusStrong";
+import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 
 type RoadmapType = "public" | "owned" | "saved" | "fork";
-
-const estimateGraphHeight = (nodes: any[], fallback = 100) => {
-  if (!nodes.length) return fallback;
-  let minY = Infinity;
-  let maxY = -Infinity;
-  for (const n of nodes) {
-    const y = n.position?.y ?? 0;
-    const h = n.measured?.height ?? n.height ?? 80;
-    minY = Math.min(minY, y);
-    maxY = Math.max(maxY, y + h);
-  }
-  return Math.max(fallback, maxY - minY + 200);
-};
 
 const getProgress = (nodes: any[]) => {
   const total = nodes.length || 0;
@@ -284,12 +273,6 @@ const RoadmapPage = () => {
       setDeleteOpen(false);
     }
   };
-
-  const graphHeight = useMemo(
-    () => estimateGraphHeight(styledNodes),
-    [styledNodes],
-  );
-  const progress = useMemo(() => getProgress(styledNodes), [styledNodes]);
 
   const CategoryBadge = () => {
     if (!categoryName) return null;
@@ -537,6 +520,46 @@ const RoadmapPage = () => {
 
   const showFlow = !notFound && (nodes.length > 0 || edges.length > 0);
 
+  const [flowHeight, setFlowHeight] = useState(800);
+  const flowInstance = useRef<any>(null);
+
+  const updateHeight = useCallback(() => {
+    const inst = flowInstance.current;
+    if (!inst) return;
+
+    const bounds = inst.getInternalNodeBounds?.();
+    if (!bounds) return;
+
+    const padding = 200;
+    const finalHeight = Math.max(600, bounds.height + padding);
+
+    setFlowHeight(finalHeight);
+  }, []);
+
+  const onFlowInit = useCallback(
+    (instance: any) => {
+      flowInstance.current = instance;
+
+      instance.fitView({ padding: 0.1 });
+
+      setTimeout(() => {
+        updateHeight();
+        instance.setViewport(instance.getViewport());
+      }, 150);
+    },
+    [updateHeight],
+  );
+
+  useEffect(() => {
+    updateHeight();
+  }, [styledNodes, edges, updateHeight]);
+
+  useEffect(() => {
+    const handler = () => updateHeight();
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, [updateHeight]);
+
   return (
     <BaseLayout justifyContent="flex-start">
       <Box
@@ -571,10 +594,76 @@ const RoadmapPage = () => {
         sx={{
           position: "relative",
           width: "100%",
-          height: graphHeight,
+          height: `${flowHeight}px`,
           overflow: "visible",
+          transition: "height 0.25s ease",
         }}
       >
+        <Box
+          sx={{
+            position: "absolute",
+            top: 12,
+            left: 12,
+            zIndex: 10,
+            display: "flex",
+            gap: 1,
+          }}
+        >
+          <Button
+            onClick={() => flowInstance.current?.fitView({ padding: 0.1 })}
+            startIcon={<CenterFocusStrongIcon />}
+            sx={{
+              textTransform: "none",
+              fontSize: "0.75rem",
+              borderRadius: "8px",
+              px: 1.5,
+              py: 0.5,
+              background: "linear-gradient(90deg, #7E57FF, #BC57FF)",
+              color: "#fff",
+              "&:hover": {
+                background: "linear-gradient(90deg, #6A49E6, #AA49E6)",
+              },
+            }}
+          >
+            Сбросить вид
+          </Button>
+          <Tooltip
+            arrow
+            placement="right"
+            title={
+              <>
+                <b>Как управлять роадмапом:</b>
+                <br /> Масштабирование: pinch (телефон, тачпад) / Ctrl + колесо
+                мыши <br />
+                Перемещение карты:
+                <br />— Мышь: зажмите правую кнопку и тяните
+                <br />— Тачпад: тяните двумя пальцами
+                <br />— Телефон: тяните двумя пальцами
+                <br />
+                Скролл страницы остаётся обычным
+              </>
+            }
+          >
+            <Button
+              disableRipple
+              sx={{
+                minWidth: "auto",
+                padding: 0,
+                background: "transparent",
+                border: "none",
+                boxShadow: "none",
+                "&:hover": {
+                  background: "transparent",
+                },
+                "&::before, &::after": {
+                  display: "none",
+                },
+              }}
+            >
+              <HelpOutlineIcon sx={{ color: "#fff", fontSize: 22 }} />
+            </Button>
+          </Tooltip>
+        </Box>
         {showFlow && (
           <ReactFlow
             nodes={styledNodes}
@@ -587,11 +676,12 @@ const RoadmapPage = () => {
             minZoom={0.25}
             maxZoom={1.5}
             proOptions={{ hideAttribution: true }}
+            onInit={onFlowInit}
             preventScrolling={false}
             zoomOnScroll={false}
             zoomOnPinch={true}
             panOnScroll={false}
-            panOnDrag={false}
+            panOnDrag={[1, 2]}
             nodesDraggable={false}
             nodesConnectable={false}
             elementsSelectable={false}
@@ -601,9 +691,12 @@ const RoadmapPage = () => {
               inset: 0,
               background: "transparent",
             }}
-            onNodeClick={(_, node) => setSelectedNode(node)}
-          ></ReactFlow>
+            onNodeClick={(_, node) => {
+              setSelectedNode(node);
+            }}
+          />
         )}
+
         <NodeSidebar
           open={!!selectedNode}
           node={selectedNode}
@@ -613,6 +706,7 @@ const RoadmapPage = () => {
           notify={showNotification}
         />
       </Box>
+
       {Notification}
     </BaseLayout>
   );
