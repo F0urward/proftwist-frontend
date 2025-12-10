@@ -149,8 +149,9 @@ const ChatListItem = ({
         selected={isSelected}
         onClick={onSelect}
         sx={{
-          alignItems: "flex-start",
+          alignItems: "center",
           gap: 1.25,
+          minHeight: 76,
           "&.Mui-selected": { bgcolor: alpha("#BC57FF", 0.08) },
         }}
       >
@@ -173,18 +174,34 @@ const ChatListItem = ({
 
         <ListItemText
           primary={chat.title}
-          secondary={
-            <Typography component="span" sx={{ opacity: 0.8, fontSize: 13 }}>
-              {chat.lastMessage || "Сообщений пока нет"}
-            </Typography>
-          }
-          slotProps={{
-            primary: { sx: { fontWeight: 700 } },
-            secondary: { sx: { color: alpha("#fff", 0.75) } },
+          secondary={chat.lastMessage || "Сообщений пока нет"}
+          primaryTypographyProps={{
+            sx: {
+              fontWeight: 700,
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            },
+          }}
+          secondaryTypographyProps={{
+            sx: {
+              color: alpha("#fff", 0.75),
+              fontSize: 13,
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            },
           }}
         />
 
-        <Typography variant="caption" sx={{ opacity: 0.7, mt: 0.8 }}>
+        <Typography
+          variant="caption"
+          sx={{ opacity: 0.7, alignSelf: "flex-start", mt: 0.9 }}
+        >
           {chat.time}
         </Typography>
       </ListItemButton>
@@ -676,10 +693,10 @@ const ChatsPage = () => {
 
         const isMarkedSelf = Boolean(
           member?.is_self ??
-            member?.is_current_user ??
-            member?.is_me ??
-            member?.self ??
-            member?.current_user,
+          member?.is_current_user ??
+          member?.is_me ??
+          member?.self ??
+          member?.current_user,
         );
 
         const isSelf =
