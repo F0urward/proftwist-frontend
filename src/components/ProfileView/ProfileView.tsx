@@ -13,14 +13,16 @@ import {
   Paper,
   Divider,
 } from "@mui/material";
-import { alpha } from "@mui/material/styles";
+import { East } from "@mui/icons-material";
 import PhotoCamera from "@mui/icons-material/PhotoCamera";
 import EditIcon from "@mui/icons-material/Edit";
 import EmailIcon from "@mui/icons-material/Email";
 import PersonIcon from "@mui/icons-material/Person";
 import TextInput from "../TextInput/TextInput";
 import { profileSchema, ProfileFormData } from "../../utils/entrySchemas";
-import { User } from "../../types/auth";
+import { Link as RouterLink } from "react-router-dom";
+import GroupIcon from "@mui/icons-material/Group";
+import AccountTreeIcon from "@mui/icons-material/AccountTree";
 import { useNotification } from "../Notification/Notification";
 import { authService } from "../../api";
 import { useEffect } from "react";
@@ -169,6 +171,71 @@ const ProfileView = () => {
             </Stack>
           </Stack>
         </Grid>
+      </Box>
+
+      <Divider sx={{ mx: 2.5, mb: 1.5, borderBottom: "1px solid #848484" }} />
+
+      <Box sx={{ px: 3, pb: 3 }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+          Моя активность
+        </Typography>
+
+        <Stack direction="column" spacing={2} sx={{ mt: 2 }}>
+          <Stack
+            direction="row"
+            spacing={1}
+            alignItems="center"
+            component={RouterLink}
+            to="/friends"
+            sx={{
+              textDecoration: "none",
+              color: "text.primary",
+              cursor: "pointer",
+              "&:hover": {
+                color: "#BC57FF",
+              },
+              "&:hover .arrow": {
+                color: "#BC57FF",
+              },
+            }}
+          >
+            <GroupIcon sx={{ fontSize: 18 }} />
+            <Typography>Друзья</Typography>
+            <East
+              className="arrow"
+              sx={{
+                fontSize: 18,
+              }}
+            />
+          </Stack>
+          <Stack
+            direction="row"
+            spacing={1}
+            alignItems="center"
+            component={RouterLink}
+            to="/personal"
+            sx={{
+              textDecoration: "none",
+              color: "text.primary",
+              cursor: "pointer",
+              "&:hover": {
+                color: "#BC57FF",
+              },
+              "&:hover .arrow": {
+                color: "#BC57FF",
+              },
+            }}
+          >
+            <GroupIcon sx={{ fontSize: 18 }} />
+            <Typography>Мои роадмапы</Typography>
+            <East
+              className="arrow"
+              sx={{
+                fontSize: 18,
+              }}
+            />
+          </Stack>
+        </Stack>
       </Box>
 
       <Dialog
