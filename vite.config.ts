@@ -8,7 +8,7 @@ export default defineConfig({
     port: 3000,
     proxy: {
       "/api": {
-        //target: "http://95.163.182.138:80/api/v1",
+        //target: "http://95.163.182.138:8998/api/v1",
         target: "http://localhost:8998/api/v1",
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ""),
@@ -30,6 +30,11 @@ export default defineConfig({
         target: "ws://localhost:8998/api/v1/chats",
         changeOrigin: true,
         ws: true,
+      },
+      "/avatar": {
+        // target: "http://95.163.182.138:9000",
+        target: "http://localhost:9000",
+        changeOrigin: true,
       },
     },
   },
