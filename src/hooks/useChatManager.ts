@@ -198,9 +198,7 @@ export const useChatManager = (
             {
               id: message.senderId,
               name:
-                message.senderName ??
-                message.senderNickname ??
-                "Пользователь",
+                message.senderName ?? message.senderNickname ?? "Пользователь",
               nickname: message.senderNickname,
               avatar: message.senderAvatar,
             },
@@ -249,11 +247,7 @@ export const useChatManager = (
   }, []);
 
   const requestMessages = useCallback(
-    async (
-      chatId: string,
-      chatType: "direct" | "group",
-      limit = 50,
-    ) => {
+    async (chatId: string, chatType: "direct" | "group", limit = 50) => {
       const { data } = await chatsService.getMessages(
         chatId,
         {
@@ -289,39 +283,42 @@ export const useChatManager = (
     [requestMessages, syncParticipantFromMessage, updateChatPreview],
   );
 
-  const fetchChats = useCallback(async ({ silent }: FetchOptions = {}) => {
-    if (!silent) {
-      setChatsLoading(true);
-      setChatsError(null);
-    }
+  const fetchChats = useCallback(
+    async ({ silent }: FetchOptions = {}) => {
+      if (!silent) {
+        setChatsLoading(true);
+        setChatsError(null);
+      }
 
-    try {
-      const [directResponse, groupResponse] = await Promise.all([
-        chatsService.listDirectChats(),
-        chatsService.listGroupChats(),
-      ]);
-      const directChats = extractChatList(directResponse?.data);
-      const groupChats = extractChatList(groupResponse?.data);
-      const normalized = [
-        ...directChats.map((item) =>
-          mapChatFromApi(item, currentUserId, "personal"),
-        ),
-        ...groupChats.map((item) =>
-          mapChatFromApi(item, currentUserId, "group"),
-        ),
-      ];
-      setChats(normalized);
-      normalized.forEach((chat) => {
-        const chatType = chat.type === "group" ? "group" : "direct";
-        void fetchLatestMessagePreview(chat.id, chatType);
-      });
-    } catch (err) {
-      console.error("Failed to load chats", err);
-      if (!silent) setChatsError("Не удалось загрузить список чатов");
-    } finally {
-      if (!silent) setChatsLoading(false);
-    }
-  }, [currentUserId, fetchLatestMessagePreview]);
+      try {
+        const [directResponse, groupResponse] = await Promise.all([
+          chatsService.listDirectChats(),
+          chatsService.listGroupChats(),
+        ]);
+        const directChats = extractChatList(directResponse?.data);
+        const groupChats = extractChatList(groupResponse?.data);
+        const normalized = [
+          ...directChats.map((item) =>
+            mapChatFromApi(item, currentUserId, "personal"),
+          ),
+          ...groupChats.map((item) =>
+            mapChatFromApi(item, currentUserId, "group"),
+          ),
+        ];
+        setChats(normalized);
+        normalized.forEach((chat) => {
+          const chatType = chat.type === "group" ? "group" : "direct";
+          void fetchLatestMessagePreview(chat.id, chatType);
+        });
+      } catch (err) {
+        console.error("Failed to load chats", err);
+        if (!silent) setChatsError("Не удалось загрузить список чатов");
+      } finally {
+        if (!silent) setChatsLoading(false);
+      }
+    },
+    [currentUserId, fetchLatestMessagePreview],
+  );
 
   useEffect(() => {
     fetchChats();
@@ -453,7 +450,7 @@ export const useChatManager = (
       }
 
       const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-      const wsUrl = `${protocol}://${window.location.host}/api/v1/chats/ws`;
+      const wsUrl = `${protocol}://${window.location.host}/ws`;
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
 
@@ -691,7 +688,13 @@ export const useChatManager = (
       setWsReady(false);
       setTypingNotice(null);
     };
-  }, [connectRequested, dropMessage, sendWsMessage, commitMessage, currentUserId]);
+  }, [
+    connectRequested,
+    dropMessage,
+    sendWsMessage,
+    commitMessage,
+    currentUserId,
+  ]);
 
   useEffect(() => {
     const trimmed = draft.trim();

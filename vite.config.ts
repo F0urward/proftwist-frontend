@@ -27,9 +27,10 @@ export default defineConfig({
         },
       },
       "/ws": {
-        target: "ws://localhost:8998/api/v1/chats",
+        target: "ws://localhost:8998",
         changeOrigin: true,
         ws: true,
+        rewrite: (path) => path.replace(/^\/ws/, "/api/v1/chats/ws"),
       },
       "/avatar": {
         // target: "http://95.163.182.138:9000",
