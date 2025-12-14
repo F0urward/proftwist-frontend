@@ -12,6 +12,8 @@ import {
 
 type ActiveChatResolver = () => string | null;
 
+const MAX_MESSAGE_LENGTH = 512;
+
 const sortMessagesByDate = (items: ChatMessage[]): ChatMessage[] =>
   [...items].sort(
     (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
@@ -765,7 +767,7 @@ export const useChatManager = (
   );
 
   const handleDraftChange = useCallback((value: string) => {
-    setDraft(value);
+    setDraft(value.slice(0, MAX_MESSAGE_LENGTH));
     setMessagesError(null);
   }, []);
 
@@ -787,6 +789,12 @@ export const useChatManager = (
 
     const trimmed = draft.trim();
     if (!trimmed) return;
+    if (trimmed.length > MAX_MESSAGE_LENGTH) {
+      setMessagesError(
+        `Message is too long. Maximum ${MAX_MESSAGE_LENGTH} characters.`,
+      );
+      return;
+    }
 
     if (attachment) {
       setMessagesError("Отправка файлов пока не поддерживается.");
