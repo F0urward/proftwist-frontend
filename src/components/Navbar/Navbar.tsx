@@ -9,6 +9,11 @@ import {
   MenuItem,
   ListItemIcon,
   ListItemText,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
 } from "@mui/material";
 import { Link as RouterLink, NavLink, useNavigate } from "react-router-dom";
 import RoadmapsDropdown from "../RoadmapsDropdown/RoadmapsDropdown";
@@ -67,6 +72,25 @@ const Navbar = () => {
 
   const [anchorEl, setAnchorEl] = useState(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
+
+  const handleLogoutInitiate = () => {
+    setIsLogoutConfirmOpen(true);
+    setAnchorEl(null);
+  };
+
+  const handleLogoutConfirm = async () => {
+    try {
+      await dispatch(logout()).unwrap();
+      navigate("/");
+    } finally {
+      setIsLogoutConfirmOpen(false);
+    }
+  };
+
+  const handleLogoutCancel = () => {
+    setIsLogoutConfirmOpen(false);
+  };
 
   const menuOptions: MenuEntry[] = [
     {
@@ -81,9 +105,7 @@ const Navbar = () => {
       title: "Выйти",
       icon: <Logout fontSize="small" sx={{ color: "#BC57FF" }} />,
       onClick() {
-        dispatch(logout()).unwrap();
-        navigate("/");
-        setAnchorEl(null);
+        handleLogoutInitiate();
       },
     },
   ];
@@ -215,6 +237,24 @@ const Navbar = () => {
                 </MenuItem>
               ))}
             </Menu>
+            <Dialog open={isLogoutConfirmOpen} onClose={handleLogoutCancel}>
+              <DialogTitle>Подтвердите выход</DialogTitle>
+              <DialogContent>
+                <DialogContentText sx={{ color: "white" }}>
+                  Вы уверены, что хотите выйти из аккаунта?
+                </DialogContentText>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={handleLogoutCancel}>Отмена</Button>
+                <Button
+                  onClick={handleLogoutConfirm}
+                  variant="contained"
+                  color="primary"
+                >
+                  Выйти
+                </Button>
+              </DialogActions>
+            </Dialog>
           </>
         ) : (
           <Box
