@@ -128,19 +128,34 @@ const RoadmapsPage = () => {
           gap: { xs: 2, md: 3 },
         }}
       >
-        <CategoryList
-          items={categoryNames}
-          selected={selected}
-          onSelect={handleSelect}
-        />
+        <Box
+          sx={{
+            height: { xs: "70vh", md: "calc(100vh - 310px)" },
+          }}
+        >
+          <CategoryList
+            items={categoryNames}
+            selected={selected}
+            onSelect={handleSelect}
+          />
+        </Box>
 
-        <Paper variant="outlined" sx={{ p: { xs: 2, md: 3 } }}>
+        <Paper
+          variant="outlined"
+          sx={{
+            p: { xs: 2, md: 3 },
+            display: "flex",
+            flexDirection: "column",
+            minHeight: "300px",
+            height: { xs: "70vh", md: "calc(100vh - 310px)" },
+          }}
+        >
           <TextField
             fullWidth
             placeholder="Поиск по роадмапам..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            sx={{ mb: 2 }}
+            sx={{ mb: 1 }}
             slotProps={{
               input: {
                 endAdornment: search ? (
@@ -156,20 +171,57 @@ const RoadmapsPage = () => {
             }}
           />
 
-          {!(items && items.length) && initialized && <EmptyState></EmptyState>}
-          {items && (
-            <Stack spacing={2}>
-              {items.map((roadmap) => (
-                <ItemCard
-                  key={roadmap.id}
-                  title={roadmap.name}
-                  description={roadmap.description}
-                  to={`/roadmaps/${roadmap.id}`}
-                  state={{ type: "official", roadmap, from: "all" }}
-                />
-              ))}
-            </Stack>
-          )}
+          <Box
+            sx={{
+              height: "100%",
+              pt: 2,
+              mx: "-10px",
+              position: "relative",
+              overflowY: "auto",
+              "&::-webkit-scrollbar": {
+                width: "10px",
+              },
+              "&::-webkit-scrollbar-track": {
+                background: "transparent",
+              },
+              "&::-webkit-scrollbar-thumb": {
+                backgroundColor: "rgba(255,255,255,0.7)",
+                borderRadius: "999px",
+                backgroundClip: "content-box",
+              },
+              "&::-webkit-scrollbar-thumb:hover": {
+                backgroundColor: "rgba(255,255,255,0.9)",
+              },
+              scrollbarWidth: "thin",
+              scrollbarColor: "rgba(255,255,255,0.7) transparent",
+              WebkitMaskImage:
+                "linear-gradient(to bottom, transparent 0px, black 24px, black calc(100% - 32px), transparent 100%)",
+              maskImage:
+                "linear-gradient(to bottom, transparent 0px, black 24px, black calc(100% - 32px), transparent 100%)",
+              WebkitMaskRepeat: "no-repeat",
+              maskRepeat: "no-repeat",
+            }}
+          >
+            <Box sx={{ px: "10px", height: "100%" }}>
+              {!(items && items.length) && initialized && (
+                <EmptyState></EmptyState>
+              )}
+              {items && (
+                <Stack spacing={2}>
+                  {items.map((roadmap) => (
+                    <ItemCard
+                      key={roadmap.id}
+                      title={roadmap.name}
+                      description={roadmap.description}
+                      to={`/roadmaps/${roadmap.id}`}
+                      state={{ type: "official", roadmap, from: "all" }}
+                    />
+                  ))}
+                  <Box sx={{ height: 5 }} />
+                </Stack>
+              )}
+            </Box>
+          </Box>
         </Paper>
       </Box>
     </BaseLayout>
