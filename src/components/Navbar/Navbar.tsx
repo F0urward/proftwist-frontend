@@ -15,6 +15,12 @@ import {
   DialogContentText,
   DialogTitle,
 } from "@mui/material";
+import { IconButton } from "@mui/material";
+import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
+import MapIcon from "@mui/icons-material/Map";
+import ChatIcon from "@mui/icons-material/Chat";
+import PeopleIcon from "@mui/icons-material/People";
+import AddIcon from "@mui/icons-material/Add";
 import { Link as RouterLink, NavLink, useNavigate } from "react-router-dom";
 import RoadmapsDropdown from "../RoadmapsDropdown/RoadmapsDropdown";
 import { RootState, useAppDispatch, useAppSelector } from "../../store";
@@ -71,6 +77,18 @@ const Navbar = () => {
   const navigate = useNavigate();
 
   const [anchorEl, setAnchorEl] = useState(null);
+  const [mobileAnchorEl, setMobileAnchorEl] = useState<null | HTMLElement>(
+    null,
+  );
+
+  const handleMobileMenuOpen = (e: React.MouseEvent<HTMLElement>) => {
+    setMobileAnchorEl(e.currentTarget);
+  };
+
+  const handleMobileMenuClose = () => {
+    setMobileAnchorEl(null);
+  };
+
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
 
@@ -157,6 +175,7 @@ const Navbar = () => {
           <Typography
             variant="h6"
             sx={{
+              display: { xs: "none", sm: "block" },
               fontFamily: '"TDAText"',
               fontWeight: 700,
               backgroundImage:
@@ -171,38 +190,117 @@ const Navbar = () => {
           </Typography>
         </Box>
 
-        <Box
-          sx={{
-            flex: 1,
-            display: "flex",
-            justifyContent: "center",
-            gap: 3,
-          }}
-        >
-          {isLoggedIn ? (
-            <RoadmapsDropdown />
-          ) : (
+        {isLoggedIn ? (
+          <>
+            <Box
+              sx={{
+                display: { xs: "none", sm: "flex" },
+                flex: 1,
+                justifyContent: "center",
+                gap: 2,
+              }}
+            >
+              <RoadmapsDropdown />
+
+              <Button variant="text" component={NavLink} to="/chats">
+                Чаты
+              </Button>
+
+              <Button variant="text" component={NavLink} to="/friends">
+                Друзья
+              </Button>
+
+              <Button variant="text" onClick={() => setIsCreateModalOpen(true)}>
+                Создать роадмап
+              </Button>
+            </Box>
+
+            <Box
+              sx={{
+                display: { xs: "flex", sm: "none" },
+                paddingLeft: 1,
+                alignItems: "left",
+                width: "100%",
+              }}
+            >
+              <IconButton
+                onClick={handleMobileMenuOpen}
+                aria-label="open navigation menu"
+                sx={{ color: "#BC57FF" }}
+              >
+                <MenuRoundedIcon sx={{ fontSize: 32 }} />
+              </IconButton>
+
+              <Menu
+                anchorEl={mobileAnchorEl}
+                open={Boolean(mobileAnchorEl)}
+                onClose={handleMobileMenuClose}
+                keepMounted
+              >
+                <MenuItem
+                  onClick={() => {
+                    navigate("/roadmaps");
+                    handleMobileMenuClose();
+                  }}
+                >
+                  <ListItemIcon>
+                    <MapIcon fontSize="small" sx={{ color: "#BC57FF" }} />
+                  </ListItemIcon>
+                  <ListItemText primary="Роадмапы" />
+                </MenuItem>
+
+                <MenuItem
+                  onClick={() => {
+                    navigate("/chats");
+                    handleMobileMenuClose();
+                  }}
+                >
+                  <ListItemIcon>
+                    <ChatIcon fontSize="small" sx={{ color: "#BC57FF" }} />
+                  </ListItemIcon>
+                  <ListItemText primary="Чаты" />
+                </MenuItem>
+
+                <MenuItem
+                  onClick={() => {
+                    navigate("/friends");
+                    handleMobileMenuClose();
+                  }}
+                >
+                  <ListItemIcon>
+                    <PeopleIcon fontSize="small" sx={{ color: "#BC57FF" }} />
+                  </ListItemIcon>
+                  <ListItemText primary="Друзья" />
+                </MenuItem>
+
+                <MenuItem
+                  onClick={() => {
+                    setIsCreateModalOpen(true);
+                    handleMobileMenuClose();
+                  }}
+                >
+                  <ListItemIcon>
+                    <AddIcon fontSize="small" sx={{ color: "#BC57FF" }} />
+                  </ListItemIcon>
+                  <ListItemText primary="Создать роадмап" />
+                </MenuItem>
+              </Menu>
+            </Box>
+          </>
+        ) : (
+          <Box
+            sx={{
+              display: "flex",
+              flex: 1,
+              justifyContent: "center",
+              gap: 2,
+            }}
+          >
             <Button variant="text" component={NavLink} to="/roadmaps">
               Роадмапы
             </Button>
-          )}
-
-          {isLoggedIn && (
-            <Button variant="text" component={NavLink} to="/chats">
-              Чаты
-            </Button>
-          )}
-          {isLoggedIn && (
-            <Button variant="text" component={NavLink} to="/friends">
-              Друзья
-            </Button>
-          )}
-          {isLoggedIn && (
-            <Button variant="text" onClick={() => setIsCreateModalOpen(true)}>
-              Создать роадмап
-            </Button>
-          )}
-        </Box>
+          </Box>
+        )}
 
         {isLoggedIn ? (
           <>
@@ -263,11 +361,16 @@ const Navbar = () => {
               gap: 3,
             }}
           >
-            <Button variant="text" component={RouterLink} to="/login">
+            <Button variant="contained" component={RouterLink} to="/login">
               Войти
             </Button>
 
-            <Button variant="contained" component={RouterLink} to="/signup">
+            <Button
+              variant="text"
+              component={RouterLink}
+              to="/signup"
+              sx={{ display: { xs: "none", sm: "block" } }}
+            >
               Зарегистрироваться
             </Button>
           </Box>
