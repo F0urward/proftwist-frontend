@@ -1,4 +1,13 @@
-import { Box, Paper, Stack, TextField, IconButton } from "@mui/material";
+import {
+  Box,
+  Paper,
+  Stack,
+  TextField,
+  IconButton,
+  Button,
+  SwipeableDrawer,
+} from "@mui/material";
+import TuneIcon from "@mui/icons-material/Tune";
 import CloseIcon from "@mui/icons-material/Close";
 import ItemCard from "../components/ItemCard/ItemCard.tsx";
 import CategoryList from "../components/CategoryList/CategoryList.tsx";
@@ -18,6 +27,7 @@ const RoadmapsPage = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [categoriesOpen, setCategoriesOpen] = useState(false);
 
   const [selected, setSelected] = useState(-1);
   const [initialized, setInitialized] = useState(false);
@@ -130,7 +140,8 @@ const RoadmapsPage = () => {
       >
         <Box
           sx={{
-            height: { xs: "70vh", md: "calc(100vh - 310px)" },
+            height: "calc(100vh - 310px)",
+            display: { xs: "none", md: "block" },
           }}
         >
           <CategoryList
@@ -140,6 +151,23 @@ const RoadmapsPage = () => {
           />
         </Box>
 
+        <Box sx={{ display: { xs: "flex", md: "none" } }}>
+          <Button
+            variant="outlined"
+            fullWidth
+            startIcon={<TuneIcon />}
+            onClick={() => setCategoriesOpen(true)}
+            sx={{
+              justifyContent: "center",
+              borderRadius: 3,
+              color: "#BC57FF",
+              borderColor: "#BC57FF",
+            }}
+          >
+            Категории
+          </Button>
+        </Box>
+
         <Paper
           variant="outlined"
           sx={{
@@ -147,7 +175,7 @@ const RoadmapsPage = () => {
             display: "flex",
             flexDirection: "column",
             minHeight: "300px",
-            height: { xs: "70vh", md: "calc(100vh - 310px)" },
+            height: { xs: "55vh", md: "calc(100vh - 310px)" },
           }}
         >
           <TextField
@@ -224,6 +252,47 @@ const RoadmapsPage = () => {
           </Box>
         </Paper>
       </Box>
+      <SwipeableDrawer
+        anchor="bottom"
+        open={categoriesOpen}
+        onOpen={() => setCategoriesOpen(true)}
+        onClose={() => setCategoriesOpen(false)}
+        disableSwipeToOpen
+        slotProps={{
+          paper: {
+            sx: {
+              height: "75vh",
+              borderTopLeftRadius: 16,
+              borderTopRightRadius: 16,
+              borderBottomLeftRadius: 0,
+              borderBottomRightRadius: 0,
+              pt: 1,
+            },
+          },
+        }}
+      >
+        <Box
+          sx={{
+            width: 40,
+            height: 4,
+            borderRadius: 2,
+            backgroundColor: "rgba(255,255,255,0.3)",
+            mx: "auto",
+            mb: 1.5,
+          }}
+        />
+
+        <Box sx={{ height: "100%", width: "100%", border: "none" }}>
+          <CategoryList
+            items={categoryNames}
+            selected={selected}
+            onSelect={(i) => {
+              handleSelect(i);
+              setCategoriesOpen(false);
+            }}
+          />
+        </Box>
+      </SwipeableDrawer>
     </BaseLayout>
   );
 };

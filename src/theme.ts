@@ -143,7 +143,7 @@ export const theme = createTheme({
         },
         list: {
           py: 0.5,
-        }
+        },
       },
     },
     MuiMenuItem: {
@@ -151,9 +151,9 @@ export const theme = createTheme({
         root: {
           "&:hover": { backgroundColor: "#2B1631" },
           "&.Mui-selected:hover": {
-            backgroundColor: "#2B1631"
+            backgroundColor: "#2B1631",
           },
-        }
+        },
       },
     },
     MuiDialogActions: {

@@ -16,7 +16,6 @@ type Props = {
 const CategoryList = ({ items, selected = 0, onSelect }: Props) => {
   return (
     <Paper
-      variant="outlined"
       sx={{
         p: 2.5,
         width: "100%",
