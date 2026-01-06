@@ -19,6 +19,7 @@ import { IconButton } from "@mui/material";
 import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
 import MapIcon from "@mui/icons-material/Map";
 import ChatIcon from "@mui/icons-material/Chat";
+import { Person } from "@mui/icons-material";
 import PeopleIcon from "@mui/icons-material/People";
 import AddIcon from "@mui/icons-material/Add";
 import { Link as RouterLink, NavLink, useNavigate } from "react-router-dom";
@@ -247,6 +248,18 @@ const Navbar = () => {
                     <MapIcon fontSize="small" sx={{ color: "#BC57FF" }} />
                   </ListItemIcon>
                   <ListItemText primary="Роадмапы" />
+                </MenuItem>
+
+                <MenuItem
+                  onClick={() => {
+                    navigate("/personal");
+                    handleMobileMenuClose();
+                  }}
+                >
+                  <ListItemIcon>
+                    <Person fontSize="small" sx={{ color: "#BC57FF" }} />
+                  </ListItemIcon>
+                  <ListItemText primary="Мои роадмапы" />
                 </MenuItem>
 
                 <MenuItem
