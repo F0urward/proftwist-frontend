@@ -9,6 +9,8 @@ import {
   DialogActions,
   DialogTitle,
   DialogContent,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import { ReactFlow } from "@xyflow/react";
 import { useEffect, useMemo, useState, useCallback } from "react";
@@ -76,6 +78,9 @@ const RoadmapPage = () => {
 
   const location = useLocation();
   const from = location.state?.from ?? null;
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   const isAuthor = useMemo(() => {
     if (!info || !currentUser) return false;
@@ -632,7 +637,9 @@ const RoadmapPage = () => {
           </Button>
           <Tooltip
             arrow
-            placement="right"
+            placement={isMobile ? "bottom" : "right"}
+            enterTouchDelay={0}
+            leaveTouchDelay={4000}
             title={
               <>
                 <b>Как управлять роадмапом:</b>
