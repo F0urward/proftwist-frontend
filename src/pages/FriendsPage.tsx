@@ -135,11 +135,10 @@ const mapFriendRequestSummary = (
   ];
 
   const name =
-    pickStringField(
-      relatedProfiles,
-      ["display_name", "name"],
-      "Участник сообщества",
-    ) ?? "Участник сообщества";
+    pickStringField(relatedProfiles, ["display_name", "name"]) ??
+    pickStringField(relatedProfiles, ["username", "handle"]) ??
+    "Участник сообщества";
+
   const username =
     pickStringField(relatedProfiles, ["username", "handle"], name) ?? name;
   const avatar = pickStringField(relatedProfiles, [
@@ -354,12 +353,22 @@ const FriendsPage = () => {
     return statusMap[normalized] ?? { label: capitalized, color: "default" };
   };
 
+  function pluralize(count: number, one: string, few: string, many: string) {
+    const mod10 = count % 10;
+    const mod100 = count % 100;
+
+    if (mod100 >= 11 && mod100 <= 14) return many;
+    if (mod10 === 1) return one;
+    if (mod10 >= 2 && mod10 <= 4) return few;
+    return many;
+  }
+
   return (
     <BaseLayout justifyContent="flex-start">
       <Stack
         direction={{ xs: "column", lg: "row" }}
         spacing={3}
-        sx={{ width: "100%", maxWidth: 1200 }}
+        sx={{ width: "100%", maxWidth: 1200, alignItems: "center" }}
       >
         <Paper
           elevation={0}
@@ -371,8 +380,7 @@ const FriendsPage = () => {
             bgcolor: "rgba(18,18,18,.9)",
             p: 2.5,
             position: "sticky",
-            top: 32,
-            alignSelf: "flex-start",
+            alignSelf: { xs: "center", lg: "flex-start" },
           }}
         >
           <Typography variant="h6" sx={{ mb: 1.5, fontWeight: 700 }}>
@@ -403,7 +411,10 @@ const FriendsPage = () => {
           </Stack>
         </Paper>
 
-        <Stack sx={{ flex: 1 }} spacing={3}>
+        <Stack
+          sx={{ flex: 1, width: "100%", alignItems: "center" }}
+          spacing={3}
+        >
           {isBootstrapping ? (
             <Paper
               elevation={0}
@@ -524,7 +535,8 @@ const FriendsPage = () => {
                                   <Box sx={{ flex: 1 }}>
                                     <Stack
                                       direction="row"
-                                      spacing={1}
+                                      columnGap={1}
+                                      rowGap={0.2}
                                       alignItems="center"
                                       flexWrap="wrap"
                                     >
@@ -541,7 +553,7 @@ const FriendsPage = () => {
                                     <Typography sx={{ opacity: 0.7 }}>
                                       {request.username}
                                     </Typography>
-                                    {request.message && (
+                                    {/*{request.message && (
                                       <Typography
                                         sx={{
                                           mt: 0.5,
@@ -551,7 +563,7 @@ const FriendsPage = () => {
                                       >
                                         {request.message}
                                       </Typography>
-                                    )}
+                                    )}*/}
                                   </Box>
                                 </Stack>
                                 <Stack
@@ -569,7 +581,7 @@ const FriendsPage = () => {
                                   {!hideDeclineButton && (
                                     <Button
                                       variant="outlined"
-                                      color="inherit"
+                                      color="error"
                                       onClick={() =>
                                         handleDeclineRequest(request.id)
                                       }
@@ -629,7 +641,8 @@ const FriendsPage = () => {
                                   <Box sx={{ flex: 1 }}>
                                     <Stack
                                       direction="row"
-                                      spacing={1}
+                                      columnGap={1}
+                                      rowGap={0.2}
                                       alignItems="center"
                                       flexWrap="wrap"
                                     >
@@ -646,6 +659,7 @@ const FriendsPage = () => {
                                     <Typography sx={{ opacity: 0.7 }}>
                                       {request.username}
                                     </Typography>
+                                    {/*
                                     {request.message && (
                                       <Typography
                                         sx={{
@@ -656,7 +670,7 @@ const FriendsPage = () => {
                                       >
                                         {request.message}
                                       </Typography>
-                                    )}
+                                    )}*/}
                                   </Box>
                                 </Stack>
                                 <Stack
@@ -708,21 +722,30 @@ const FriendsPage = () => {
                     </Typography>
                     <Typography sx={{ mt: 1, opacity: 0.8 }}>
                       Отслеживайте наставников, тиммейтов и партнёров по учебе.
-                      Начинайте диалоги, делитесь роадмэпами или очищайте
-                      список, когда контакт становится неактивным.
                     </Typography>
                     <Stack
                       direction="row"
-                      spacing={1}
+                      gap={2}
                       sx={{ mt: 2, flexWrap: "wrap" }}
                     >
                       <Chip
-                        label={`${incomingRequests.length} входящих заявок`}
+                        label={`${incomingRequests.length} ${pluralize(
+                          incomingRequests.length,
+                          "входящая заявка",
+                          "входящие заявки",
+                          "входящих заявок",
+                        )}`}
                         color="secondary"
                         variant="outlined"
                       />
+
                       <Chip
-                        label={`${outgoingRequests.length} ожидающих приглашений`}
+                        label={`${outgoingRequests.length} ${pluralize(
+                          outgoingRequests.length,
+                          "ожидающее приглашение",
+                          "ожидающих приглашения",
+                          "ожидающих приглашений",
+                        )}`}
                         variant="outlined"
                       />
                     </Stack>
@@ -741,10 +764,19 @@ const FriendsPage = () => {
                     <Typography variant="h3" sx={{ fontWeight: 700 }}>
                       {friends.length}
                     </Typography>
-                    <Typography sx={{ opacity: 0.7 }}>друзей</Typography>
+
+                    <Typography sx={{ opacity: 0.7 }}>
+                      {pluralize(friends.length, "друг", "друга", "друзей")}
+                    </Typography>
+
                     {totalRequests > 0 && (
                       <Typography sx={{ opacity: 0.7, fontSize: 14 }}>
-                        {`${totalRequests} активн${totalRequests === 1 ? "ая заявка" : "ых заявок"}`}
+                        {`${totalRequests} ${pluralize(
+                          totalRequests,
+                          "активная заявка",
+                          "активные заявки",
+                          "активных заявок",
+                        )}`}
                       </Typography>
                     )}
                   </Box>
@@ -767,7 +799,7 @@ const FriendsPage = () => {
                 >
                   <TextField
                     fullWidth
-                    placeholder="Поиск по имени, нику или стеку"
+                    placeholder="Поиск по имени или нику"
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
                   />
@@ -785,8 +817,23 @@ const FriendsPage = () => {
                   /> */}
                 </Stack>
               </Paper>
-
-              {filteredFriends.length === 0 ? (
+              {friends.length === 0 ? (
+                <Paper
+                  elevation={0}
+                  sx={{
+                    borderRadius: 4,
+                    border: "1px dashed rgba(255,255,255,.2)",
+                    p: 4,
+                    textAlign: "center",
+                  }}
+                >
+                  <Typography variant="h6">У вас пока нет друзей</Typography>
+                  <Typography sx={{ opacity: 0.7, mt: 1 }}>
+                    Найдите интересных людей в чатах и отправьте приглашение —
+                    здесь появятся ваши контакты.
+                  </Typography>
+                </Paper>
+              ) : filteredFriends.length === 0 ? (
                 <Paper
                   elevation={0}
                   sx={{
@@ -803,7 +850,15 @@ const FriendsPage = () => {
                   </Typography>
                 </Paper>
               ) : (
-                <Grid container spacing={2}>
+                <Grid
+                  container
+                  spacing={2}
+                  sx={{
+                    width: "100%",
+                    maxWidth: "900px",
+                    alignItems: { xs: "center", md: "flex-start" },
+                  }}
+                >
                   {filteredFriends.map((friend) => (
                     <Grid
                       item
@@ -825,7 +880,12 @@ const FriendsPage = () => {
                           gap: 2,
                         }}
                       >
-                        <Stack direction="row" spacing={2} alignItems="center">
+                        <Stack
+                          direction="row"
+                          spacing={2}
+                          alignItems="flex-start"
+                          sx={{ width: "100%" }}
+                        >
                           <Avatar
                             src={friend.avatar}
                             alt={friend.name}
@@ -847,7 +907,7 @@ const FriendsPage = () => {
                               <Typography variant="h6" sx={{ fontWeight: 700 }}>
                                 {friend.name}
                               </Typography>
-                              <Tooltip
+                              {/*<Tooltip
                                 title={friend.online ? "В сети" : "Не в сети"}
                                 arrow
                               >
@@ -860,7 +920,7 @@ const FriendsPage = () => {
                                     fontSize: 12,
                                   }}
                                 />
-                              </Tooltip>
+                              </Tooltip>*/}
                             </Stack>
                             <Typography sx={{ opacity: 0.7 }}>
                               {friend.username}
@@ -927,7 +987,7 @@ const FriendsPage = () => {
       >
         <DialogTitle id="remove-friend-title">Удалить из друзей</DialogTitle>
         <DialogContent>
-          <DialogContentText>
+          <DialogContentText sx={{ color: "#fff" }}>
             {pendingRemoval
               ? `Удалить ${pendingRemoval.name} из списка друзей? При желании сможете добавить этого человека снова.`
               : null}
