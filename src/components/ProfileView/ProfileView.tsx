@@ -121,7 +121,7 @@ const ProfileView = () => {
     <Paper
       variant="outlined"
       sx={{
-        width: "40vw",
+        width: { xs: "90vw", md: "40vw" },
         minHeight: "80vh",
       }}
     >
