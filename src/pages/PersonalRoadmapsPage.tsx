@@ -1,4 +1,5 @@
-import { Box, Paper, Stack, Button } from "@mui/material";
+import { Box, Paper, Stack, Button, SwipeableDrawer } from "@mui/material";
+import TuneIcon from "@mui/icons-material/Tune";
 import ItemCard from "../components/ItemCard/ItemCard.tsx";
 import CategoryList from "../components/CategoryList/CategoryList.tsx";
 import BaseLayout from "../components/BaseLayout/BaseLayout.tsx";
@@ -18,6 +19,7 @@ const PersonalRoadmapsPage = () => {
   const [selected, setSelected] = useState<number>(0);
   const [modalOpen, setModalOpen] = useState(false);
   const [initialized, setInitialized] = useState(false);
+  const [categoriesOpen, setCategoriesOpen] = useState(false);
   const navigate = useNavigate();
 
   const categoryNames = useMemo(
@@ -125,27 +127,135 @@ const PersonalRoadmapsPage = () => {
           gap: { xs: 2, md: 3 },
         }}
       >
-        <CategoryList
-          items={categoryNames}
-          selected={selected}
-          onSelect={handleSelect}
-        />
+        <Box
+          sx={{
+            display: { xs: "none", md: "block" },
+          }}
+        >
+          <CategoryList
+            items={categoryNames}
+            selected={selected}
+            onSelect={handleSelect}
+          />
+        </Box>
 
-        <Paper variant="outlined" sx={{ p: { xs: 2, md: 3 } }}>
-          {!items.length && initialized && <EmptyState></EmptyState>}
-          <Stack spacing={2}>
-            {items.map((roadmap) => (
-              <ItemCard
-                key={roadmap.id}
-                title={roadmap.name}
-                description={roadmap.description}
-                to={`/roadmaps/${roadmap.id}`}
-                state={{ type: "owned", roadmap, from: "personal" }}
-              />
-            ))}
-          </Stack>
+        <Box sx={{ display: { xs: "flex", md: "none" } }}>
+          <Button
+            variant="outlined"
+            fullWidth
+            startIcon={<TuneIcon />}
+            onClick={() => setCategoriesOpen(true)}
+            sx={{
+              justifyContent: "center",
+              borderRadius: 3,
+              color: "#BC57FF",
+              borderColor: "#BC57FF",
+            }}
+          >
+            Категории
+          </Button>
+        </Box>
+
+        <Paper
+          variant="outlined"
+          sx={{
+            p: { xs: 2, md: 3 },
+            display: "flex",
+            flexDirection: "column",
+            minHeight: "300px",
+            height: { xs: "50vh", md: "calc(100vh - 380px)" },
+          }}
+        >
+          <Box
+            sx={{
+              height: "100%",
+              pt: 2,
+              mx: "-10px",
+              position: "relative",
+              overflowY: "auto",
+              "&::-webkit-scrollbar": {
+                width: "10px",
+              },
+              "&::-webkit-scrollbar-track": {
+                background: "transparent",
+              },
+              "&::-webkit-scrollbar-thumb": {
+                backgroundColor: "rgba(255,255,255,0.7)",
+                borderRadius: "999px",
+                backgroundClip: "content-box",
+              },
+              "&::-webkit-scrollbar-thumb:hover": {
+                backgroundColor: "rgba(255,255,255,0.9)",
+              },
+              scrollbarWidth: "thin",
+              scrollbarColor: "rgba(255,255,255,0.7) transparent",
+              WebkitMaskImage:
+                "linear-gradient(to bottom, transparent 0px, black 24px, black calc(100% - 32px), transparent 100%)",
+              maskImage:
+                "linear-gradient(to bottom, transparent 0px, black 24px, black calc(100% - 32px), transparent 100%)",
+              WebkitMaskRepeat: "no-repeat",
+              maskRepeat: "no-repeat",
+            }}
+          >
+            <Box sx={{ px: "10px", height: "100%" }}>
+              {!items.length && initialized && <EmptyState></EmptyState>}
+              <Stack spacing={2}>
+                {items.map((roadmap) => (
+                  <ItemCard
+                    key={roadmap.id}
+                    title={roadmap.name}
+                    description={roadmap.description}
+                    to={`/roadmaps/${roadmap.id}`}
+                    state={{ type: "owned", roadmap, from: "personal" }}
+                  />
+                ))}
+                <Box sx={{ height: 5 }} />
+              </Stack>
+            </Box>
+          </Box>
         </Paper>
       </Box>
+      <SwipeableDrawer
+        anchor="bottom"
+        open={categoriesOpen}
+        onOpen={() => setCategoriesOpen(true)}
+        onClose={() => setCategoriesOpen(false)}
+        disableSwipeToOpen
+        slotProps={{
+          paper: {
+            sx: {
+              height: "60vh",
+              borderTopLeftRadius: 16,
+              borderTopRightRadius: 16,
+              borderBottomLeftRadius: 0,
+              borderBottomRightRadius: 0,
+              pt: 1,
+            },
+          },
+        }}
+      >
+        <Box
+          sx={{
+            width: 40,
+            height: 4,
+            borderRadius: 2,
+            backgroundColor: "rgba(255,255,255,0.3)",
+            mx: "auto",
+            mb: 1.5,
+          }}
+        />
+
+        <Box sx={{ height: "100%", width: "100%", border: "none" }}>
+          <CategoryList
+            items={categoryNames}
+            selected={selected}
+            onSelect={(i) => {
+              handleSelect(i);
+              setCategoriesOpen(false);
+            }}
+          />
+        </Box>
+      </SwipeableDrawer>
     </BaseLayout>
   );
 };
