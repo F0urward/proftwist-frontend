@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import { ReactFlow } from "@xyflow/react";
 import { useEffect, useMemo, useState, useCallback } from "react";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import {
   useNavigate,
   useParams,
@@ -567,6 +568,25 @@ const RoadmapPage = () => {
     return () => window.removeEventListener("resize", handler);
   }, [updateHeight]);
 
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const onScroll = () => {
+      setShowScrollTop(window.scrollY > 200);
+    };
+
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [isMobile]);
+
+  const scrollToTop = useCallback(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
   return (
     <BaseLayout justifyContent="flex-start" py={4}>
       <Box
@@ -716,6 +736,30 @@ const RoadmapPage = () => {
           notify={showNotification}
         />
       </Box>
+      {isMobile && showScrollTop && (
+        <Button
+          onClick={scrollToTop}
+          variant="contained"
+          sx={{
+            position: "fixed",
+            right: 14,
+            bottom: "calc(env(safe-area-inset-bottom) + 14px)",
+            zIndex: 1200,
+            minWidth: 44,
+            width: 44,
+            height: 44,
+            borderRadius: "999px",
+            padding: 0,
+            background: "linear-gradient(90deg, #7E57FF, #BC57FF)",
+            boxShadow: "0 10px 24px rgba(0,0,0,0.25)",
+            "&:hover": {
+              background: "linear-gradient(90deg, #6A49E6, #AA49E6)",
+            },
+          }}
+        >
+          <KeyboardArrowUpIcon />
+        </Button>
+      )}
 
       {Notification}
     </BaseLayout>
