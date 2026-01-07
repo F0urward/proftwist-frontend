@@ -8,6 +8,7 @@ import CreateRoadmapInfoModal from "../components/CreateRoadmapsinfoModal/Create
 import { roadmapinfoService } from "../api/roadmapinfo.service";
 import { RoadmapInfo } from "../types/roadmapinfo";
 import EmptyState from "../components/EmptyState/EmptyState.tsx";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect, useMemo } from "react";
@@ -107,7 +108,11 @@ const PersonalRoadmapsPage = () => {
         subtitle="Изучите свою профессию быстрее вместе с нами"
       >
         <>
-          <Button variant="contained" onClick={() => setModalOpen(true)}>
+          <Button
+            variant="contained"
+            startIcon={<AddCircleOutlineIcon />}
+            onClick={() => setModalOpen(true)}
+          >
             Создать свой роадмап
           </Button>
         </>
