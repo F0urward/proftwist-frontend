@@ -173,9 +173,13 @@ const RoadmapsPage = () => {
           sx={{
             p: { xs: 2, md: 3 },
             display: "flex",
+            flex: 1,
             flexDirection: "column",
             minHeight: "300px",
-            height: { xs: "55vh", md: "calc(100vh - 310px)" },
+            height: {
+              xs: "calc((100dvh - 340px))",
+              md: "calc(100vh - 310px)",
+            },
           }}
         >
           <TextField

@@ -304,9 +304,10 @@ const RoadmapPage = () => {
           <CategoryBadge />
           <Stack
             direction="row"
-            spacing={4}
+            flexWrap={"wrap"}
+            gap={4}
             alignItems="center"
-            sx={{ width: "100%" }}
+            sx={{ width: "100%", justifyContent: "center", rowGap: 2 }}
           >
             {!isSubscribed && !isAuthor && (
               <Tooltip
@@ -318,7 +319,7 @@ const RoadmapPage = () => {
                   onClick={handleSubscribe}
                   startIcon={<BookmarkAddOutlinedIcon />}
                 >
-                  Добавить в избранное
+                  В избранное
                 </Button>
               </Tooltip>
             )}
@@ -355,9 +356,10 @@ const RoadmapPage = () => {
           <CategoryBadge />
           <Stack
             direction="row"
-            spacing={4}
+            flexWrap={"wrap"}
+            gap={4}
             alignItems="center"
-            sx={{ width: "100%" }}
+            sx={{ width: "100%", justifyContent: "center", rowGap: 2 }}
           >
             {/*<Stack sx={{ flex: 1 }} spacing={0.5}>
               <Typography variant="body1">
@@ -405,7 +407,7 @@ const RoadmapPage = () => {
                 onClick={handlePublish}
                 startIcon={<PublicOutlinedIcon />}
               >
-                Опубликовать роадмап
+                Опубликовать
               </Button>
             </Tooltip>
             <CreateRoadmapInfoModal
@@ -454,7 +456,7 @@ const RoadmapPage = () => {
             startIcon={<DeleteOutlineOutlinedIcon />}
             onClick={() => setDeleteOpen(true)}
           >
-            Удалить роадмап
+            Удалить
           </Button>
           <Dialog
             open={deleteOpen}
@@ -561,7 +563,7 @@ const RoadmapPage = () => {
   }, [updateHeight]);
 
   return (
-    <BaseLayout justifyContent="flex-start">
+    <BaseLayout justifyContent="flex-start" py={4}>
       <Box
         sx={{
           position: "relative",
@@ -574,10 +576,11 @@ const RoadmapPage = () => {
         <Button
           component={RouterLink}
           to={backLink.to}
-          startIcon={<ArrowBackIosNewIcon fontSize="small" />}
+          startIcon={<ArrowBackIosNewIcon sx={{ fontSize: 6 }} />}
           sx={{
             position: "absolute",
-            left: { md: 12 },
+            top: { xs: -35, md: 0 },
+            left: { xs: 0, md: 12 },
             zIndex: 1,
             textTransform: "none",
           }}

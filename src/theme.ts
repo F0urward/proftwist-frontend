@@ -37,6 +37,9 @@ export const theme = createTheme({
             background: colors.gradientDark,
             color: colors.white,
           },
+          lineHeight: 1.25,
+          paddingTop: 8,
+          paddingBottom: 8,
         },
         contained: {
           background: colors.gradientDark,

@@ -163,7 +163,8 @@ const PersonalRoadmapsPage = () => {
             display: "flex",
             flexDirection: "column",
             minHeight: "300px",
-            height: { xs: "50vh", md: "calc(100vh - 380px)" },
+            height: { xs: "calc((100dvh - 395px))", md: "calc(100vh - 380px)" },
+            "@media (max-width: 426px)": { height: "calc((100dvh - 450px))" },
           }}
         >
           <Box
