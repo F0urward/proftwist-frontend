@@ -857,6 +857,7 @@ const FriendsPage = () => {
                     width: "100%",
                     maxWidth: "900px",
                     alignItems: { xs: "center", md: "flex-start" },
+                    justifyContent: { xs: "center", md: "flex-start" },
                   }}
                 >
                   {filteredFriends.map((friend) => (
