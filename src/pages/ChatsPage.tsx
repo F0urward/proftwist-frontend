@@ -845,6 +845,31 @@ const ChatsPage = () => {
     [selectChat, setSearchParams, isMobile],
   );
 
+  type StatusMeta = {
+    label: string;
+    color: "success" | "warning" | "info" | "secondary" | "error";
+  };
+
+  const getStatusMeta = (state: FriendshipUiState): StatusMeta | null => {
+    if (state.status === "accepted") {
+      return { label: "В друзьях", color: "success" };
+    }
+
+    if (state.status === "pending") {
+      return state.isSender
+        ? { label: "Заявка отправлена", color: "info" }
+        : { label: "Входящая заявка", color: "warning" };
+    }
+
+    if (state.status === "rejected") {
+      return state.isSender
+        ? { label: "Вы подписаны", color: "info" }
+        : { label: "Подписан на вас", color: "warning" };
+    }
+
+    return null;
+  };
+
   return (
     <BaseLayout>
       <Stack
@@ -893,7 +918,8 @@ const ChatsPage = () => {
           maxWidth="xs"
         >
           <DialogTitle>Участники чата</DialogTitle>
-          <DialogContent dividers>
+
+          <DialogContent dividers sx={{ px: { xs: 1, sm: 2 } }}>
             {participantsLoading && (
               <Box sx={{ textAlign: "center", py: 4 }}>
                 <CircularProgress size={24} />
@@ -919,115 +945,188 @@ const ChatsPage = () => {
               participants.length > 0 && (
                 <List disablePadding>
                   {participants.map((user) => {
+                    type StatusMeta = {
+                      label: string;
+                      color:
+                        | "success"
+                        | "warning"
+                        | "info"
+                        | "secondary"
+                        | "error";
+                    };
+
+                    const getStatusMeta = (
+                      state: FriendshipUiState,
+                    ): StatusMeta | null => {
+                      if (state.status === "accepted") {
+                        return { label: "В друзьях", color: "success" };
+                      }
+
+                      if (state.status === "pending") {
+                        return state.isSender
+                          ? { label: "Заявка отправлена", color: "info" }
+                          : { label: "Входящая заявка", color: "warning" };
+                      }
+
+                      if (state.status === "rejected") {
+                        return state.isSender
+                          ? { label: "Вы подписаны", color: "info" }
+                          : { label: "Подписан на вас", color: "warning" };
+                      }
+
+                      return null;
+                    };
+
                     const displayName =
                       user.nickname || user.name || "Пользователь";
                     const initials = initialsFrom(displayName);
+
                     const participantId = user.originalId ?? user.id;
                     const normalizedParticipantId =
                       normalizeUserId(participantId);
                     const participantKey =
                       normalizedParticipantId ?? participantId ?? user.id;
+
                     const isCurrentUser =
                       user.isCurrentUser ??
                       (resolvedUserId && normalizedParticipantId
                         ? normalizedParticipantId === resolvedUserId
                         : user.id === resolvedUserId);
+
                     const requestSent = participantKey
                       ? Boolean(friendRequestSent[participantKey])
                       : false;
+
                     const isSubmitting = participantKey
                       ? addingFriendId === participantKey
                       : false;
+
                     const friendshipState = getFriendshipUiState(
                       user,
                       requestSent,
                     );
+                    const statusMeta = !isCurrentUser
+                      ? getStatusMeta(friendshipState)
+                      : null;
 
-                    let actionLabel = "Добавить в друзья";
-                    let actionVariant: "outlined" | "contained" = "outlined";
-                    let actionColor: "primary" | "secondary" | "success" =
-                      "primary";
-                    let actionDisabled =
-                      !participantKey || requestSent || isSubmitting;
+                    const canAdd =
+                      !isCurrentUser &&
+                      friendshipState.status === "none" &&
+                      Boolean(participantKey) &&
+                      !isSubmitting;
 
-                    if (friendshipState.status === "pending") {
-                      actionLabel = "Заявка отправлена";
-                      actionVariant = "contained";
-                      actionDisabled = true;
-                    } else if (friendshipState.status === "rejected") {
-                      actionLabel = "Подписаны";
-                      actionVariant = "outlined";
-                      actionColor = "secondary";
-                      actionDisabled = true;
-                    } else if (friendshipState.status === "accepted") {
-                      actionLabel = "В друзьях";
-                      actionVariant = "contained";
-                      actionColor = "success";
-                      actionDisabled = true;
-                    }
-
-                    const requestSentState =
-                      friendshipState.status === "pending";
-                    const actionSx = {
-                      minWidth: 120,
-                      ...(requestSentState
-                        ? {
-                            color: "#fff",
-                            "&.Mui-disabled": {
-                              color: "#fff",
-                            },
-                          }
-                        : {}),
-                    };
+                    const rightColWidth = 132;
 
                     return (
-                      <ListItem key={user.id} disablePadding>
+                      <ListItem key={participantKey} disablePadding>
                         <ListItemButton
                           disableRipple
                           sx={{
-                            display: "flex",
+                            px: 1.25,
+                            py: 1.25,
+                            minHeight: 64,
                             alignItems: "center",
-                            gap: 2,
-                            py: 1,
                           }}
                         >
-                          <ListItemAvatar>
+                          <Stack
+                            direction="row"
+                            spacing={1.5}
+                            alignItems="center"
+                            sx={{
+                              width: "100%",
+                              minWidth: 0,
+                            }}
+                          >
                             <Avatar
                               {...(user.avatar ? { src: user.avatar } : {})}
                               alt={displayName}
+                              sx={{ width: 55, height: 55, flexShrink: 0 }}
                             >
                               {!user.avatar && initials}
                             </Avatar>
-                          </ListItemAvatar>
-                          <ListItemText
-                            primary={displayName}
-                            secondary={
-                              user.name && user.name !== displayName
-                                ? user.name
-                                : undefined
-                            }
-                            sx={{ mr: 1 }}
-                          />
-                          {!isCurrentUser && (
-                            <Button
-                              size="small"
-                              variant={actionVariant}
-                              color={actionColor}
-                              disabled={actionDisabled}
-                              onClick={(event) => {
-                                event.preventDefault();
-                                event.stopPropagation();
-                                void handleAddFriend(user);
+                            <Stack
+                              direction="row"
+                              gap={1}
+                              sx={{
+                                justifyContent: "space-between",
+                                flex: 1,
+                                flexDirection: "row",
+                                flexWrap: "wrap",
                               }}
-                              sx={actionSx}
                             >
-                              {isSubmitting ? (
-                                <CircularProgress size={16} />
-                              ) : (
-                                actionLabel
+                              <Box sx={{ flex: 1, minWidth: 130 }}>
+                                <Typography
+                                  sx={{
+                                    fontWeight: 600,
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                    whiteSpace: "nowrap",
+                                  }}
+                                >
+                                  {displayName}
+                                </Typography>
+
+                                <Typography
+                                  sx={{
+                                    opacity: 0.7,
+                                    fontSize: 13,
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                    whiteSpace: "nowrap",
+                                  }}
+                                >
+                                  {user.username ?? ""}
+                                </Typography>
+                              </Box>
+
+                              {!isCurrentUser && (
+                                <>
+                                  <Box
+                                    sx={{
+                                      minHeight: 22,
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "flex-end",
+                                    }}
+                                  >
+                                    {statusMeta ? (
+                                      <Chip
+                                        size="small"
+                                        label={statusMeta.label}
+                                        color={statusMeta.color}
+                                        variant="outlined"
+                                        sx={{
+                                          height: 22,
+                                          maxWidth: "100%",
+                                          "& .MuiChip-label": { px: 1 },
+                                          width: "140px",
+                                        }}
+                                      />
+                                    ) : null}
+                                    {isSubmitting ? (
+                                      <CircularProgress size={18} />
+                                    ) : canAdd ? (
+                                      <Button
+                                        size="small"
+                                        variant="contained"
+                                        onClick={(event) => {
+                                          event.preventDefault();
+                                          event.stopPropagation();
+                                          void handleAddFriend(user);
+                                        }}
+                                        sx={{
+                                          width: "100%",
+                                          whiteSpace: "nowrap",
+                                        }}
+                                      >
+                                        Добавить
+                                      </Button>
+                                    ) : null}
+                                  </Box>
+                                </>
                               )}
-                            </Button>
-                          )}
+                            </Stack>
+                          </Stack>
                         </ListItemButton>
                       </ListItem>
                     );
