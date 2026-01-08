@@ -160,7 +160,9 @@ const MessagesList = ({ chat, messages, currentUserId }: Props) => {
                           {sender.nickname || sender.name || "Пользователь"}
                         </Typography>
                       )}
-                      <Typography>{m.text}</Typography>
+                      <Typography sx={{ overflowWrap: "break-word" }}>
+                        {m.text}
+                      </Typography>
                       <Typography
                         variant="caption"
                         sx={{

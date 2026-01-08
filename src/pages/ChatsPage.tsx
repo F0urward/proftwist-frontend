@@ -34,6 +34,9 @@ import {
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
 import SendIcon from "@mui/icons-material/Send";
+import { useTheme } from "@mui/material/styles";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import CloseIcon from "@mui/icons-material/Close";
 import { alpha } from "@mui/material/styles";
@@ -85,6 +88,8 @@ type ChatWindowProps = {
   typingNotice: string | null;
   composerProps: MessageComposerProps;
   onShowParticipants: () => void;
+  isMobile?: boolean;
+  onBack?: () => void;
 };
 
 const normalizeUserId = (value: unknown): string | null => {
@@ -150,7 +155,7 @@ const ChatListItem = ({
         onClick={onSelect}
         sx={{
           alignItems: "center",
-          gap: 1.25,
+          gap: { md: 1.25 },
           minHeight: 76,
           "&.Mui-selected": { bgcolor: alpha("#BC57FF", 0.08) },
         }}
@@ -224,11 +229,12 @@ const ChatSidebar = ({
   <Paper
     variant="outlined"
     sx={{
-      width: { xs: 320, md: 380 },
-      height: "80vh",
+      width: { xs: "100%", sm: 240, md: 320, lg: 360 },
+      height: { xs: "calc(100dvh - 120px)", md: "80vh" },
       overflow: "hidden",
       display: "flex",
       flexDirection: "column",
+      borderRadius: 5,
     }}
   >
     <Box sx={{ borderBottom: "1px solid rgba(255,255,255,.08)" }}>
@@ -404,7 +410,16 @@ const MessageComposer = ({
           disabled={
             isSending || trimmedDraft.length === 0 || Boolean(attachment)
           }
-          sx={{ height: 44, width: 44, "& .MuiButton-endIcon": { m: 0 } }}
+          sx={{
+            height: 44,
+            width: 44,
+            color: "#fff",
+            "&.Mui-disabled": {
+              color: "#fff",
+              opacity: 0.6,
+            },
+            "& .MuiButton-endIcon": { m: 0 },
+          }}
         />
       </Stack>
     </Box>
@@ -421,6 +436,8 @@ const ChatWindow = ({
   typingNotice,
   composerProps,
   onShowParticipants,
+  onBack,
+  isMobile,
 }: ChatWindowProps) => {
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
@@ -436,12 +453,12 @@ const ChatWindow = ({
     <Paper
       variant="outlined"
       sx={{
-        width: { xs: 400, md: 620 },
+        width: { xs: 350, md: 560, lg: 620 },
         flex: 1,
         overflow: "hidden",
         display: "grid",
         gridTemplateRows: "auto 1fr auto",
-        height: "80vh",
+        height: { xs: "calc(100dvh - 120px)", md: "80vh" },
       }}
     >
       <Box
@@ -450,15 +467,24 @@ const ChatWindow = ({
           py: 2,
           display: "flex",
           alignItems: "center",
-          justifyContent: "space-between",
+          justifyContent: "flex-start",
           borderBottom: "1px solid rgba(255,255,255,.08)",
         }}
       >
+        {isMobile && onBack && (
+          <IconButton
+            onClick={onBack}
+            sx={{ color: "#fff" }}
+            aria-label="Назад к списку чатов"
+          >
+            <ArrowBackIcon />
+          </IconButton>
+        )}
         {selectedChat ? (
           <Stack
             direction="row"
             alignItems="center"
-            spacing={2}
+            spacing={{ xs: 1, md: 2 }}
             {...(tab === "group"
               ? {
                   sx: { userSelect: "none", cursor: "pointer" },
@@ -496,9 +522,11 @@ const ChatWindow = ({
             </Typography>
           </Stack>
         ) : (
-          <Typography variant="h6" sx={{ opacity: 0.6 }}>
-            Выберите чат, чтобы начать
-          </Typography>
+          <Box sx={{ width: "100%", justifyItems: "center" }}>
+            <Typography variant="h6" sx={{ opacity: 0.6 }}>
+              Выберите чат, чтобы начать
+            </Typography>
+          </Box>
         )}
       </Box>
 
@@ -613,6 +641,12 @@ const ChatsPage = () => {
   const [leaveError, setLeaveError] = useState<string | null>(null);
   const consumedChatParamRef = useRef(false);
 
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
+
+  const [mobileView, setMobileView] = useState<"list" | "chat">("list");
+
   useEffect(() => {
     if (!chatQueryParam || consumedChatParamRef.current) return;
     const targetChat = chats.find((chat) => chat.id === chatQueryParam);
@@ -622,10 +656,29 @@ const ChatsPage = () => {
       setTab(targetChat.type as TabValue);
     }
     selectChat(chatQueryParam);
-    const nextParams = new URLSearchParams(searchParams);
-    nextParams.delete("chat");
-    setSearchParams(nextParams, { replace: true });
-  }, [chatQueryParam, chats, selectChat, tab, searchParams, setSearchParams]);
+    if (isMobile) {
+      setMobileView("chat");
+    }
+  }, [
+    chatQueryParam,
+    chats,
+    selectChat,
+    tab,
+    searchParams,
+    setSearchParams,
+    isMobile,
+  ]);
+
+  const clearChatParam = useCallback(() => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete("chat");
+        return next;
+      },
+      { replace: true },
+    );
+  }, [setSearchParams]);
 
   const filteredChats = useMemo(() => {
     const lower = query.toLowerCase();
@@ -693,10 +746,10 @@ const ChatsPage = () => {
 
         const isMarkedSelf = Boolean(
           member?.is_self ??
-          member?.is_current_user ??
-          member?.is_me ??
-          member?.self ??
-          member?.current_user,
+            member?.is_current_user ??
+            member?.is_me ??
+            member?.self ??
+            member?.current_user,
         );
 
         const isSelf =
@@ -779,33 +832,59 @@ const ChatsPage = () => {
     }
   }, [selectedChat, refreshChats, closeConnection]);
 
+  const handleSelectChat = useCallback(
+    (chatId: string) => {
+      selectChat(chatId);
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.set("chat", chatId);
+        return next;
+      });
+      if (isMobile) setMobileView("chat");
+    },
+    [selectChat, setSearchParams, isMobile],
+  );
+
   return (
     <BaseLayout>
-      <Stack direction="row" spacing={3}>
-        <ChatSidebar
-          tab={tab}
-          onTabChange={setTab}
-          query={query}
-          onQueryChange={setQuery}
-          chats={filteredChats}
-          chatsLoading={chatsLoading}
-          chatsError={chatsError}
-          selectedChatId={selectedChatId}
-          onSelectChat={selectChat}
-          currentUserId={resolvedUserId}
-        />
+      <Stack
+        direction="row"
+        gap={{ xs: 1, md: 2, lg: 3 }}
+        sx={{ width: { xs: "100%", md: "80%" }, justifyContent: "center" }}
+      >
+        {(!isMobile || mobileView === "list") && (
+          <ChatSidebar
+            tab={tab}
+            onTabChange={setTab}
+            query={query}
+            onQueryChange={setQuery}
+            chats={filteredChats}
+            chatsLoading={chatsLoading}
+            chatsError={chatsError}
+            selectedChatId={selectedChatId}
+            onSelectChat={handleSelectChat}
+            currentUserId={resolvedUserId}
+          />
+        )}
 
-        <ChatWindow
-          currentUserId={resolvedUserId}
-          selectedChat={selectedChat}
-          tab={tab}
-          messages={messages}
-          messagesLoading={messagesLoading}
-          messagesError={messagesError}
-          typingNotice={typingNotice}
-          composerProps={composerProps}
-          onShowParticipants={handleOpenParticipants}
-        />
+        {(!isMobile || mobileView === "chat") && (
+          <ChatWindow
+            currentUserId={resolvedUserId}
+            selectedChat={selectedChat}
+            tab={tab}
+            messages={messages}
+            messagesLoading={messagesLoading}
+            messagesError={messagesError}
+            typingNotice={typingNotice}
+            composerProps={composerProps}
+            onShowParticipants={handleOpenParticipants}
+            isMobile={isMobile}
+            onBack={() => {
+              clearChatParam();
+              setMobileView("list");
+            }}
+          />
+        )}
 
         <Dialog
           open={participantsOpen}
