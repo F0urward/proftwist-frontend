@@ -9,6 +9,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RootState, useAppDispatch, useAppSelector } from "../store";
 import { signup, login } from "../store/slices/authSlice";
+import axios from "axios";
 
 const RegisterPage = () => {
   const dispatch = useAppDispatch();
@@ -43,6 +44,16 @@ const RegisterPage = () => {
     } catch (err: any) {
       console.error("Could not register", err);
     } finally {
+    }
+  };
+
+  const handleVKIDAuthClick = async () => {
+    try {
+      const response = await axios.get("/api/auth/vk/link");
+      const url = response.data["vk_oauth_url"];
+      window.open(url, "_self");
+    } catch (error) {
+      console.error("error", error);
     }
   };
 
@@ -118,6 +129,17 @@ const RegisterPage = () => {
             disabled={loading}
           >
             {loading ? "Загрузка..." : "Зарегистрироваться"}
+          </Button>
+          <Button
+            className=""
+            onClick={handleVKIDAuthClick}
+            sx={{
+              background: "#0077FF",
+              "&:hover": { background: "#0564d1ff" },
+              fontWeight: 600,
+            }}
+          >
+            Зарегистрироваться через VK
           </Button>
           <Typography variant="body1" sx={{ textAlign: "center" }}>
             Уже есть аккаунт?{" "}

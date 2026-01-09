@@ -127,6 +127,7 @@ const LoginPage = () => {
             sx={{
               background: "#0077FF",
               "&:hover": { background: "#0564d1ff" },
+              fontWeight: 600,
             }}
           >
             Войти через VK
