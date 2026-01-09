@@ -24,6 +24,12 @@ import { edgeTypes, nodeTypes } from "../consts";
 import { NodeEditorSidebar } from "../components/NodeEditorSidebar";
 import { roadmapService } from "../api/roadmap.service";
 
+import { SwipeableDrawer, Fab, IconButton, useMediaQuery } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
+import AddIcon from "@mui/icons-material/Add";
+import SaveIcon from "@mui/icons-material/Save";
+import { useNotification } from "../components/Notification/Notification";
+
 export const CreatorPage = () => {
   const { roadmap_id } = useParams();
   const dispatch = useAppDispatch();
@@ -40,6 +46,10 @@ export const CreatorPage = () => {
     () => nodes.find((node) => node.id === editingNodeId) ?? null,
     [nodes, editingNodeId],
   );
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const [toolsOpen, setToolsOpen] = useState(false);
 
   useEffect(() => {
     if (!roadmap_id) return;
@@ -156,6 +166,23 @@ export const CreatorPage = () => {
     [dispatch, editingNodeId],
   );
 
+  const { showNotification, Notification } = useNotification();
+
+  const handleSave = useCallback(async () => {
+    if (!roadmap_id) {
+      showNotification("Невозможно сохранить: roadmap_id не найден", "error");
+      return;
+    }
+
+    try {
+      await roadmapService.updateGraph(roadmap_id, { nodes, edges });
+      showNotification("Роадмап успешно сохранён!", "success");
+    } catch (e) {
+      console.error("Ошибка при сохранении:", e);
+      showNotification("Ошибка при сохранении роадмапа", "error");
+    }
+  }, [roadmap_id, nodes, edges, showNotification]);
+
   if (loading) {
     return (
       <Stack
@@ -170,9 +197,14 @@ export const CreatorPage = () => {
 
   return (
     <Stack direction="row" sx={{ height: "100vh" }}>
-      <Sidebar addNode={addNode} />
+      {!isMobile && <Sidebar addNode={addNode} />}
       <Box
-        sx={{ flex: 1, height: "100%", color: "#000", minWidth: 0 }}
+        sx={{
+          flex: 1,
+          height: "100%",
+          color: "#000",
+          minWidth: 0,
+        }}
         ref={containerRef}
       >
         <ReactFlow
@@ -195,6 +227,53 @@ export const CreatorPage = () => {
 
           <Background color="#fff" bgColor="#000" />
         </ReactFlow>
+
+        {isMobile && (
+          <Fab
+            onClick={() => void handleSave()}
+            sx={{
+              position: "absolute",
+              right: 86,
+              top: 70,
+              zIndex: 20,
+              color: "#fff",
+              background: "linear-gradient(90deg, #7E57FF, #BC57FF)",
+              boxShadow: "0 10px 24px rgba(0,0,0,0.25)",
+              "&:hover": {
+                background: "linear-gradient(90deg, #6A49E6, #AA49E6)",
+              },
+              "&:active": {
+                boxShadow: "0 6px 14px rgba(0,0,0,0.35)",
+              },
+            }}
+          >
+            <SaveIcon />
+          </Fab>
+        )}
+
+        {isMobile && (
+          <Fab
+            color="primary"
+            onClick={() => setToolsOpen(true)}
+            sx={{
+              position: "absolute",
+              right: 16,
+              top: 70,
+              zIndex: 20,
+              color: "#fff",
+              background: "linear-gradient(90deg, #7E57FF, #BC57FF)",
+              boxShadow: "0 10px 24px rgba(0,0,0,0.25)",
+              "&:hover": {
+                background: "linear-gradient(90deg, #6A49E6, #AA49E6)",
+              },
+              "&:active": {
+                boxShadow: "0 6px 14px rgba(0,0,0,0.35)",
+              },
+            }}
+          >
+            <AddIcon />
+          </Fab>
+        )}
       </Box>
       <NodeEditorSidebar
         open={Boolean(editingNodeId)}
@@ -203,6 +282,52 @@ export const CreatorPage = () => {
         onLabelChange={handleLabelChange}
         onDescriptionChange={handleDescriptionChange}
       />
+      {isMobile && (
+        <SwipeableDrawer
+          anchor="bottom"
+          open={toolsOpen}
+          onClose={() => setToolsOpen(false)}
+          onOpen={() => setToolsOpen(true)}
+          disableSwipeToOpen
+          ModalProps={{ keepMounted: true }}
+          slotProps={{
+            paper: {
+              sx: {
+                bgcolor: "#222222ff",
+                borderTopLeftRadius: 24,
+                borderTopRightRadius: 24,
+                maxHeight: "75vh",
+                overflow: "auto",
+                borderBottomLeftRadius: 0,
+                borderBottomRightRadius: 0,
+              },
+            },
+          }}
+        >
+          <Box
+            sx={{
+              pt: 1.25,
+              pb: 1.25,
+              display: "flex",
+              justifyContent: "center",
+            }}
+          >
+            <Box
+              sx={{
+                width: 44,
+                height: 5,
+                borderRadius: 999,
+                bgcolor: "rgba(255,255,255,0.35)",
+              }}
+            />
+          </Box>
+
+          <Box sx={{ px: 1, pb: 2 }}>
+            <Sidebar addNode={addNode} variant="sheet" />
+          </Box>
+        </SwipeableDrawer>
+      )}
+      {Notification}
     </Stack>
   );
 };

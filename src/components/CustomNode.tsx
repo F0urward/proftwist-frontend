@@ -42,7 +42,7 @@ export const CustomNode = ({
   );
 
   return (
-    <div className="text-updater-node" onDoubleClick={handleDoubleClick}>
+    <div className="text-updater-node" onClick={handleDoubleClick}>
       <Box
         sx={{
           borderRadius: "10px",

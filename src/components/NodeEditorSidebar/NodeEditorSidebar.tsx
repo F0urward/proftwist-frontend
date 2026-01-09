@@ -3,12 +3,20 @@ import { Box, IconButton, Stack, TextField, Typography } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import type { Node } from "@xyflow/react";
 
+type NodeType = "primary" | "secondary" | "root";
+
 type NodeEditorSidebarProps = {
   open: boolean;
   node: Node | null;
   onClose: () => void;
   onLabelChange: (value: string) => void;
   onDescriptionChange: (value: string) => void;
+};
+
+const NODE_TYPE_RU: Record<NodeType, string> = {
+  root: "Корневая нода",
+  primary: "Тема",
+  secondary: "Подтема",
 };
 
 export const NodeEditorSidebar = ({
@@ -20,7 +28,11 @@ export const NodeEditorSidebar = ({
 }: NodeEditorSidebarProps) => {
   const label = useMemo(() => (node?.data as any)?.label ?? "", [node]);
   const description = useMemo(() => (node as any)?.description ?? "", [node]);
-  const nodeType = useMemo(() => (node?.data as any)?.type ?? "Нода", [node]);
+  const nodeTypeRu = useMemo(() => {
+    const rawType = (node?.data as any)?.type as NodeType | undefined;
+    if (!rawType) return "Нода";
+    return NODE_TYPE_RU[rawType] ?? "Нода";
+  }, [node]);
 
   if (!open || !node) {
     return null;
@@ -34,8 +46,7 @@ export const NodeEditorSidebar = ({
         height: "100%",
         bgcolor: "#181818",
         color: "#fff",
-        borderLeft: "1px solid rgba(255,255,255,0.08)",
-        boxShadow: "0 0 20px rgba(0,0,0,0.35)",
+        zIndex: 21,
         display: "flex",
         flexDirection: "column",
       }}
@@ -52,7 +63,7 @@ export const NodeEditorSidebar = ({
                 variant="overline"
                 sx={{ color: "rgba(255,255,255,0.54)" }}
               >
-                {nodeType}
+                {nodeTypeRu}
               </Typography>
               <Typography variant="h5" sx={{ fontWeight: 700 }}>
                 Настройки узла

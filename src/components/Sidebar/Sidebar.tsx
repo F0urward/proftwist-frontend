@@ -1,4 +1,4 @@
-import { Stack, Button, Snackbar, Alert } from "@mui/material";
+import { Stack, Button } from "@mui/material";
 
 import Crop75Icon from "@mui/icons-material/Crop75";
 import TitleIcon from "@mui/icons-material/Title";
@@ -17,17 +17,20 @@ import { roadmapinfoService } from "../../api/roadmapinfo.service";
 
 import { useNotification } from "../Notification/Notification";
 
+type SidebarVariant = "desktop" | "sheet";
+
 interface SidebarProps {
   addNode: (nodeType: "root" | "primary" | "secondary" | "text") => void;
+  variant?: SidebarVariant;
 }
 
 interface Actions {
   Icon: typeof Crop75Icon;
   title: string;
-  handleClick: (event: MouseEvent) => void;
+  handleClick: () => void;
 }
 
-export const Sidebar = ({ addNode }: SidebarProps) => {
+export const Sidebar = ({ addNode, variant = "desktop" }: SidebarProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dispatch = useAppDispatch();
   const { roadmap_id } = useParams();
@@ -38,6 +41,8 @@ export const Sidebar = ({ addNode }: SidebarProps) => {
   const [roadmapInfoId, setRoadmapInfoId] = useState<string | null>(null);
 
   const { showNotification, Notification } = useNotification();
+
+  const isSheet = variant === "sheet";
 
   useEffect(() => {
     if (!roadmap_id) return;
@@ -77,7 +82,7 @@ export const Sidebar = ({ addNode }: SidebarProps) => {
     }
 
     try {
-      await roadmapService.updateGraph(roadmap_id, { nodes, edges} );
+      await roadmapService.updateGraph(roadmap_id, { nodes, edges });
       showNotification("Роадмап успешно сохранён!", "success");
     } catch (e) {
       console.error("Ошибка при сохранении:", e);
@@ -147,14 +152,18 @@ export const Sidebar = ({ addNode }: SidebarProps) => {
     <>
       <Stack
         gap="10px"
-        sx={{ width: "300px", padding: "10px", background: "#000", height: "100%" }}
+        sx={{
+          width: isSheet ? "100%" : "300px",
+          padding: "10px",
+          background: "transparent",
+          height: "100%",
+        }}
       >
-        { roadmapInfoId &&
+        {roadmapInfoId && (
           <Button
             variant="text"
             startIcon={<ArrowBackIosNewIcon fontSize="small" />}
             sx={{
-              mt: 2,
               textTransform: "none",
               justifyContent: "flex-start",
             }}
@@ -164,7 +173,7 @@ export const Sidebar = ({ addNode }: SidebarProps) => {
           >
             К просмотру роадмапа
           </Button>
-        }
+        )}
         {actions.map(({ Icon, title, handleClick }) => (
           <Button
             key={title}
@@ -185,7 +194,7 @@ export const Sidebar = ({ addNode }: SidebarProps) => {
           accept="application/json,.json"
         />
       </Stack>
-      { Notification }
+      {Notification}
     </>
   );
 };
