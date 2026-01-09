@@ -102,10 +102,10 @@ export const CreatorPage = () => {
   );
 
   const handleNodeClick = useCallback(
-    (event: MouseEvent, node: Node) => {
-      dispatch(editorSliceActions.markElementAsSelected(node.id));
+    (event: React.MouseEvent, node: Node) => {
+      dispatch(editorSliceActions.openNodeEditor(node.id));
     },
-    [editorSliceActions],
+    [dispatch],
   );
 
   const handleEdgeClick = useCallback(
@@ -216,11 +216,12 @@ export const CreatorPage = () => {
           onEdgesChange={onEdgesChange}
           onNodeClick={handleNodeClick}
           onEdgeClick={handleEdgeClick}
-          deleteKeyCode="Delete"
+          deleteKeyCode={["Backspace", "Delete"]}
           onConnect={handleConnect}
-          onPaneClick={() =>
-            dispatch(editorSliceActions.markElementAsSelected(null))
-          }
+          onPaneClick={() => {
+            dispatch(editorSliceActions.closeNodeEditor());
+            dispatch(editorSliceActions.markElementAsSelected(null));
+          }}
           fitView
         >
           <Controls position="center-left" showZoom={false}></Controls>

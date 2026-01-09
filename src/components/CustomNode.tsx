@@ -9,18 +9,17 @@ type NodeType = "primary" | "secondary" | "root";
 interface NodeProps {
   id: string;
   data: {
-    isSelected: boolean;
     label: string;
     type: NodeType;
   };
+  selected: boolean;
 }
 
 export const CustomNode = ({
   id,
-  data: { label, type, isSelected },
+  data: { label, type },
+  selected,
 }: NodeProps) => {
-  const dispatch = useAppDispatch();
-
   const background = useMemo(() => {
     switch (type) {
       case "primary":
@@ -32,17 +31,8 @@ export const CustomNode = ({
     }
   }, [type]);
 
-  const handleDoubleClick = useCallback(
-    (event: React.MouseEvent<HTMLDivElement>) => {
-      event.stopPropagation();
-      dispatch(editorSliceActions.markElementAsSelected(id));
-      dispatch(editorSliceActions.openNodeEditor(id));
-    },
-    [dispatch, id],
-  );
-
   return (
-    <div className="text-updater-node" onClick={handleDoubleClick}>
+    <div className="text-updater-node">
       <Box
         sx={{
           borderRadius: "10px",
@@ -54,7 +44,10 @@ export const CustomNode = ({
           alignItems: "center",
           justifyContent: "center",
           background: background,
-          border: isSelected ? "1px solid #FFF" : "none",
+          outline: selected
+            ? "1px solid rgba(255,255,255,0.95)"
+            : "1px solid transparent",
+          outlineOffset: 0,
           boxSizing: "border-box",
           cursor: "pointer",
           transition: "all 0.25s ease",
