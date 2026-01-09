@@ -183,6 +183,22 @@ export const CreatorPage = () => {
     }
   }, [roadmap_id, nodes, edges, showNotification]);
 
+  const handleDeleteNode = useCallback(() => {
+    if (!editingNodeId) return;
+
+    const nodeId = editingNodeId;
+
+    dispatch(editorSliceActions.setNodes(nodes.filter((n) => n.id !== nodeId)));
+
+    dispatch(
+      editorSliceActions.setEdges(
+        edges.filter((e) => e.source !== nodeId && e.target !== nodeId),
+      ),
+    );
+
+    dispatch(editorSliceActions.closeNodeEditor());
+  }, [dispatch, editingNodeId, nodes, edges]);
+
   if (loading) {
     return (
       <Stack
@@ -282,6 +298,7 @@ export const CreatorPage = () => {
         onClose={handleCloseEditor}
         onLabelChange={handleLabelChange}
         onDescriptionChange={handleDescriptionChange}
+        onDelete={handleDeleteNode}
       />
       {isMobile && (
         <SwipeableDrawer

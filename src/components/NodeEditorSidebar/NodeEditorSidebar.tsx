@@ -1,6 +1,16 @@
 import { useMemo } from "react";
-import { Box, IconButton, Stack, TextField, Typography } from "@mui/material";
+import {
+  Box,
+  IconButton,
+  Stack,
+  TextField,
+  Typography,
+  Button,
+  useMediaQuery,
+} from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import { useTheme } from "@mui/material/styles";
 import type { Node } from "@xyflow/react";
 
 type NodeType = "primary" | "secondary" | "root";
@@ -11,6 +21,7 @@ type NodeEditorSidebarProps = {
   onClose: () => void;
   onLabelChange: (value: string) => void;
   onDescriptionChange: (value: string) => void;
+  onDelete: () => void;
 };
 
 const NODE_TYPE_RU: Record<NodeType, string> = {
@@ -25,6 +36,7 @@ export const NodeEditorSidebar = ({
   onClose,
   onLabelChange,
   onDescriptionChange,
+  onDelete,
 }: NodeEditorSidebarProps) => {
   const label = useMemo(() => (node?.data as any)?.label ?? "", [node]);
   const description = useMemo(() => (node as any)?.description ?? "", [node]);
@@ -33,6 +45,8 @@ export const NodeEditorSidebar = ({
     if (!rawType) return "Нода";
     return NODE_TYPE_RU[rawType] ?? "Нода";
   }, [node]);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   if (!open || !node) {
     return null;
@@ -127,6 +141,25 @@ export const NodeEditorSidebar = ({
               },
             }}
           />
+
+          {isMobile && (
+            <Button
+              variant="outlined"
+              color="error"
+              startIcon={<DeleteOutlineIcon />}
+              onClick={onDelete}
+              sx={{
+                mt: 1,
+                borderColor: "rgba(255,255,255,0.24)",
+                color: "#fff",
+                "&:hover": {
+                  borderColor: "rgba(255,255,255,0.45)",
+                },
+              }}
+            >
+              Удалить узел
+            </Button>
+          )}
         </Stack>
       </Box>
     </Box>
