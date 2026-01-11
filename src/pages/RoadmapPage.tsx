@@ -85,7 +85,7 @@ const RoadmapPage = () => {
 
   const isAuthor = useMemo(() => {
     if (!info || !currentUser) return false;
-    return info.author_id === currentUser.id;
+    return info.author?.user_id === currentUser.id;
   }, [info, currentUser]);
 
   const type: RoadmapType = useMemo(() => {
@@ -291,6 +291,7 @@ const RoadmapPage = () => {
           fontSize: "0.75rem",
           fontWeight: 600,
           textTransform: "uppercase",
+          alignContent: "center",
           letterSpacing: "0.5px",
           width: "fit-content",
           background: "linear-gradient(90deg, #7E57FF, #BC57FF)",
@@ -303,11 +304,63 @@ const RoadmapPage = () => {
     );
   };
 
+  const AuthorBadge = () => {
+    const username = info?.author?.username?.trim() ?? "";
+    const avatarUrl = info?.author?.avatar_url;
+
+    const label = username.length > 0 ? username : "ProfTwist";
+    const isOfficial = username.length === 0;
+    const finalLabel = isOfficial ? "ОФИЦИАЛЬНЫЙ РОАДМАП" : `АВТОР: ${label}`;
+
+    return (
+      <Box
+        sx={{
+          px: 1.5,
+          py: 0.5,
+          borderRadius: "8px",
+          fontSize: "0.75rem",
+          fontWeight: 600,
+          letterSpacing: "0.3px",
+          width: "fit-content",
+          background: "rgba(255,255,255,0.08)",
+          border: "1px solid rgba(255,255,255,0.12)",
+          color: "#fff",
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+        }}
+      >
+        {avatarUrl ? (
+          <Box
+            component="img"
+            src={avatarUrl}
+            alt={label}
+            sx={{
+              width: 18,
+              height: 18,
+              borderRadius: "50%",
+              flex: "0 0 auto",
+            }}
+          />
+        ) : null}
+        <span>{finalLabel}</span>
+      </Box>
+    );
+  };
+
   const HeaderActions = () => {
     if (type === "public" && isLoggedIn) {
       return (
         <Stack direction="column" spacing={2} alignItems="center">
-          <CategoryBadge />
+          <Stack
+            direction="row"
+            gap={1}
+            flexWrap="wrap"
+            sx={{ width: "100%", justifyContent: "center" }}
+          >
+            <CategoryBadge />
+            <AuthorBadge />
+          </Stack>
           <Stack
             direction="row"
             flexWrap={"wrap"}
@@ -359,7 +412,15 @@ const RoadmapPage = () => {
     if (type === "owned" || type === "fork") {
       return (
         <Stack direction="column" spacing={2} alignItems="center">
-          <CategoryBadge />
+          <Stack
+            direction="row"
+            gap={1}
+            flexWrap="wrap"
+            sx={{ width: "100%", justifyContent: "center" }}
+          >
+            <CategoryBadge />
+            <AuthorBadge />
+          </Stack>
           <Stack
             direction="row"
             flexWrap={"wrap"}

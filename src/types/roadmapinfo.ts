@@ -1,7 +1,11 @@
 export interface RoadmapInfo {
   id: string;
   roadmap_id: string;
-  author_id: string;
+  author?: {
+    user_id: string;
+    username: string;
+    avatar_url?: string;
+  };
   category_id?: string;
   name: string;
   description?: string;
