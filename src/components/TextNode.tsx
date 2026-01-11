@@ -35,7 +35,7 @@ export const TextNode = ({ id, data: { label, isSelected } }: NodeProps) => {
         data: {
           label: event.target.value,
         },
-      })
+      }),
     );
   };
 
@@ -70,7 +70,7 @@ export const TextNode = ({ id, data: { label, isSelected } }: NodeProps) => {
             sx={{ color: "#FFF", margin: 0, padding: 0 }}
           />
         ) : (
-          <Typography sx={{ margin: 0, padding: 0 }}>
+          <Typography component="div" sx={{ margin: 0, padding: 0 }}>
             <pre style={{ fontFamily: "inherit" }}>{label}</pre>
           </Typography>
         )}

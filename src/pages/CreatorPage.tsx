@@ -33,6 +33,11 @@ import ConfirmModal from "../components/ConfirmModal/ConfirmModal";
 
 import { parseModerationMessage } from "../utils/parseModerationMessage";
 
+import { Button } from "@mui/material";
+import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
+import { useNavigate } from "react-router-dom";
+import { roadmapinfoService } from "../api/roadmapinfo.service";
+
 const round = (n: number) => Math.round(n * 100) / 100;
 
 const normalizeGraph = (nodes: Node[], edges: Edge[]) => {
@@ -65,6 +70,18 @@ const normalizeGraph = (nodes: Node[], edges: Edge[]) => {
 
 export const CreatorPage = () => {
   const { roadmap_id } = useParams();
+  const navigate = useNavigate();
+  const [roadmapInfoId, setRoadmapInfoId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!roadmap_id) return;
+
+    roadmapinfoService
+      .getByRoadmapId(roadmap_id)
+      .then((data) => setRoadmapInfoId(data.id))
+      .catch(() => setRoadmapInfoId(null));
+  }, [roadmap_id]);
+
   const dispatch = useAppDispatch();
   const { screenToFlowPosition } = useReactFlow();
 
@@ -341,6 +358,24 @@ export const CreatorPage = () => {
 
           <Background color="#fff" bgColor="#000" />
         </ReactFlow>
+
+        {isMobile && roadmapInfoId && (
+          <Button
+            variant="text"
+            startIcon={<ArrowBackIosNewIcon fontSize="small" />}
+            onClick={() => navigate(`/roadmaps/${roadmapInfoId}`)}
+            sx={{
+              position: "absolute",
+              left: 16,
+              top: 70,
+              zIndex: 20,
+              textTransform: "none",
+              justifyContent: "flex-start",
+            }}
+          >
+            К просмотру
+          </Button>
+        )}
 
         {isMobile && (
           <Fab
