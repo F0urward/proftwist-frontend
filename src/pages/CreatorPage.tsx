@@ -13,7 +13,7 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { v4 as uuidv4 } from "uuid";
-import { useParams } from "react-router-dom";
+import { useParams, useBlocker } from "react-router-dom";
 
 import { Box, Stack, CircularProgress } from "@mui/material";
 import { Sidebar } from "../components/Sidebar";
@@ -24,13 +24,44 @@ import { edgeTypes, nodeTypes } from "../consts";
 import { NodeEditorSidebar } from "../components/NodeEditorSidebar";
 import { roadmapService } from "../api/roadmap.service";
 
-import { SwipeableDrawer, Fab, IconButton, useMediaQuery } from "@mui/material";
+import { SwipeableDrawer, Fab, useMediaQuery } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import AddIcon from "@mui/icons-material/Add";
 import SaveIcon from "@mui/icons-material/Save";
 import { useNotification } from "../components/Notification/Notification";
+import ConfirmModal from "../components/ConfirmModal/ConfirmModal";
 
 import { parseModerationMessage } from "../utils/parseModerationMessage";
+
+const round = (n: number) => Math.round(n * 100) / 100;
+
+const normalizeGraph = (nodes: Node[], edges: Edge[]) => {
+  const cleanNodes = [...nodes]
+    .map((n: any) => ({
+      id: String(n.id),
+      type: n.type ?? null,
+      position: n.position
+        ? { x: round(Number(n.position.x)), y: round(Number(n.position.y)) }
+        : null,
+      data: n.data ?? null,
+      description: n.description ?? null,
+    }))
+    .sort((a, b) => a.id.localeCompare(b.id));
+
+  const cleanEdges = [...edges]
+    .map((e: any) => ({
+      id: String(e.id),
+      source: String(e.source),
+      target: String(e.target),
+      type: e.type ?? null,
+      sourceHandle: e.sourceHandle ?? null,
+      targetHandle: e.targetHandle ?? null,
+      data: e.data ?? null,
+    }))
+    .sort((a, b) => a.id.localeCompare(b.id));
+
+  return JSON.stringify({ nodes: cleanNodes, edges: cleanEdges });
+};
 
 export const CreatorPage = () => {
   const { roadmap_id } = useParams();
@@ -53,6 +84,44 @@ export const CreatorPage = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [toolsOpen, setToolsOpen] = useState(false);
 
+  const savedSnapshotRef = useRef<string>("");
+
+  const isDirty =
+    !loading && normalizeGraph(nodes, edges) !== savedSnapshotRef.current;
+
+  const [leaveOpen, setLeaveOpen] = useState(false);
+
+  const blocker = useBlocker(({ currentLocation, nextLocation }) => {
+    return isDirty && currentLocation.pathname !== nextLocation.pathname;
+  });
+
+  useEffect(() => {
+    if (blocker.state === "blocked") {
+      setLeaveOpen(true);
+    }
+  }, [blocker.state]);
+
+  const handleConfirmLeave = useCallback(() => {
+    setLeaveOpen(false);
+    blocker.proceed?.();
+  }, [blocker]);
+
+  const handleCancelLeave = useCallback(() => {
+    setLeaveOpen(false);
+    blocker.reset?.();
+  }, [blocker]);
+
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (!isDirty) return;
+      e.preventDefault();
+      e.returnValue = "";
+    };
+
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isDirty]);
+
   useEffect(() => {
     if (!roadmap_id) return;
     setLoading(true);
@@ -64,11 +133,15 @@ export const CreatorPage = () => {
         const parsedEdges = data?.edges ?? [];
         dispatch(editorSliceActions.setNodes(parsedNodes));
         dispatch(editorSliceActions.setEdges(parsedEdges));
+
+        savedSnapshotRef.current = normalizeGraph(parsedNodes, parsedEdges);
       })
       .catch((e) => {
         console.error("Ошибка при загрузке roadmap:", e);
         dispatch(editorSliceActions.setNodes([]));
         dispatch(editorSliceActions.setEdges([]));
+
+        savedSnapshotRef.current = normalizeGraph([], []);
       })
       .finally(() => setLoading(false));
   }, [roadmap_id, dispatch]);
@@ -117,7 +190,7 @@ export const CreatorPage = () => {
     [editorSliceActions],
   );
 
-  const addNode = (type: "primary" | "secondary" | "text") => {
+  const addNode = (type: "root" | "primary" | "secondary" | "text") => {
     if (!containerRef.current) return;
 
     const rect = containerRef.current.getBoundingClientRect();
@@ -178,6 +251,12 @@ export const CreatorPage = () => {
 
     try {
       await roadmapService.updateGraph(roadmap_id, { nodes, edges });
+      savedSnapshotRef.current = normalizeGraph(nodes, edges);
+      if (blocker.state === "blocked") {
+        blocker.reset?.();
+        setLeaveOpen(false);
+      }
+
       showNotification("Роадмап успешно сохранён!", "success");
     } catch (e) {
       console.error("Ошибка при сохранении:", e);
@@ -199,7 +278,7 @@ export const CreatorPage = () => {
         showNotification("Ошибка при сохранении роадмапа", "error");
       }
     }
-  }, [roadmap_id, nodes, edges, showNotification]);
+  }, [roadmap_id, nodes, edges, showNotification, blocker]);
 
   const handleDeleteNode = useCallback(() => {
     if (!editingNodeId) return;
@@ -231,7 +310,7 @@ export const CreatorPage = () => {
 
   return (
     <Stack direction="row" sx={{ height: "100vh" }}>
-      {!isMobile && <Sidebar addNode={addNode} />}
+      {!isMobile && <Sidebar addNode={addNode} onSave={handleSave} />}
       <Box
         sx={{
           flex: 1,
@@ -359,10 +438,27 @@ export const CreatorPage = () => {
           </Box>
 
           <Box sx={{ px: 1, pb: 2 }}>
-            <Sidebar addNode={addNode} variant="sheet" />
+            <Sidebar addNode={addNode} variant="sheet" onSave={handleSave} />
           </Box>
         </SwipeableDrawer>
       )}
+      <ConfirmModal
+        open={leaveOpen}
+        title="Есть несохранённые изменения"
+        message={
+          <>
+            Вы изменили роадмап, но не сохранили изменения.
+            <br />
+            <strong>Если выйти сейчас — изменения будут потеряны.</strong>
+          </>
+        }
+        confirmText="Выйти"
+        cancelText="Остаться"
+        confirmColor="error"
+        onConfirm={handleConfirmLeave}
+        onClose={handleCancelLeave}
+      />
+
       {Notification}
     </Stack>
   );

@@ -11,18 +11,16 @@ import { useRef, useState } from "react";
 import { editorSliceActions } from "../../store/slices/editorSlice";
 import { useParams } from "react-router-dom";
 import { useEffect } from "react";
-import { roadmapService } from "../../api/roadmap.service";
 import { useNavigate } from "react-router-dom";
 import { roadmapinfoService } from "../../api/roadmapinfo.service";
 
 import { useNotification } from "../Notification/Notification";
 
-import { parseModerationMessage } from "../../utils/parseModerationMessage";
-
 type SidebarVariant = "desktop" | "sheet";
 
 interface SidebarProps {
   addNode: (nodeType: "root" | "primary" | "secondary" | "text") => void;
+  onSave: () => void | Promise<void>;
   variant?: SidebarVariant;
 }
 
@@ -32,7 +30,11 @@ interface Actions {
   handleClick: () => void;
 }
 
-export const Sidebar = ({ addNode, variant = "desktop" }: SidebarProps) => {
+export const Sidebar = ({
+  addNode,
+  onSave,
+  variant = "desktop",
+}: SidebarProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dispatch = useAppDispatch();
   const { roadmap_id } = useParams();
@@ -75,37 +77,6 @@ export const Sidebar = ({ addNode, variant = "desktop" }: SidebarProps) => {
     };
 
     reader.readAsText(file);
-  };
-
-  const handleSave = async () => {
-    if (!roadmap_id) {
-      showNotification("Невозможно сохранить: roadmap_id не найден", "error");
-      return;
-    }
-
-    try {
-      await roadmapService.updateGraph(roadmap_id, { nodes, edges });
-      showNotification("Роадмап успешно сохранён!", "success");
-    } catch (e) {
-      console.error("Ошибка при сохранении:", e);
-      const serverMessage = e?.response?.data?.message;
-
-      const moderationReason = parseModerationMessage(serverMessage);
-
-      if (
-        typeof serverMessage === "string" &&
-        serverMessage.includes("moderation")
-      ) {
-        showNotification(
-          moderationReason
-            ? `Модерация не пройдена: ${moderationReason}`
-            : "Модерация не пройдена",
-          "error",
-        );
-      } else {
-        showNotification("Ошибка при сохранении роадмапа", "error");
-      }
-    }
   };
 
   const actions: Actions[] = [
@@ -162,7 +133,7 @@ export const Sidebar = ({ addNode, variant = "desktop" }: SidebarProps) => {
     {
       Icon: SaveIcon,
       title: "Сохранить",
-      handleClick: handleSave,
+      handleClick: () => void onSave(),
     },
   ];
 
