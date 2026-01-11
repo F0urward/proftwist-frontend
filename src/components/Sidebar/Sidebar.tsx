@@ -17,6 +17,8 @@ import { roadmapinfoService } from "../../api/roadmapinfo.service";
 
 import { useNotification } from "../Notification/Notification";
 
+import { parseModerationMessage } from "../../utils/parseModerationMessage";
+
 type SidebarVariant = "desktop" | "sheet";
 
 interface SidebarProps {
@@ -86,7 +88,23 @@ export const Sidebar = ({ addNode, variant = "desktop" }: SidebarProps) => {
       showNotification("Роадмап успешно сохранён!", "success");
     } catch (e) {
       console.error("Ошибка при сохранении:", e);
-      showNotification("Ошибка при сохранении роадмапа", "error");
+      const serverMessage = e?.response?.data?.message;
+
+      const moderationReason = parseModerationMessage(serverMessage);
+
+      if (
+        typeof serverMessage === "string" &&
+        serverMessage.includes("moderation")
+      ) {
+        showNotification(
+          moderationReason
+            ? `Модерация не пройдена: ${moderationReason}`
+            : "Модерация не пройдена",
+          "error",
+        );
+      } else {
+        showNotification("Ошибка при сохранении роадмапа", "error");
+      }
     }
   };
 

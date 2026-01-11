@@ -30,6 +30,8 @@ import AddIcon from "@mui/icons-material/Add";
 import SaveIcon from "@mui/icons-material/Save";
 import { useNotification } from "../components/Notification/Notification";
 
+import { parseModerationMessage } from "../utils/parseModerationMessage";
+
 export const CreatorPage = () => {
   const { roadmap_id } = useParams();
   const dispatch = useAppDispatch();
@@ -179,7 +181,23 @@ export const CreatorPage = () => {
       showNotification("Роадмап успешно сохранён!", "success");
     } catch (e) {
       console.error("Ошибка при сохранении:", e);
-      showNotification("Ошибка при сохранении роадмапа", "error");
+      const serverMessage = e?.response?.data?.message;
+
+      const moderationReason = parseModerationMessage(serverMessage);
+
+      if (
+        typeof serverMessage === "string" &&
+        serverMessage.includes("moderation")
+      ) {
+        showNotification(
+          moderationReason
+            ? `Модерация не пройдена: ${moderationReason}`
+            : "Модерация не пройдена",
+          "error",
+        );
+      } else {
+        showNotification("Ошибка при сохранении роадмапа", "error");
+      }
     }
   }, [roadmap_id, nodes, edges, showNotification]);
 
