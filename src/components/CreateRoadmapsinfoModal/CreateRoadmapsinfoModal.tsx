@@ -8,8 +8,6 @@ import {
   Button,
   Stack,
   MenuItem,
-  FormControlLabel,
-  Switch,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { roadmapinfoService } from "../../api/roadmapinfo.service.ts";
@@ -17,6 +15,7 @@ import { categoryService } from "../../api/category.service.ts";
 import { Category } from "../../types/category.ts";
 import TextInput from "../TextInput/TextInput";
 import { RoadmapInfo } from "../../types/roadmapinfo.ts";
+import { parseModerationMessage } from "../../utils/parseModerationMessage";
 
 interface Props {
   open: boolean;
@@ -107,10 +106,23 @@ const CreateRoadmapInfoModal = ({
       }
     } catch (e) {
       console.error("Ошибка при создании роадмапа:", e);
-      if (isEdit) {
-        setError("Не удалось сохранить изменения о роадмапе");
+
+      const serverMessage = e?.response?.data?.message;
+
+      const moderationReason = parseModerationMessage(serverMessage);
+
+      if (
+        typeof serverMessage === "string" &&
+        serverMessage.includes("moderation")
+      ) {
+        setError(
+          moderationReason
+            ? `Модерация не пройдена: ${moderationReason}`
+            : "Модерация не пройдена",
+        );
       } else {
-        setError("Не удалось создать роадмап");
+        if (isEdit) setError("Не удалось сохранить изменения о роадмапе");
+        else setError("Не удалось создать роадмап");
       }
     } finally {
       setLoading(false);
