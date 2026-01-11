@@ -342,14 +342,14 @@ const MessageComposer = ({
   onPickAttachment,
   onClearAttachment,
 }: MessageComposerProps) => {
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const trimmedDraft = draft.trim();
+  const MAX_MESSAGE_LEN = 256;
+  const SHOW_COUNTER_FROM = 200;
 
-  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0] ?? null;
-    onPickAttachment(file);
-    event.target.value = "";
-  };
+  const [isFocused, setIsFocused] = useState(false);
+
+  const trimmedDraft = draft.trim();
+  const showCounter = isFocused && draft.length >= SHOW_COUNTER_FROM;
+  const isTooLong = draft.length > MAX_MESSAGE_LEN;
 
   return (
     <Box sx={{ px: 2, py: 2, borderTop: "1px solid rgba(255,255,255,.08)" }}>
@@ -365,50 +365,64 @@ const MessageComposer = ({
       )}
 
       <Stack direction="row" spacing={2} alignItems="flex-end">
-        {/*<IconButton
-          aria-label="Прикрепить файл"
-          sx={{ color: "#fff", height: 44, width: 20 }}
-          onClick={() => fileInputRef.current?.click()}
-        >
-          <AttachFileIcon />
-        </IconButton>
-        <input
-          ref={fileInputRef}
-          type="file"
-          style={{ display: "none" }}
-          onChange={handleFileChange}
-        />*/}
-
-        <TextField
-          fullWidth
-          size="small"
-          placeholder="Напишите сообщение"
-          value={draft}
-          onChange={(event) => onDraftChange(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" && !event.shiftKey) {
-              event.preventDefault();
-              onSend();
-            }
-          }}
-          multiline
-          minRows={1}
-          maxRows={4}
-          sx={{
-            "& .MuiInputBase-root": {
-              bgcolor: "#181818",
-              borderRadius: 3,
-              minHeight: 44,
-            },
-            "& fieldset": { borderColor: alpha("#fff", 0.16) },
-          }}
-        />
+        <Box sx={{ position: "relative", flex: 1 }}>
+          <TextField
+            fullWidth
+            size="small"
+            placeholder="Напишите сообщение"
+            value={draft}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            onChange={(event) => {
+              const next = event.target.value;
+              onDraftChange(next.slice(0, MAX_MESSAGE_LEN));
+            }}
+            slotProps={{
+              htmlInput: {
+                maxLength: MAX_MESSAGE_LEN,
+              },
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault();
+                onSend();
+              }
+            }}
+            multiline
+            minRows={1}
+            maxRows={4}
+            sx={{
+              "& .MuiInputBase-root": {
+                bgcolor: "#181818",
+                borderRadius: 3,
+                minHeight: 44,
+              },
+              "& fieldset": { borderColor: alpha("#fff", 0.16) },
+            }}
+          />
+          {showCounter && (
+            <Typography
+              variant="caption"
+              sx={{
+                position: "absolute",
+                right: -60,
+                opacity: 0.7,
+                userSelect: "none",
+              }}
+            >
+              {draft.length} / {MAX_MESSAGE_LEN}
+            </Typography>
+          )}
+        </Box>
         <Button
           variant="contained"
           onClick={onSend}
           endIcon={<SendIcon />}
           disabled={
-            isSending || trimmedDraft.length === 0 || Boolean(attachment)
+            isSending ||
+            trimmedDraft.length === 0 ||
+            Boolean(attachment) ||
+            isTooLong
           }
           sx={{
             height: 44,
