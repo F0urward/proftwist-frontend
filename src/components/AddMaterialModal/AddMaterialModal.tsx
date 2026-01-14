@@ -11,6 +11,16 @@ import {
 } from "@mui/material";
 import { materialsService } from "../../api/material.service";
 import { Material } from "../../types/material";
+import { parseModerationMessage } from "../../utils/parseModerationMessage";
+
+const isValidUrl = (value: string): boolean => {
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+};
 
 interface AddMaterialModalProps {
   open: boolean;
@@ -51,7 +61,10 @@ const AddMaterialModal = ({
       setError("Введите ссылку");
       return;
     }
-
+    if (!isValidUrl(url.trim())) {
+      setError("Введите корректную ссылку");
+      return;
+    }
     setLoading(true);
     setError("");
 
@@ -64,8 +77,24 @@ const AddMaterialModal = ({
       if (onSave) onSave(created);
       onClose();
     } catch (e) {
-      notify("Не удалось добавить материал", "error");
-      setError("Не удалось добавить материал");
+      const serverMessage = e?.response?.data?.message;
+      const moderationReason = parseModerationMessage(serverMessage);
+
+      if (
+        typeof serverMessage === "string" &&
+        serverMessage.includes("moderation")
+      ) {
+        const msg = moderationReason
+          ? `Модерация не пройдена: ${moderationReason}`
+          : "Модерация не пройдена";
+
+        setError(msg);
+        notify(msg, "error");
+      } else {
+        const msg = "Не удалось добавить материал";
+        setError(msg);
+        notify(msg, "error");
+      }
     } finally {
       setLoading(false);
     }
