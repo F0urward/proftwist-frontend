@@ -1,5 +1,6 @@
 import { api } from "./axios";
 import { Roadmap } from "../types/roadmap";
+import { NodeProgressStatus } from "../types/nodeProgressStatus";
 
 export const roadmapService = {
   async getGraph(roadmapId: string): Promise<Roadmap | null> {
@@ -23,6 +24,20 @@ export const roadmapService = {
   ): Promise<void> {
     try {
       await api.put(`/roadmaps/${roadmapId}`, payload);
+    } catch (e: any) {
+      throw e;
+    }
+  },
+  async updateNodeProgress(
+    roadmapId: string,
+    nodeId: string,
+    status: NodeProgressStatus,
+  ): Promise<void> {
+    try {
+      await api.put(`/roadmaps/${roadmapId}/nodes/progress`, {
+        node_id: nodeId,
+        status,
+      });
     } catch (e: any) {
       throw e;
     }

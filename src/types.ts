@@ -10,6 +10,7 @@ export interface Node {
   data: NodeData;
   description?: string;
   position: { x: number; y: number };
+  progress?: { status?: string };
 }
 
 export interface Edge {

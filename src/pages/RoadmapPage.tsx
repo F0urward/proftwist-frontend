@@ -22,7 +22,7 @@ import {
   Link as RouterLink,
 } from "react-router-dom";
 import { useAppDispatch, useAppSelector, RootState } from "../store";
-import { viewSliceActions } from "../store/slices/viewSlice";
+import { editorSliceActions } from "../store/slices/editorSlice";
 import { edgeTypes, nodeTypes } from "../consts";
 import BaseLayout from "../components/BaseLayout/BaseLayout";
 import TitlePaper from "../components/TitlePaper/TitlePaper";
@@ -44,14 +44,43 @@ import CreateRoadmapInfoModal from "../components/CreateRoadmapsinfoModal/Create
 import { useRef } from "react";
 import CenterFocusStrongIcon from "@mui/icons-material/CenterFocusStrong";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
+import { NodeProgressStatus, progressMeta } from "../types/nodeProgressStatus";
+
+import { LinearProgress, Chip } from "@mui/material";
 
 type RoadmapType = "public" | "owned" | "saved" | "fork";
 
+const getNodeStatus = (node: any): NodeProgressStatus | null => {
+  const s = node?.progress?.status;
+  if (
+    s === "ожидает" ||
+    s === "в процессе" ||
+    s === "завершено" ||
+    s === "пропущено"
+  )
+    return s;
+  return null;
+};
+
+const isProgressNode = (n: any) => {
+  const t = n?.type ?? n?.data?.type;
+  if (t === "text") return false;
+  return true;
+};
+
 const getProgress = (nodes: any[]) => {
-  const total = nodes.length || 0;
-  const done = nodes.filter((n) => n?.data?.done === true).length;
+  const progressNodes = nodes.filter(isProgressNode);
+
+  const total = progressNodes.length || 0;
+  const done = progressNodes.filter(
+    (n) => getNodeStatus(n) === "завершено",
+  ).length;
+  const inProgress = progressNodes.filter(
+    (n) => getNodeStatus(n) === "в процессе",
+  ).length;
   const percent = total ? Math.round((done / total) * 100) : 0;
-  return { done, total, percent };
+
+  return { done, inProgress, total, percent };
 };
 
 const RoadmapPage = () => {
@@ -69,8 +98,8 @@ const RoadmapPage = () => {
 
   const { nodes, edges } = useAppSelector((s: RootState) => s.editor);
 
-  const [selectedNode, setSelectedNode] = useState<any | null>(null);
-  const closeSidebar = useCallback(() => setSelectedNode(null), []);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const closeSidebar = useCallback(() => setSelectedNodeId(null), []);
 
   const { showNotification, Notification } = useNotification();
   const [modalOpen, setModalOpen] = useState(false);
@@ -87,6 +116,11 @@ const RoadmapPage = () => {
     if (!info || !currentUser) return false;
     return info.author?.user_id === currentUser.id;
   }, [info, currentUser]);
+
+  const selectedNode = useMemo(() => {
+    if (!selectedNodeId) return null;
+    return nodes.find((n: any) => n.id === selectedNodeId) ?? null;
+  }, [nodes, selectedNodeId]);
 
   const type: RoadmapType = useMemo(() => {
     if (!info) return "public";
@@ -146,8 +180,8 @@ const RoadmapPage = () => {
     const roadmapId = info?.roadmap_id;
     if (!roadmapId) return;
 
-    dispatch(viewSliceActions.setNodes([]));
-    dispatch(viewSliceActions.setEdges([]));
+    dispatch(editorSliceActions.setNodes([]));
+    dispatch(editorSliceActions.setEdges([]));
 
     let cancelled = false;
 
@@ -158,17 +192,17 @@ const RoadmapPage = () => {
 
         if (!flow) {
           setNotFound(true);
-          dispatch(viewSliceActions.setNodes([]));
-          dispatch(viewSliceActions.setEdges([]));
+          dispatch(editorSliceActions.setNodes([]));
+          dispatch(editorSliceActions.setEdges([]));
           return;
         }
 
-        dispatch(viewSliceActions.setNodes(flow.nodes ?? []));
-        dispatch(viewSliceActions.setEdges(flow.edges ?? []));
+        dispatch(editorSliceActions.setNodes(flow.nodes ?? []));
+        dispatch(editorSliceActions.setEdges(flow.edges ?? []));
       } catch {
         if (cancelled) return;
-        dispatch(viewSliceActions.setNodes([]));
-        dispatch(viewSliceActions.setEdges([]));
+        dispatch(editorSliceActions.setNodes([]));
+        dispatch(editorSliceActions.setEdges([]));
       }
     }
 
@@ -206,9 +240,14 @@ const RoadmapPage = () => {
     () =>
       nodes.map((n) => ({
         ...n,
-        data: { ...n.data, readOnly: true },
+        data: {
+          ...n.data,
+          readOnly: true,
+          showProgress: isLoggedIn,
+          progress: n.progress,
+        },
       })),
-    [nodes],
+    [nodes, isLoggedIn],
   );
 
   const handleSubscribe = async () => {
@@ -280,6 +319,24 @@ const RoadmapPage = () => {
     }
   };
 
+  const handleProgressUpdated = useCallback(
+    (nodeId: string, status: NodeProgressStatus) => {
+      const nextNodes = nodes.map((n: any) => {
+        if (n.id !== nodeId) return n;
+
+        const nextProgress = { ...(n.progress ?? n.data?.progress), status };
+
+        return {
+          ...n,
+          progress: { ...(n.progress ?? {}), status },
+        };
+      });
+
+      dispatch(editorSliceActions.setNodes(nextNodes));
+    },
+    [nodes, dispatch],
+  );
+
   const CategoryBadge = () => {
     if (!categoryName) return null;
     return (
@@ -348,10 +405,17 @@ const RoadmapPage = () => {
     );
   };
 
+  const progress = useMemo(() => getProgress(nodes), [nodes]);
+
   const HeaderActions = () => {
     if (type === "public" && isLoggedIn) {
       return (
-        <Stack direction="column" spacing={2} alignItems="center">
+        <Stack
+          direction="column"
+          spacing={2}
+          alignItems="center"
+          sx={{ width: "100%" }}
+        >
           <Stack
             direction="row"
             gap={1}
@@ -405,6 +469,21 @@ const RoadmapPage = () => {
                 Сделать форк
               </Button>
             </Tooltip>
+          </Stack>
+        </Stack>
+      );
+    }
+    if (type === "public" && !isLoggedIn) {
+      return (
+        <Stack direction="column" spacing={2} alignItems="center">
+          <Stack
+            direction="row"
+            gap={1}
+            flexWrap="wrap"
+            sx={{ width: "100%", justifyContent: "center" }}
+          >
+            <CategoryBadge />
+            <AuthorBadge />
           </Stack>
         </Stack>
       );
@@ -676,6 +755,70 @@ const RoadmapPage = () => {
         </Button>
         <TitlePaper title={titleText} subtitle={subtitleText}>
           {!notFound && <HeaderActions />}
+          {!notFound && isLoggedIn && (
+            <Stack
+              sx={{
+                width: "100%",
+                mt: 2,
+                maxWidth: "500px",
+                mr: "auto",
+                ml: "auto",
+              }}
+              spacing={1}
+            >
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+              >
+                <Typography sx={{ color: "#fff", fontWeight: 700 }}>
+                  Прогресс: {progress.done}/{progress.total} •{" "}
+                  {progress.percent}%
+                </Typography>
+
+                <Stack
+                  direction={{ xs: "column", sm: "row" }}
+                  spacing={1}
+                  useFlexGap
+                  sx={{
+                    alignItems: { xs: "flex-end", sm: "center" },
+                    justifyContent: { xs: "flex-end", sm: "flex-start" },
+                    flexWrap: { xs: "nowrap", sm: "wrap" },
+                  }}
+                >
+                  <Chip
+                    size="small"
+                    label={`Готово: ${progress.done}`}
+                    color={progressMeta["завершено"].chipColor}
+                    variant="outlined"
+                  />
+                  <Chip
+                    size="small"
+                    label={`В процессе: ${progress.inProgress}`}
+                    color={progressMeta["в процессе"].chipColor}
+                    variant="outlined"
+                  />
+                </Stack>
+              </Stack>
+
+              <LinearProgress
+                variant="determinate"
+                value={progress.percent}
+                sx={{
+                  height: 12,
+                  borderRadius: 999,
+                  backgroundColor: "rgba(255,255,255,0.12)",
+                  overflow: "hidden",
+                  "& .MuiLinearProgress-bar": {
+                    borderRadius: 999,
+                    background:
+                      "linear-gradient(90deg, #7E57FF 0%, #BC57FF 40%, #FF4DCA 100%)",
+                    boxShadow: "0 0 18px rgba(255,77,202,0.35)",
+                  },
+                }}
+              />
+            </Stack>
+          )}
         </TitlePaper>
       </Box>
 
@@ -783,7 +926,7 @@ const RoadmapPage = () => {
               background: "transparent",
             }}
             onNodeClick={(_, node) => {
-              setSelectedNode(node);
+              setSelectedNodeId(node.id);
             }}
           />
         )}
@@ -795,6 +938,7 @@ const RoadmapPage = () => {
           onClose={closeSidebar}
           type={type}
           notify={showNotification}
+          onProgressUpdated={handleProgressUpdated}
         />
       </Box>
       {isMobile && showScrollTop && (

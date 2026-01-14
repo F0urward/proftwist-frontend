@@ -20,11 +20,58 @@ import { chatsService } from "../../api";
 import { useNavigate } from "react-router-dom";
 import { materialsService } from "../../api/material.service";
 import { Material } from "../../types/material";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import AddMaterialModal from "../AddMaterialModal/AddMaterialModal";
 import ConfirmModal from "../ConfirmModal/ConfirmModal";
 
+import { FormControl, InputLabel, MenuItem, Select, Chip } from "@mui/material";
+import HourglassEmptyRoundedIcon from "@mui/icons-material/HourglassEmptyRounded";
+import BoltRoundedIcon from "@mui/icons-material/BoltRounded";
+import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
+import RedoRoundedIcon from "@mui/icons-material/RedoRounded";
+
+import { roadmapService } from "../../api/roadmap.service";
+import { NodeProgressStatus } from "../../types/nodeProgressStatus";
+
 type RoadmapType = "public" | "owned" | "saved" | "fork";
+
+const PROGRESS_OPTIONS: Array<{
+  value: NodeProgressStatus;
+  label: string;
+  icon: React.ReactElement;
+  iconColor: string;
+}> = [
+  {
+    value: "ожидает",
+    label: "Ожидает",
+    icon: <HourglassEmptyRoundedIcon />,
+    iconColor: "rgba(255,255,255,0.65)",
+  },
+  {
+    value: "в процессе",
+    label: "В процессе",
+    icon: <BoltRoundedIcon />,
+    iconColor: "#7E57FF",
+  },
+  {
+    value: "завершено",
+    label: "Завершено",
+    icon: <CheckRoundedIcon />,
+    iconColor: "#00C878",
+  },
+  {
+    value: "пропущено",
+    label: "Пропущено",
+    icon: <RedoRoundedIcon />,
+    iconColor: "#FFB400",
+  },
+];
+
+const isProgressStatus = (v: any): v is NodeProgressStatus =>
+  v === "ожидает" ||
+  v === "в процессе" ||
+  v === "завершено" ||
+  v === "пропущено";
 
 type NodeSidebarProps = {
   open: boolean;
@@ -37,11 +84,13 @@ type NodeSidebarProps = {
       materials?: Array<{ title: string; href: string }>;
       projects?: Array<{ title: string; href: string }>;
     };
+    progress?: { status?: NodeProgressStatus };
     description?: string;
   };
   roadmapId: string;
   type: RoadmapType;
   notify: (message: string, type?: "success" | "error") => void;
+  onProgressUpdated?: (nodeId: string, status: NodeProgressStatus) => void;
 };
 
 const NodeSidebar = ({
@@ -51,6 +100,7 @@ const NodeSidebar = ({
   roadmapId,
   type,
   notify,
+  onProgressUpdated,
 }: NodeSidebarProps) => {
   const navigate = useNavigate();
   const isLoggedIn = useAppSelector((state) => state.auth.isLoggedIn);
@@ -60,6 +110,15 @@ const NodeSidebar = ({
   const [materialToDelete, setMaterialToDelete] = useState<Material | null>(
     null,
   );
+  const initialStatus: NodeProgressStatus = useMemo(() => {
+    const s = (node as any)?.progress?.status;
+    return isProgressStatus(s) ? s : "ожидает";
+  }, [node?.progress?.status]);
+
+  const [progressStatus, setProgressStatus] =
+    useState<NodeProgressStatus>(initialStatus);
+
+  const [isSavingProgress, setIsSavingProgress] = useState(false);
 
   const title = node?.data?.label ?? "Навык";
 
@@ -68,6 +127,14 @@ const NodeSidebar = ({
     "Описание навыка пока не задано, но скоро появится! Заглядывайте сюда почаще :)";
 
   const [materials, setMaterials] = useState<Material[]>([]);
+
+  const progressOptionByValue = useMemo(() => {
+    return Object.fromEntries(
+      PROGRESS_OPTIONS.map((o) => [o.value, o]),
+    ) as Record<NodeProgressStatus, (typeof PROGRESS_OPTIONS)[number]>;
+  }, []);
+
+  const currentProgressOption = progressOptionByValue[progressStatus];
 
   useEffect(() => {
     if (!open || !node?.id) return;
@@ -85,6 +152,10 @@ const NodeSidebar = ({
     load();
   }, [open, node?.id]);
 
+  useEffect(() => {
+    setProgressStatus(initialStatus);
+  }, [initialStatus]);
+
   const handleDelete = async () => {
     if (!materialToDelete) return;
 
@@ -98,6 +169,26 @@ const NodeSidebar = ({
 
     setDeleteOpen(false);
     setMaterialToDelete(null);
+  };
+
+  const handleChangeProgress = async (next: NodeProgressStatus) => {
+    if (!node?.id) return;
+
+    setProgressStatus(next);
+    setIsSavingProgress(true);
+
+    try {
+      await roadmapService.updateNodeProgress(roadmapId, node.id, next);
+      onProgressUpdated?.(node.id, next);
+      notify("Статус обновлён", "success");
+    } catch (e) {
+      console.error("Failed to update node progress", e);
+      notify("Не удалось обновить статус", "error");
+
+      setProgressStatus(initialStatus);
+    } finally {
+      setIsSavingProgress(false);
+    }
   };
 
   return (
@@ -241,6 +332,137 @@ const NodeSidebar = ({
             </Button>
           )}
 
+          {isLoggedIn && (
+            <Box
+              sx={{
+                borderRadius: 3,
+                border: "1px solid rgba(255,255,255,.08)",
+                background: "#181818",
+                p: 2,
+              }}
+            >
+              <Stack
+                direction="row"
+                alignItems="center"
+                spacing={2}
+                sx={{ mb: 2.5 }}
+              >
+                <Typography
+                  variant="h5"
+                  sx={{
+                    fontWeight: 700,
+                    m: 2,
+                    fontFamily: '"TDAText", "Lato", sans-serif',
+                    backgroundImage: "linear-gradient(90deg, #BC57FF, #FF4DCA)",
+                    backgroundClip: "text",
+                    color: "transparent",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    textAlign: "center",
+                  }}
+                >
+                  Прогресс
+                </Typography>
+              </Stack>
+
+              <FormControl fullWidth size="small" disabled={isSavingProgress}>
+                <InputLabel id="node-progress-label">Статус</InputLabel>
+                <Select
+                  labelId="node-progress-label"
+                  value={progressStatus}
+                  label="Статус"
+                  onChange={(e) =>
+                    handleChangeProgress(e.target.value as NodeProgressStatus)
+                  }
+                  renderValue={(value) => {
+                    const opt =
+                      progressOptionByValue[value as NodeProgressStatus];
+                    return (
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Box
+                          sx={{
+                            display: "grid",
+                            placeItems: "center",
+                            color: opt.iconColor,
+                            "& svg": { fontSize: 18 },
+                          }}
+                        >
+                          {opt.icon}
+                        </Box>
+                        <span>{opt.label}</span>
+                      </Stack>
+                    );
+                  }}
+                  sx={{
+                    color: "#fff",
+                    ".MuiOutlinedInput-notchedOutline": {
+                      borderColor: "rgba(255,255,255,.18)",
+                    },
+                    "&:hover .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "rgba(255,255,255,.28)",
+                    },
+                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#BC57FF",
+                    },
+                    ".MuiSelect-icon": { color: "rgba(255,255,255,.7)" },
+                  }}
+                  MenuProps={{
+                    PaperProps: {
+                      sx: {
+                        bgcolor: "#1b1b1b",
+                        border: "1px solid rgba(255,255,255,.08)",
+                        "& .MuiMenuItem-root": { color: "#fff" },
+                      },
+                    },
+                  }}
+                >
+                  {PROGRESS_OPTIONS.map((opt) => {
+                    const selected = progressStatus === opt.value;
+
+                    return (
+                      <MenuItem key={opt.value} value={opt.value}>
+                        <Stack direction="row" spacing={1} alignItems="center">
+                          <Box
+                            sx={{
+                              display: "grid",
+                              placeItems: "center",
+                              color: opt.iconColor,
+                              "& svg": { fontSize: 18 },
+                            }}
+                          >
+                            {opt.icon}
+                          </Box>
+
+                          <span>{opt.label}</span>
+
+                          {selected ? (
+                            <Box
+                              sx={{
+                                ml: "auto",
+                                width: 8,
+                                height: 8,
+                                borderRadius: "999px",
+                                background: opt.iconColor,
+                                boxShadow: `0 0 10px ${opt.iconColor}`,
+                                opacity: 0.9,
+                              }}
+                            />
+                          ) : null}
+                        </Stack>
+                      </MenuItem>
+                    );
+                  })}
+                </Select>
+              </FormControl>
+
+              {isSavingProgress ? (
+                <Typography sx={{ mt: 1, fontSize: "0.85rem", opacity: 0.8 }}>
+                  Сохраняем статус…
+                </Typography>
+              ) : null}
+            </Box>
+          )}
+
           <Box
             sx={{
               borderRadius: 3,
@@ -260,7 +482,8 @@ const NodeSidebar = ({
                 color: "transparent",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
-                textAlign: "center",
+                textAlign: "left",
+                width: "fit-content",
               }}
             >
               Материалы
