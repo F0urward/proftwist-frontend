@@ -427,6 +427,7 @@ export const CreatorPage = () => {
       <NodeEditorSidebar
         open={Boolean(editingNodeId)}
         node={editingNode}
+        roadmapId={roadmap_id}
         onClose={handleCloseEditor}
         onLabelChange={handleLabelChange}
         onDescriptionChange={handleDescriptionChange}

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   Box,
   IconButton,
@@ -6,16 +6,20 @@ import {
   TextField,
   Typography,
   Button,
+  CircularProgress,
 } from "@mui/material";
+import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import CloseIcon from "@mui/icons-material/Close";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import type { Node } from "@xyflow/react";
+import { aiService } from "../../api";
 
 type NodeType = "primary" | "secondary" | "root";
 
 type NodeEditorSidebarProps = {
   open: boolean;
   node: Node | null;
+  roadmapId?: string;
   onClose: () => void;
   onLabelChange: (value: string) => void;
   onDescriptionChange: (value: string) => void;
@@ -31,18 +35,48 @@ const NODE_TYPE_RU: Record<NodeType, string> = {
 export const NodeEditorSidebar = ({
   open,
   node,
+  roadmapId,
   onClose,
   onLabelChange,
   onDescriptionChange,
   onDelete,
 }: NodeEditorSidebarProps) => {
+  const [isGeneratingDescription, setIsGeneratingDescription] =
+    useState(false);
   const label = useMemo(() => (node?.data as any)?.label ?? "", [node]);
   const description = useMemo(() => (node as any)?.description ?? "", [node]);
+  const nodeType = useMemo(
+    () => (node?.data as any)?.type as NodeType | undefined,
+    [node],
+  );
   const nodeTypeRu = useMemo(() => {
-    const rawType = (node?.data as any)?.type as NodeType | undefined;
+    const rawType = nodeType;
     if (!rawType) return "Нода";
     return NODE_TYPE_RU[rawType] ?? "Нода";
-  }, [node]);
+  }, [nodeType]);
+
+  const handleGenerateDescription = async () => {
+    if (!node || isGeneratingDescription) return;
+
+    setIsGeneratingDescription(true);
+
+    try {
+      const generatedDescription =
+        await aiService.generateRoadmapNodeDescription({
+          roadmap_id: roadmapId,
+          node_id: node.id,
+          node_label: label,
+          node_type: nodeType,
+          current_description: description,
+        });
+
+      onDescriptionChange(generatedDescription);
+    } catch (error) {
+      console.error("Failed to generate node description:", error);
+    } finally {
+      setIsGeneratingDescription(false);
+    }
+  };
 
   if (!open || !node) {
     return null;
@@ -137,6 +171,35 @@ export const NodeEditorSidebar = ({
               },
             }}
           />
+
+          <Button
+            variant="contained"
+            startIcon={
+              isGeneratingDescription ? (
+                <CircularProgress size={18} color="inherit" />
+              ) : (
+                <AutoAwesomeIcon />
+              )
+            }
+            onClick={handleGenerateDescription}
+            disabled={isGeneratingDescription || !label.trim()}
+            sx={{
+              textTransform: "none",
+              color: "#fff",
+              background: "linear-gradient(90deg, #7E57FF, #BC57FF)",
+              "&:hover": {
+                background: "linear-gradient(90deg, #6A49E6, #AA49E6)",
+              },
+              "&.Mui-disabled": {
+                color: "rgba(255,255,255,0.42)",
+                background: "rgba(255,255,255,0.1)",
+              },
+            }}
+          >
+            {isGeneratingDescription
+              ? "Генерация..."
+              : "Сгенерировать описание"}
+          </Button>
 
           <Button
             variant="outlined"
