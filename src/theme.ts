@@ -45,6 +45,7 @@ export const theme = createTheme({
         contained: {
           background: colors.gradientDark,
           border: 0,
+          color: colors.white,
           textTransform: "none",
           fontWeight: 600,
           borderRadius: 10,
@@ -52,6 +53,15 @@ export const theme = createTheme({
           "&:hover": {
             background: colors.gradientLight,
             boxShadow: "none",
+          },
+          "&.Mui-disabled": {
+            color: "rgba(255,255,255,0.45)",
+          },
+        },
+        containedPrimary: {
+          color: colors.white,
+          "&.Mui-disabled": {
+            color: "rgba(255,255,255,0.45)",
           },
         },
         text: {

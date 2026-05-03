@@ -1,4 +1,13 @@
-import { Stack, Button } from "@mui/material";
+import {
+  Button,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Stack,
+  TextField,
+} from "@mui/material";
 
 import Crop75Icon from "@mui/icons-material/Crop75";
 import TitleIcon from "@mui/icons-material/Title";
@@ -6,6 +15,7 @@ import DownloadIcon from "@mui/icons-material/Download";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import FileUploadIcon from "@mui/icons-material/FileUpload";
 import SaveIcon from "@mui/icons-material/Save";
+import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import { RootState, useAppDispatch, useAppSelector } from "../../store";
 import { useRef, useState } from "react";
 import { editorSliceActions } from "../../store/slices/editorSlice";
@@ -13,6 +23,7 @@ import { useParams } from "react-router-dom";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { roadmapinfoService } from "../../api/roadmapinfo.service";
+import { aiService } from "../../api/ai.service";
 
 import { useNotification } from "../Notification/Notification";
 
@@ -28,6 +39,8 @@ interface Actions {
   Icon: typeof Crop75Icon;
   title: string;
   handleClick: () => void;
+  disabled?: boolean;
+  isLoading?: boolean;
 }
 
 export const Sidebar = ({
@@ -43,10 +56,14 @@ export const Sidebar = ({
   const nodes = useAppSelector((state: RootState) => state.editor.nodes);
   const edges = useAppSelector((state: RootState) => state.editor.edges);
   const [roadmapInfoId, setRoadmapInfoId] = useState<string | null>(null);
+  const [isGeneratingRoadmap, setIsGeneratingRoadmap] = useState(false);
+  const [isAiDialogOpen, setIsAiDialogOpen] = useState(false);
+  const [aiRoadmapPrompt, setAiRoadmapPrompt] = useState("");
 
   const { showNotification, Notification } = useNotification();
 
   const isSheet = variant === "sheet";
+  const trimmedAiRoadmapPrompt = aiRoadmapPrompt.trim();
 
   useEffect(() => {
     if (!roadmap_id) return;
@@ -79,6 +96,30 @@ export const Sidebar = ({
     reader.readAsText(file);
   };
 
+  const handleGenerateRoadmap = async () => {
+    if (isGeneratingRoadmap || !trimmedAiRoadmapPrompt) return;
+
+    setIsGeneratingRoadmap(true);
+
+    try {
+      const generatedRoadmap = await aiService.generateRoadmap({
+        roadmap_id,
+        prompt: trimmedAiRoadmapPrompt,
+      });
+
+      dispatch(editorSliceActions.setNodes(generatedRoadmap.nodes));
+      dispatch(editorSliceActions.setEdges(generatedRoadmap.edges));
+      setIsAiDialogOpen(false);
+      setAiRoadmapPrompt("");
+      showNotification("Roadmap успешно сгенерирован", "success");
+    } catch (error) {
+      console.error("Failed to generate roadmap:", error);
+      showNotification("Ошибка при генерации roadmap", "error");
+    } finally {
+      setIsGeneratingRoadmap(false);
+    }
+  };
+
   const actions: Actions[] = [
     {
       Icon: Crop75Icon,
@@ -100,7 +141,6 @@ export const Sidebar = ({
       title: "Подпись",
       handleClick: () => addNode("text"),
     },
-
     {
       Icon: FileUploadIcon,
       title: "Импортировать",
@@ -135,6 +175,15 @@ export const Sidebar = ({
       title: "Сохранить",
       handleClick: () => void onSave(),
     },
+    {
+      Icon: AutoAwesomeIcon,
+      title: isGeneratingRoadmap
+        ? "Генерация roadmap..."
+        : "Создать roadmap с AI",
+      handleClick: () => setIsAiDialogOpen(true),
+      disabled: isGeneratingRoadmap,
+      isLoading: isGeneratingRoadmap,
+    },
   ];
 
   return (
@@ -163,12 +212,19 @@ export const Sidebar = ({
             К просмотру роадмапа
           </Button>
         )}
-        {actions.map(({ Icon, title, handleClick }) => (
+        {actions.map(({ Icon, title, handleClick, disabled, isLoading }) => (
           <Button
             key={title}
-            startIcon={<Icon />}
+            startIcon={
+              isLoading ? (
+                <CircularProgress size={18} color="inherit" />
+              ) : (
+                <Icon />
+              )
+            }
             variant="contained"
             onClick={handleClick}
+            disabled={disabled}
           >
             {title}
           </Button>
@@ -183,6 +239,54 @@ export const Sidebar = ({
           accept="application/json,.json"
         />
       </Stack>
+
+      <Dialog
+        open={isAiDialogOpen}
+        onClose={() => {
+          if (!isGeneratingRoadmap) setIsAiDialogOpen(false);
+        }}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>Создать roadmap с AI</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            fullWidth
+            multiline
+            minRows={4}
+            margin="dense"
+            label="Каким должен быть roadmap?"
+            placeholder="Например: roadmap для изучения React с нуля до продвинутого уровня"
+            value={aiRoadmapPrompt}
+            onChange={(event) => setAiRoadmapPrompt(event.target.value)}
+            disabled={isGeneratingRoadmap}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setIsAiDialogOpen(false)}
+            disabled={isGeneratingRoadmap}
+          >
+            Отмена
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={
+              isGeneratingRoadmap ? (
+                <CircularProgress size={18} color="inherit" />
+              ) : (
+                <AutoAwesomeIcon />
+              )
+            }
+            onClick={() => void handleGenerateRoadmap()}
+            disabled={isGeneratingRoadmap || !trimmedAiRoadmapPrompt}
+          >
+            {isGeneratingRoadmap ? "Генерация..." : "Сгенерировать"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {Notification}
     </>
   );
