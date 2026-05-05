@@ -25,6 +25,8 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { roadmapinfoService } from "../../api/roadmapinfo.service";
 import { aiService } from "../../api/ai.service";
+import { autoLayoutRoadmap } from "../../utils/autoLayoutRoadmap";
+import { stripNodeFields, stripEdgeFields } from "../../utils/sanitizeGraph";
 
 import { useNotification } from "../Notification/Notification";
 
@@ -87,9 +89,22 @@ export const Sidebar = ({
 
     reader.onload = (event) => {
       const fileContent = event.target?.result as string;
-      const { nodes, edges } = JSON.parse(fileContent);
-      dispatch(editorSliceActions.setNodes(nodes));
-      dispatch(editorSliceActions.setEdges(edges));
+      const { nodes: importedNodes, edges: importedEdges } =
+        JSON.parse(fileContent);
+
+      const hasPositions = importedNodes?.some((node: any) => node.position);
+      let nodesWithPositions = importedNodes;
+      if (!hasPositions) {
+        nodesWithPositions = autoLayoutRoadmap(
+          importedNodes || [],
+          importedEdges || [],
+        );
+      }
+
+      const cleanedNodes = stripNodeFields(nodesWithPositions || []);
+      const cleanedEdges = stripEdgeFields(importedEdges || []);
+      dispatch(editorSliceActions.setNodes(cleanedNodes));
+      dispatch(editorSliceActions.setEdges(cleanedEdges));
     };
 
     reader.onerror = () => {
@@ -158,7 +173,12 @@ export const Sidebar = ({
       Icon: DownloadIcon,
       title: "Экспортировать",
       handleClick: () => {
-        const data = JSON.stringify({ nodes, edges });
+        const cleanedNodes = stripNodeFields(nodes);
+        const cleanedEdges = stripEdgeFields(edges);
+        const data = JSON.stringify({
+          nodes: cleanedNodes,
+          edges: cleanedEdges,
+        });
 
         const blob: Blob = new Blob([data], { type: "application/json" });
         const url = URL.createObjectURL(blob);

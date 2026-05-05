@@ -1,7 +1,7 @@
 export interface NodeData {
   type: "primary" | "secondary" | "root";
   isSelected: boolean;
-  [key: string]: any;
+  label?: string;
 }
 
 export interface Node {
@@ -14,7 +14,6 @@ export interface Node {
 }
 
 export interface Edge {
-  id: string;
   type: string;
   data: Record<string, unknown>;
   position: { x: number; y: number };
