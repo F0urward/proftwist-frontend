@@ -37,6 +37,7 @@ import { Button } from "@mui/material";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import { useNavigate } from "react-router-dom";
 import { roadmapinfoService } from "../api/roadmapinfo.service";
+import { autoLayoutRoadmap } from "../utils/autoLayoutRoadmap";
 
 const round = (n: number) => Math.round(n * 100) / 100;
 
@@ -83,7 +84,7 @@ export const CreatorPage = () => {
   }, [roadmap_id]);
 
   const dispatch = useAppDispatch();
-  const { screenToFlowPosition } = useReactFlow();
+  const { fitView, screenToFlowPosition } = useReactFlow();
 
   const { nodes, edges, editingNodeId } = useAppSelector(
     (state: RootState) => state.editor,
@@ -226,6 +227,15 @@ export const CreatorPage = () => {
     dispatch(editorSliceActions.addNode(newNode));
   };
 
+  const handleAutoLayout = useCallback(() => {
+    if (nodes.length === 0) return;
+
+    dispatch(editorSliceActions.setNodes(autoLayoutRoadmap(nodes, edges)));
+    window.requestAnimationFrame(() => {
+      fitView({ padding: 0.2, duration: 250 });
+    });
+  }, [dispatch, edges, fitView, nodes]);
+
   const handleCloseEditor = useCallback(() => {
     dispatch(editorSliceActions.closeNodeEditor());
     dispatch(editorSliceActions.markElementAsSelected(null));
@@ -327,7 +337,13 @@ export const CreatorPage = () => {
 
   return (
     <Stack direction="row" sx={{ height: "100vh" }}>
-      {!isMobile && <Sidebar addNode={addNode} onSave={handleSave} />}
+      {!isMobile && (
+        <Sidebar
+          addNode={addNode}
+          onAutoLayout={handleAutoLayout}
+          onSave={handleSave}
+        />
+      )}
       <Box
         sx={{
           flex: 1,
@@ -474,7 +490,12 @@ export const CreatorPage = () => {
           </Box>
 
           <Box sx={{ px: 1, pb: 2 }}>
-            <Sidebar addNode={addNode} variant="sheet" onSave={handleSave} />
+            <Sidebar
+              addNode={addNode}
+              onAutoLayout={handleAutoLayout}
+              variant="sheet"
+              onSave={handleSave}
+            />
           </Box>
         </SwipeableDrawer>
       )}

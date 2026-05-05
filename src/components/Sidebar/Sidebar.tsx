@@ -16,6 +16,7 @@ import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import FileUploadIcon from "@mui/icons-material/FileUpload";
 import SaveIcon from "@mui/icons-material/Save";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
+import AccountTreeIcon from "@mui/icons-material/AccountTree";
 import { RootState, useAppDispatch, useAppSelector } from "../../store";
 import { useRef, useState } from "react";
 import { editorSliceActions } from "../../store/slices/editorSlice";
@@ -31,6 +32,7 @@ type SidebarVariant = "desktop" | "sheet";
 
 interface SidebarProps {
   addNode: (nodeType: "root" | "primary" | "secondary" | "text") => void;
+  onAutoLayout: () => void;
   onSave: () => void | Promise<void>;
   variant?: SidebarVariant;
 }
@@ -45,6 +47,7 @@ interface Actions {
 
 export const Sidebar = ({
   addNode,
+  onAutoLayout,
   onSave,
   variant = "desktop",
 }: SidebarProps) => {
@@ -171,6 +174,12 @@ export const Sidebar = ({
       },
     },
     {
+      Icon: AccountTreeIcon,
+      title: "Авто-раскладка",
+      handleClick: onAutoLayout,
+      disabled: nodes.length === 0,
+    },
+    {
       Icon: SaveIcon,
       title: "Сохранить",
       handleClick: () => void onSave(),
@@ -224,7 +233,7 @@ export const Sidebar = ({
             }
             variant="contained"
             onClick={handleClick}
-            disabled={disabled}
+            disabled={Boolean(disabled)}
           >
             {title}
           </Button>
