@@ -143,6 +143,7 @@ const CreateRoadmapInfoModal = ({
           color: "transparent",
           WebkitBackgroundClip: "text",
           WebkitTextFillColor: "transparent",
+          userSelect: "none",
         }}
       >
         {isEdit
@@ -150,7 +151,7 @@ const CreateRoadmapInfoModal = ({
           : "Создать новый роадмап"}
       </DialogTitle>
       <DialogContent>
-        <Stack spacing={3}>
+        <Stack spacing={3} sx={{ paddingTop: "10px" }}>
           {!isEdit && (
             <TextInput
               select
