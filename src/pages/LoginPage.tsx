@@ -121,7 +121,7 @@ const LoginPage = () => {
           >
             Войти в аккаунт
           </Button>
-          <Button
+          {/* <Button
             className=""
             onClick={handleVKIDAuthClick}
             sx={{
@@ -131,7 +131,7 @@ const LoginPage = () => {
             }}
           >
             Войти через VK
-          </Button>
+          </Button> */}
           <Typography variant="body1" sx={{ textAlign: "center" }}>
             Еще нет аккаунта?{" "}
             <Link
