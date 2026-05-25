@@ -29,6 +29,7 @@ import { autoLayoutRoadmap } from "../../utils/autoLayoutRoadmap";
 import { stripNodeFields, stripEdgeFields } from "../../utils/sanitizeGraph";
 
 import { useNotification } from "../Notification/Notification";
+import systemPromptRaw from "../../config/ai-system-prompt.md?raw";
 
 type SidebarVariant = "desktop" | "sheet";
 
@@ -69,6 +70,9 @@ export const Sidebar = ({
 
   const isSheet = variant === "sheet";
   const trimmedAiRoadmapPrompt = aiRoadmapPrompt.trim();
+
+  const buildPrompt = (userPrompt: string) =>
+    systemPromptRaw.replace("{prompt}", userPrompt);
 
   useEffect(() => {
     if (!roadmap_id) return;
@@ -122,10 +126,16 @@ export const Sidebar = ({
     try {
       const generatedRoadmap = await aiService.generateRoadmap({
         roadmap_id,
-        prompt: trimmedAiRoadmapPrompt,
+        prompt: buildPrompt(trimmedAiRoadmapPrompt),
+        provider: "ollama",
+        model: "qwen2.5:3b",
       });
 
-      dispatch(editorSliceActions.setNodes(generatedRoadmap.nodes));
+      const layoutedNodes = autoLayoutRoadmap(
+        generatedRoadmap.nodes,
+        generatedRoadmap.edges,
+      );
+      dispatch(editorSliceActions.setNodes(layoutedNodes));
       dispatch(editorSliceActions.setEdges(generatedRoadmap.edges));
       setIsAiDialogOpen(false);
       setAiRoadmapPrompt("");
