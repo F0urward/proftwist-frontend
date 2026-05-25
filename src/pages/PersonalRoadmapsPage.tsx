@@ -1,4 +1,5 @@
 import { Box, Paper, Stack, Button, SwipeableDrawer } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import TuneIcon from "@mui/icons-material/Tune";
 import ItemCard from "../components/ItemCard/ItemCard.tsx";
 import CategoryList from "../components/CategoryList/CategoryList.tsx";
@@ -16,6 +17,7 @@ import { useState, useEffect, useMemo } from "react";
 const STORAGE_KEY = "selectedCategoryIndex";
 
 const PersonalRoadmapsPage = () => {
+  const theme = useTheme();
   const [items, setItems] = useState<RoadmapInfo[]>([]);
   const [selected, setSelected] = useState<number>(0);
   const [modalOpen, setModalOpen] = useState(false);
@@ -150,12 +152,12 @@ const PersonalRoadmapsPage = () => {
             fullWidth
             startIcon={<TuneIcon />}
             onClick={() => setCategoriesOpen(true)}
-            sx={{
+            sx={(theme) => ({
               justifyContent: "center",
               borderRadius: 3,
-              color: "#BC57FF",
-              borderColor: "#BC57FF",
-            }}
+              color: theme.palette.primary.main,
+              borderColor: theme.palette.primary.main,
+            })}
           >
             Категории
           </Button>

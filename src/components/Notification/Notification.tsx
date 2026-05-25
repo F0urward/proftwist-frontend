@@ -1,9 +1,11 @@
 import { Snackbar, Alert } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { useState, useCallback } from "react";
 
 type Severity = "success" | "error" | "info";
 
 export const useNotification = () => {
+    const theme = useTheme();
     const [open, setOpen] = useState(false);
     const [message, setMessage] = useState("");
     const [severity, setSeverity] = useState<Severity>("info");
@@ -27,7 +29,7 @@ export const useNotification = () => {
                 severity={severity}
                 onClose={handleClose}
                 sx={{
-                    backgroundColor: severity === "error" ? "#BE0085" : "#BC57FF",
+                    backgroundColor: severity === "error" ? theme.palette.error.main : theme.palette.primary.main,
                     color: "#fff",
                     "& .MuiAlert-icon": {
                         color: "#fff",

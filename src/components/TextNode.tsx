@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Box, InputBase, Typography } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { editorSliceActions } from "../store/slices/editorSlice";
 import { useAppDispatch } from "../store";
 
@@ -12,6 +13,7 @@ interface NodeProps {
 }
 
 export const TextNode = ({ id, data: { label, isSelected } }: NodeProps) => {
+  const theme = useTheme();
   const [isEditing, setIsEditing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -43,7 +45,6 @@ export const TextNode = ({ id, data: { label, isSelected } }: NodeProps) => {
     inputRef.current?.focus();
   }, [inputRef.current]);
 
-  // todo: fix styles
   return (
     <div className="text-updater-node" onDoubleClick={handleDoubleClick}>
       <Box
@@ -53,9 +54,9 @@ export const TextNode = ({ id, data: { label, isSelected } }: NodeProps) => {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          border: isSelected ? "1px solid #FFF" : "none",
+          border: isSelected ? `1px solid ${theme.palette.text.primary}` : "none",
           boxSizing: "border-box",
-          color: "#FFF",
+          color: "text.primary",
           margin: 0,
           padding: 0,
         }}
@@ -67,7 +68,7 @@ export const TextNode = ({ id, data: { label, isSelected } }: NodeProps) => {
             value={label}
             onBlur={handleInputBlur}
             onChange={handleInputChange}
-            sx={{ color: "#FFF", margin: 0, padding: 0 }}
+            sx={{ color: "text.primary", margin: 0, padding: 0 }}
           />
         ) : (
           <Typography component="div" sx={{ margin: 0, padding: 0 }}>

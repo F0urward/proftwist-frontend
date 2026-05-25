@@ -16,10 +16,13 @@ import {
   DialogTitle,
 } from "@mui/material";
 import { IconButton } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
 import MapIcon from "@mui/icons-material/Map";
 import ChatIcon from "@mui/icons-material/Chat";
 import { Person } from "@mui/icons-material";
+import DarkModeIcon from "@mui/icons-material/DarkMode";
+import LightModeIcon from "@mui/icons-material/LightMode";
 import PeopleIcon from "@mui/icons-material/People";
 import AddIcon from "@mui/icons-material/Add";
 import { Link as RouterLink, NavLink, useNavigate } from "react-router-dom";
@@ -27,6 +30,7 @@ import RoadmapsDropdown from "../RoadmapsDropdown/RoadmapsDropdown";
 import { RootState, useAppDispatch, useAppSelector } from "../../store";
 import { useEffect, useState } from "react";
 import { checkIfAuthenticated, logout } from "../../store/slices/authSlice";
+import { toggleTheme } from "../../store/slices/themeSlice";
 import { AccountCircle, Logout } from "@mui/icons-material";
 import CreateRoadmapInfoModal from "../CreateRoadmapsinfoModal/CreateRoadmapsinfoModal";
 import type { User } from "../../types/auth";
@@ -66,10 +70,12 @@ const resolveAvatarUrl = (user?: User | null): string | undefined => {
 };
 
 const Navbar = () => {
+  const theme = useTheme();
   const isLoggedIn = useAppSelector(
     (state: RootState) => state.auth.isLoggedIn,
   );
   const userData = useAppSelector((state: RootState) => state.auth.user);
+  const themeMode = useAppSelector((state: RootState) => state.theme.mode);
   const avatarUrl = resolveAvatarUrl(userData);
   const avatarInitial =
     userData?.username?.trim()?.charAt(0).toUpperCase() ?? "";
@@ -77,7 +83,7 @@ const Navbar = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
-  const [anchorEl, setAnchorEl] = useState(null);
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [mobileAnchorEl, setMobileAnchorEl] = useState<null | HTMLElement>(
     null,
   );
@@ -114,7 +120,7 @@ const Navbar = () => {
   const menuOptions: MenuEntry[] = [
     {
       title: "Профиль",
-      icon: <AccountCircle fontSize="small" sx={{ color: "#BC57FF" }} />,
+      icon: <AccountCircle fontSize="small" sx={{ color: "primary.main" }} />,
       onClick() {
         navigate("/profile");
         setAnchorEl(null);
@@ -122,16 +128,14 @@ const Navbar = () => {
     },
     {
       title: "Выйти",
-      icon: <Logout fontSize="small" sx={{ color: "#BC57FF" }} />,
+      icon: <Logout fontSize="small" sx={{ color: "primary.main" }} />,
       onClick() {
         handleLogoutInitiate();
       },
     },
   ];
 
-  const handleAvatarClick = (
-    event: React.SyntheticEvent<MouseEvent, Event>,
-  ) => {
+  const handleAvatarClick = (event: React.MouseEvent<HTMLDivElement>) => {
     setAnchorEl(event.currentTarget);
   };
 
@@ -179,8 +183,7 @@ const Navbar = () => {
               display: { xs: "none", sm: "block" },
               fontFamily: '"TDAText"',
               fontWeight: 700,
-              backgroundImage:
-                "linear-gradient(90deg, #BC57FF 0%, #FF4DCA 100%)",
+              backgroundImage: `linear-gradient(90deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
               backgroundClip: "text",
               WebkitBackgroundClip: "text",
               color: "transparent",
@@ -227,7 +230,7 @@ const Navbar = () => {
               <IconButton
                 onClick={handleMobileMenuOpen}
                 aria-label="open navigation menu"
-                sx={{ color: "#BC57FF" }}
+                sx={{ color: "primary.main" }}
               >
                 <MenuRoundedIcon sx={{ fontSize: 32 }} />
               </IconButton>
@@ -245,7 +248,7 @@ const Navbar = () => {
                   }}
                 >
                   <ListItemIcon>
-                    <MapIcon fontSize="small" sx={{ color: "#BC57FF" }} />
+                    <MapIcon fontSize="small" sx={{ color: "primary.main" }} />
                   </ListItemIcon>
                   <ListItemText primary="Роадмапы" />
                 </MenuItem>
@@ -257,7 +260,7 @@ const Navbar = () => {
                   }}
                 >
                   <ListItemIcon>
-                    <Person fontSize="small" sx={{ color: "#BC57FF" }} />
+                    <Person fontSize="small" sx={{ color: "primary.main" }} />
                   </ListItemIcon>
                   <ListItemText primary="Мои роадмапы" />
                 </MenuItem>
@@ -269,7 +272,7 @@ const Navbar = () => {
                   }}
                 >
                   <ListItemIcon>
-                    <ChatIcon fontSize="small" sx={{ color: "#BC57FF" }} />
+                    <ChatIcon fontSize="small" sx={{ color: "primary.main" }} />
                   </ListItemIcon>
                   <ListItemText primary="Чаты" />
                 </MenuItem>
@@ -281,7 +284,10 @@ const Navbar = () => {
                   }}
                 >
                   <ListItemIcon>
-                    <PeopleIcon fontSize="small" sx={{ color: "#BC57FF" }} />
+                    <PeopleIcon
+                      fontSize="small"
+                      sx={{ color: "primary.main" }}
+                    />
                   </ListItemIcon>
                   <ListItemText primary="Друзья" />
                 </MenuItem>
@@ -293,7 +299,7 @@ const Navbar = () => {
                   }}
                 >
                   <ListItemIcon>
-                    <AddIcon fontSize="small" sx={{ color: "#BC57FF" }} />
+                    <AddIcon fontSize="small" sx={{ color: "primary.main" }} />
                   </ListItemIcon>
                   <ListItemText primary="Создать роадмап" />
                 </MenuItem>
@@ -314,6 +320,14 @@ const Navbar = () => {
             </Button>
           </Box>
         )}
+
+        <IconButton
+          onClick={() => dispatch(toggleTheme())}
+          sx={{ color: "primary.main", mr: 1 }}
+          aria-label="toggle theme"
+        >
+          {themeMode === "dark" ? <LightModeIcon /> : <DarkModeIcon />}
+        </IconButton>
 
         {isLoggedIn ? (
           <>
@@ -338,7 +352,7 @@ const Navbar = () => {
               <MenuItem disabled>
                 <ListItemText
                   primary={userData?.username}
-                  sx={{ color: "white" }}
+                  sx={{ color: "text.primary" }}
                 />
               </MenuItem>
               {menuOptions.map(({ title, icon, onClick }) => (
@@ -351,7 +365,7 @@ const Navbar = () => {
             <Dialog open={isLogoutConfirmOpen} onClose={handleLogoutCancel}>
               <DialogTitle>Подтвердите выход</DialogTitle>
               <DialogContent>
-                <DialogContentText sx={{ color: "white" }}>
+                <DialogContentText sx={{ color: "text.primary" }}>
                   Вы уверены, что хотите выйти из аккаунта?
                 </DialogContentText>
               </DialogContent>

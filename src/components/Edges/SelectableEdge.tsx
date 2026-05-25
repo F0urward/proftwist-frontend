@@ -5,6 +5,7 @@ import {
   getBezierPath,
   type EdgeProps,
 } from "@xyflow/react";
+import { useTheme } from "@mui/material/styles";
 
 import { useAppDispatch } from "../../store";
 import { editorSliceActions } from "../../store/slices/editorSlice";
@@ -15,30 +16,6 @@ interface SelectableEdgeProps extends EdgeProps {
   variant: EdgeVariant;
   dashPattern?: string;
 }
-
-const popupStyles: CSSProperties = {
-  position: "absolute",
-  transform: "translate(-50%, -50%)",
-  pointerEvents: "all",
-  backgroundColor: "#111",
-  color: "#fff",
-  borderRadius: "6px",
-  padding: "6px 8px",
-  display: "flex",
-  gap: "6px",
-  boxShadow: "0 2px 10px rgba(0, 0, 0, 0.35)",
-  fontSize: "12px",
-};
-
-const buttonBaseStyles: CSSProperties = {
-  border: "none",
-  borderRadius: "4px",
-  padding: "4px 6px",
-  fontSize: "12px",
-  cursor: "pointer",
-  backgroundColor: "transparent",
-  color: "inherit",
-};
 
 const SelectableEdge = ({
   id,
@@ -53,6 +30,7 @@ const SelectableEdge = ({
   variant,
   dashPattern,
 }: SelectableEdgeProps) => {
+  const theme = useTheme();
   const dispatch = useAppDispatch();
   const [edgePath, labelX, labelY] = getBezierPath({
     sourceX,
@@ -60,6 +38,30 @@ const SelectableEdge = ({
     targetX,
     targetY,
   });
+
+  const popupStyles: CSSProperties = {
+    position: "absolute",
+    transform: "translate(-50%, -50%)",
+    pointerEvents: "all",
+    backgroundColor: theme.palette.background.default,
+    color: theme.palette.text.primary,
+    borderRadius: "6px",
+    padding: "6px 8px",
+    display: "flex",
+    gap: "6px",
+    boxShadow: "0 2px 10px rgba(0, 0, 0, 0.35)",
+    fontSize: "12px",
+  };
+
+  const buttonBaseStyles: CSSProperties = {
+    border: "none",
+    borderRadius: "4px",
+    padding: "4px 6px",
+    fontSize: "12px",
+    cursor: "pointer",
+    backgroundColor: "transparent",
+    color: "inherit",
+  };
 
   const handleVariantChange = useCallback(
     (nextVariant: EdgeVariant) => {
@@ -82,7 +84,7 @@ const SelectableEdge = ({
         markerEnd={markerEnd}
         markerStart={markerStart}
         style={{
-          stroke: "#fff",
+          stroke: theme.palette.text.primary,
           strokeWidth: 2,
           strokeDasharray: dashPattern,
           ...style,

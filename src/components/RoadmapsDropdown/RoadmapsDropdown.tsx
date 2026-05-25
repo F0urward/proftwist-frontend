@@ -6,10 +6,12 @@ import {
   ListItemIcon,
   ListItemText,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { Map, Person } from "@mui/icons-material";
 import { NavLink, useLocation } from "react-router-dom";
 
 const RoadmapsDropdown = () => {
+  const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
@@ -40,18 +42,18 @@ const RoadmapsDropdown = () => {
           to="/roadmaps"
           onClick={handleClose}
           sx={{
-            "&:hover": { bgcolor: "#2B1631" },
+            "&:hover": { bgcolor: theme.palette.action.hover },
           }}
         >
           <ListItemIcon>
-            <Map fontSize="small" sx={{ color: "#BC57FF" }} />
+            <Map fontSize="small" sx={{ color: "primary.main" }} />
           </ListItemIcon>
           <ListItemText primary="Официальные роадмапы" />
         </MenuItem>
 
         <MenuItem component={NavLink} to="/personal" onClick={handleClose}>
           <ListItemIcon>
-            <Person fontSize="small" sx={{ color: "#BC57FF" }} />
+            <Person fontSize="small" sx={{ color: "primary.main" }} />
           </ListItemIcon>
           <ListItemText primary="Мои роадмапы" />
         </MenuItem>

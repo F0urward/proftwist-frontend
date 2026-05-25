@@ -9,6 +9,7 @@ import {
   Stack,
   MenuItem,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
 import { roadmapinfoService } from "../../api/roadmapinfo.service.ts";
 import { categoryService } from "../../api/category.service.ts";
@@ -32,6 +33,7 @@ const CreateRoadmapInfoModal = ({
   roadmapInfo,
   onSave,
 }: Props) => {
+  const theme = useTheme();
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -138,7 +140,7 @@ const CreateRoadmapInfoModal = ({
           textAlign: "center",
           fontFamily: '"TDAText", "Lato", sans-serif',
           fontWeight: 900,
-          backgroundImage: "linear-gradient(90deg, #BC57FF, #FF4DCA)",
+          backgroundImage: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
           backgroundClip: "text",
           color: "transparent",
           WebkitBackgroundClip: "text",

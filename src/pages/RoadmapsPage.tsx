@@ -7,6 +7,7 @@ import {
   Button,
   SwipeableDrawer,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import TuneIcon from "@mui/icons-material/Tune";
 import CloseIcon from "@mui/icons-material/Close";
 import ItemCard from "../components/ItemCard/ItemCard.tsx";
@@ -23,6 +24,7 @@ import EmptyState from "../components/EmptyState/EmptyState.tsx";
 const STORAGE_KEY = "selectedCategoryId";
 
 const RoadmapsPage = () => {
+  const theme = useTheme();
   const [items, setItems] = useState<RoadmapInfo[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [search, setSearch] = useState("");
@@ -157,12 +159,12 @@ const RoadmapsPage = () => {
             fullWidth
             startIcon={<TuneIcon />}
             onClick={() => setCategoriesOpen(true)}
-            sx={{
+            sx={(theme) => ({
               justifyContent: "center",
               borderRadius: 3,
-              color: "#BC57FF",
-              borderColor: "#BC57FF",
-            }}
+              color: theme.palette.primary.main,
+              borderColor: theme.palette.primary.main,
+            })}
           >
             Категории
           </Button>
@@ -194,7 +196,7 @@ const RoadmapsPage = () => {
                   <IconButton
                     size="small"
                     onClick={() => setSearch("")}
-                    sx={{ mr: 1, color: "#fff" }}
+                    sx={{ mr: 1, color: "text.primary" }}
                   >
                     <CloseIcon fontSize="small" />
                   </IconButton>

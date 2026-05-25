@@ -2,6 +2,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Paper, Typography, Stack, Button, Link, Alert } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import TitlePaper from "../components/TitlePaper/TitlePaper";
 import BaseLayout from "../components/BaseLayout/BaseLayout";
@@ -21,6 +22,7 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 const LoginPage = () => {
+  const theme = useTheme();
   const {
     register,
     handleSubmit,
@@ -80,7 +82,7 @@ const LoginPage = () => {
               severity="error"
               sx={{
                 borderRadius: "10px",
-                background: "linear-gradient(90deg, #d23a95ff, #bc3b57ff)",
+                background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
                 color: "#fff",
                 transition: "all 0.8s ease",
                 "& .MuiAlert-icon": {
@@ -121,17 +123,6 @@ const LoginPage = () => {
           >
             Войти в аккаунт
           </Button>
-          {/* <Button
-            className=""
-            onClick={handleVKIDAuthClick}
-            sx={{
-              background: "#0077FF",
-              "&:hover": { background: "#0564d1ff" },
-              fontWeight: 600,
-            }}
-          >
-            Войти через VK
-          </Button> */}
           <Typography variant="body1" sx={{ textAlign: "center" }}>
             Еще нет аккаунта?{" "}
             <Link

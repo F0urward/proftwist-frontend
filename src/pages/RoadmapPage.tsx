@@ -231,9 +231,9 @@ const RoadmapPage = () => {
     () => ({
       type: "smoothstep" as const,
       animated: false,
-      style: { stroke: "#EDEDED", strokeWidth: 1.5 },
+      style: { stroke: theme.palette.divider, strokeWidth: 1.5 },
     }),
-    [],
+    [theme.palette.divider],
   );
 
   const styledNodes = useMemo(
@@ -351,9 +351,9 @@ const RoadmapPage = () => {
           alignContent: "center",
           letterSpacing: "0.5px",
           width: "fit-content",
-          background: "linear-gradient(90deg, #7E57FF, #BC57FF)",
+          background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
           color: "#fff",
-          boxShadow: "0 0 10px rgba(188,87,255,0.3)",
+          boxShadow: `0 0 10px ${theme.palette.primary.main}4d`,
         }}
       >
         {categoryName}
@@ -379,9 +379,9 @@ const RoadmapPage = () => {
           fontWeight: 600,
           letterSpacing: "0.3px",
           width: "fit-content",
-          background: "rgba(255,255,255,0.08)",
-          border: "1px solid rgba(255,255,255,0.12)",
-          color: "#fff",
+          background: `rgba(${theme.palette.mode === "dark" ? "255,255,255" : "0,0,0"}, 0.08)`,
+          border: `1px solid rgba(${theme.palette.mode === "dark" ? "255,255,255" : "0,0,0"}, 0.12)`,
+          color: "text.primary",
           display: "flex",
           alignItems: "center",
           gap: 1,
@@ -771,7 +771,7 @@ const RoadmapPage = () => {
                 justifyContent="space-between"
                 alignItems="center"
               >
-                <Typography sx={{ color: "#fff", fontWeight: 700 }}>
+                <Typography sx={{ color: "text.primary", fontWeight: 700 }}>
                   Прогресс: {progress.done}/{progress.total} •{" "}
                   {progress.percent}%
                 </Typography>
@@ -812,8 +812,8 @@ const RoadmapPage = () => {
                   "& .MuiLinearProgress-bar": {
                     borderRadius: 999,
                     background:
-                      "linear-gradient(90deg, #7E57FF 0%, #BC57FF 40%, #FF4DCA 100%)",
-                    boxShadow: "0 0 18px rgba(255,77,202,0.35)",
+                      `linear-gradient(90deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+                    boxShadow: `0 0 18px ${theme.palette.secondary.main}59`,
                   },
                 }}
               />
@@ -850,10 +850,10 @@ const RoadmapPage = () => {
               borderRadius: "8px",
               px: 1.5,
               py: 0.5,
-              background: "linear-gradient(90deg, #7E57FF, #BC57FF)",
+              background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
               color: "#fff",
               "&:hover": {
-                background: "linear-gradient(90deg, #6A49E6, #AA49E6)",
+                background: `linear-gradient(90deg, ${theme.palette.primary.dark}, ${theme.palette.secondary.main})`,
               },
             }}
           >
@@ -894,7 +894,7 @@ const RoadmapPage = () => {
                 },
               }}
             >
-              <HelpOutlineIcon sx={{ color: "#fff", fontSize: 22 }} />
+              <HelpOutlineIcon sx={{ color: "text.primary", fontSize: 22 }} />
             </Button>
           </Tooltip>
         </Box>
@@ -955,10 +955,10 @@ const RoadmapPage = () => {
             height: 44,
             borderRadius: "999px",
             padding: 0,
-            background: "linear-gradient(90deg, #7E57FF, #BC57FF)",
+            background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
             boxShadow: "0 10px 24px rgba(0,0,0,0.25)",
             "&:hover": {
-              background: "linear-gradient(90deg, #6A49E6, #AA49E6)",
+              background: `linear-gradient(90deg, ${theme.palette.primary.dark}, ${theme.palette.secondary.main})`,
             },
           }}
         >

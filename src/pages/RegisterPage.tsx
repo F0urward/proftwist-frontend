@@ -1,4 +1,5 @@
 import { Alert, Paper, Typography, Stack, Button, Link } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { useState } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import TitlePaper from "../components/TitlePaper/TitlePaper";
@@ -12,6 +13,7 @@ import { signup, login } from "../store/slices/authSlice";
 import axios from "axios";
 
 const RegisterPage = () => {
+  const theme = useTheme();
   const dispatch = useAppDispatch();
   const {
     register,
@@ -74,7 +76,7 @@ const RegisterPage = () => {
               severity="error"
               sx={{
                 borderRadius: "10px",
-                background: "linear-gradient(90deg, #d23a95ff, #bc3b57ff)",
+                background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
                 color: "#fff",
                 transition: "all 0.8s ease",
                 "& .MuiAlert-icon": {
@@ -134,8 +136,8 @@ const RegisterPage = () => {
             className=""
             onClick={handleVKIDAuthClick}
             sx={{
-              background: "#0077FF",
-              "&:hover": { background: "#0564d1ff" },
+              background: theme.palette.primary.main,
+              "&:hover": { background: theme.palette.primary.dark },
               fontWeight: 600,
             }}
           >

@@ -13,6 +13,7 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import CloseIcon from "@mui/icons-material/Close";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import { East } from "@mui/icons-material";
@@ -103,6 +104,7 @@ const NodeSidebar = ({
   notify,
   onProgressUpdated,
 }: NodeSidebarProps) => {
+  const theme = useTheme();
   const navigate = useNavigate();
   const isLoggedIn = useAppSelector((state) => state.auth.isLoggedIn);
   const [materialModal, setMaterialModal] = useState(false);
@@ -203,8 +205,8 @@ const NodeSidebar = ({
         paper: {
           sx: {
             width: { xs: "100%", md: 600 },
-            bgcolor: "#212121",
-            borderLeft: "1px solid rgba(255,255,255,.08)",
+            bgcolor: "background.paper",
+            borderLeft: `1px solid ${theme.palette.divider}`,
             boxShadow: "0 0 40px rgba(0,0,0,.45)",
             borderTopRightRadius: 0,
             borderBottomRightRadius: 0,
@@ -235,7 +237,7 @@ const NodeSidebar = ({
               sx={{
                 fontWeight: 800,
                 fontFamily: '"TDAText", "Lato", sans-serif',
-                backgroundImage: "linear-gradient(90deg, #BC57FF, #FF4DCA)",
+                backgroundImage: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
                 backgroundClip: "text",
                 color: "transparent",
                 WebkitBackgroundClip: "text",
@@ -249,7 +251,7 @@ const NodeSidebar = ({
               onClick={onClose}
               size="small"
               sx={{
-                color: "#fff",
+                color: "text.primary",
                 position: "absolute",
                 top: 20,
                 right: 20,
@@ -346,8 +348,8 @@ const NodeSidebar = ({
             <Box
               sx={{
                 borderRadius: 3,
-                border: "1px solid rgba(255,255,255,.08)",
-                background: "#181818",
+                border: `1px solid ${theme.palette.divider}`,
+                bgcolor: "background.default",
                 p: 2,
               }}
             >
@@ -363,7 +365,7 @@ const NodeSidebar = ({
                     fontWeight: 700,
                     m: 2,
                     fontFamily: '"TDAText", "Lato", sans-serif',
-                    backgroundImage: "linear-gradient(90deg, #BC57FF, #FF4DCA)",
+                    backgroundImage: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
                     backgroundClip: "text",
                     color: "transparent",
                     WebkitBackgroundClip: "text",
@@ -404,24 +406,24 @@ const NodeSidebar = ({
                     );
                   }}
                   sx={{
-                    color: "#fff",
+                    color: "text.primary",
                     ".MuiOutlinedInput-notchedOutline": {
-                      borderColor: "rgba(255,255,255,.18)",
+                      borderColor: theme.palette.divider,
                     },
                     "&:hover .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "rgba(255,255,255,.28)",
+                      borderColor: theme.palette.text.primary,
                     },
                     "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "#BC57FF",
+                      borderColor: "primary.main",
                     },
-                    ".MuiSelect-icon": { color: "rgba(255,255,255,.7)" },
+                    ".MuiSelect-icon": { color: theme.palette.text.secondary },
                   }}
                   MenuProps={{
                     PaperProps: {
                       sx: {
-                        bgcolor: "#1b1b1b",
-                        border: "1px solid rgba(255,255,255,.08)",
-                        "& .MuiMenuItem-root": { color: "#fff" },
+                        bgcolor: "background.paper",
+                        border: `1px solid ${theme.palette.divider}`,
+                        "& .MuiMenuItem-root": { color: "text.primary" },
                       },
                     },
                   }}
@@ -476,8 +478,8 @@ const NodeSidebar = ({
           <Box
             sx={{
               borderRadius: 3,
-              border: "1px solid rgba(255,255,255,.08)",
-              background: "#181818",
+              border: `1px solid ${theme.palette.divider}`,
+              bgcolor: "background.default",
               overflow: "hidden",
             }}
           >
@@ -487,7 +489,7 @@ const NodeSidebar = ({
                 fontWeight: 700,
                 m: 2,
                 fontFamily: '"TDAText", "Lato", sans-serif',
-                backgroundImage: "linear-gradient(90deg, #BC57FF, #FF4DCA)",
+                backgroundImage: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
                 backgroundClip: "text",
                 color: "transparent",
                 WebkitBackgroundClip: "text",
@@ -505,9 +507,9 @@ const NodeSidebar = ({
                   textAlign: "center",
                   py: 2,
                   px: 2,
-                  color: "#fff",
+                  color: "text.primary",
                   fontSize: "0.95rem",
-                  borderTop: "1px solid rgba(255,255,255,.12)",
+                  borderTop: `1px solid ${theme.palette.divider}`,
                 }}
               >
                 <Typography sx={{ mb: 1 }}>
@@ -539,8 +541,8 @@ const NodeSidebar = ({
                                 setDeleteOpen(true);
                               }}
                               sx={{
-                                color: "rgba(255,255,255,0.7)",
-                                "&:hover": { color: "#FF4DCA" },
+                                color: theme.palette.text.secondary,
+                                "&:hover": { color: "secondary.main" },
                               }}
                             >
                               <DeleteOutlineIcon />
@@ -565,10 +567,10 @@ const NodeSidebar = ({
                         target="_blank"
                         rel="noopener noreferrer"
                         sx={{
-                          borderTop: "1px solid rgba(255,255,255,.12)",
+                          borderTop: `1px solid ${theme.palette.divider}`,
                           py: 2,
                           "&:hover": {
-                            backgroundColor: "rgba(188, 87, 255, 0.10)",
+                            backgroundColor: `rgba(${theme.palette.mode === "dark" ? "188, 87, 255" : "74, 44, 27"}, 0.10)`,
                           },
                         }}
                       >
@@ -597,7 +599,7 @@ const NodeSidebar = ({
                               <Typography
                                 sx={{
                                   fontSize: "0.8rem",
-                                  color: "rgba(255,255,255,0.6)",
+                                  color: "text.secondary",
                                 }}
                               >
                                 {item.author.username}

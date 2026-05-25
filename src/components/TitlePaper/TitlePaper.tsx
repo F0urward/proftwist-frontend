@@ -1,4 +1,5 @@
 import { Paper, Typography, Box } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import React from "react";
 
 type TitlePaperProps = {
@@ -8,6 +9,8 @@ type TitlePaperProps = {
 };
 
 const TitlePaper: React.FC<TitlePaperProps> = ({ title, subtitle, children }) => {
+  const theme = useTheme();
+
   return (
     <Paper
       sx={{
@@ -24,7 +27,7 @@ const TitlePaper: React.FC<TitlePaperProps> = ({ title, subtitle, children }) =>
           fontFamily: '"TDAText", "Lato", sans-serif',
           fontWeight: 900,
           mb: 1,
-          backgroundImage: "linear-gradient(90deg, #BC57FF, #FF4DCA)",
+          backgroundImage: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
           backgroundClip: "text",
           color: "transparent",
           WebkitBackgroundClip: "text",

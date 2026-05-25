@@ -8,6 +8,7 @@ import {
   Button,
   CircularProgress,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import CloseIcon from "@mui/icons-material/Close";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
@@ -41,6 +42,7 @@ export const NodeEditorSidebar = ({
   onDescriptionChange,
   onDelete,
 }: NodeEditorSidebarProps) => {
+  const theme = useTheme();
   const [isGeneratingDescription, setIsGeneratingDescription] =
     useState(false);
   const label = useMemo(() => (node?.data as any)?.label ?? "", [node]);
@@ -88,8 +90,8 @@ export const NodeEditorSidebar = ({
       sx={{
         width: { xs: "100%", sm: 360 },
         height: "100%",
-        bgcolor: "#181818",
-        color: "#fff",
+        bgcolor: "background.default",
+        color: "text.primary",
         zIndex: 21,
         display: "flex",
         flexDirection: "column",
@@ -105,7 +107,7 @@ export const NodeEditorSidebar = ({
             <Box>
               <Typography
                 variant="overline"
-                sx={{ color: "rgba(255,255,255,0.54)" }}
+                sx={{ color: "text.secondary" }}
               >
                 {nodeTypeRu}
               </Typography>
@@ -116,7 +118,7 @@ export const NodeEditorSidebar = ({
             <IconButton
               onClick={onClose}
               size="small"
-              sx={{ color: "rgba(255,255,255,0.72)" }}
+              sx={{ color: "text.secondary" }}
             >
               <CloseIcon fontSize="small" />
             </IconButton>
@@ -133,15 +135,15 @@ export const NodeEditorSidebar = ({
             slotProps={{
               input: {
                 sx: {
-                  bgcolor: "rgba(255,255,255,0.06)",
+                  bgcolor: `rgba(${theme.palette.mode === "dark" ? "255,255,255" : "0,0,0"}, 0.06)`,
                   borderRadius: 2,
-                  color: "#fff",
+                  color: "text.primary",
                 },
               },
               inputLabel: {
                 sx: {
-                  color: "rgba(255,255,255,0.6)",
-                  "&.Mui-focused": { color: "#fff" },
+                  color: "text.secondary",
+                  "&.Mui-focused": { color: "text.primary" },
                 },
               },
             }}
@@ -158,15 +160,15 @@ export const NodeEditorSidebar = ({
             slotProps={{
               input: {
                 sx: {
-                  bgcolor: "rgba(255,255,255,0.06)",
+                  bgcolor: `rgba(${theme.palette.mode === "dark" ? "255,255,255" : "0,0,0"}, 0.06)`,
                   borderRadius: 2,
-                  color: "#fff",
+                  color: "text.primary",
                 },
               },
               inputLabel: {
                 sx: {
-                  color: "rgba(255,255,255,0.6)",
-                  "&.Mui-focused": { color: "#fff" },
+                  color: "text.secondary",
+                  "&.Mui-focused": { color: "text.primary" },
                 },
               },
             }}
@@ -183,18 +185,22 @@ export const NodeEditorSidebar = ({
             }
             onClick={handleGenerateDescription}
             disabled={isGeneratingDescription || !label.trim()}
-            sx={{
+            sx={(theme) => ({
               textTransform: "none",
               color: "#fff",
-              background: "linear-gradient(90deg, #7E57FF, #BC57FF)",
+              background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
               "&:hover": {
-                background: "linear-gradient(90deg, #6A49E6, #AA49E6)",
+                background: `linear-gradient(90deg, ${theme.palette.primary.dark}, ${theme.palette.secondary.main})`,
               },
               "&.Mui-disabled": {
-                color: "rgba(255,255,255,0.42)",
-                background: "rgba(255,255,255,0.1)",
+                color: theme.palette.mode === "dark"
+                  ? "rgba(255,255,255,0.42)"
+                  : "rgba(44,24,16,0.38)",
+                background: theme.palette.mode === "dark"
+                  ? "rgba(255,255,255,0.1)"
+                  : "rgba(0,0,0,0.1)",
               },
-            }}
+            })}
           >
             {isGeneratingDescription
               ? "Генерация..."
@@ -208,10 +214,10 @@ export const NodeEditorSidebar = ({
             onClick={onDelete}
             sx={{
               mt: 1,
-              borderColor: "rgba(255,255,255,0.24)",
-              color: "#fff",
+              borderColor: theme.palette.divider,
+              color: "text.primary",
               "&:hover": {
-                borderColor: "rgba(255,255,255,0.45)",
+                borderColor: theme.palette.text.secondary,
               },
             }}
           >

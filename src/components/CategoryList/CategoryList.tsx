@@ -6,6 +6,7 @@ import {
   ListItemText,
   Divider,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 
 type Props = {
   items: string[];
@@ -14,6 +15,8 @@ type Props = {
 };
 
 const CategoryList = ({ items, selected = 0, onSelect }: Props) => {
+  const theme = useTheme();
+
   return (
     <Paper
       sx={{
@@ -30,7 +33,7 @@ const CategoryList = ({ items, selected = 0, onSelect }: Props) => {
       >
         Категории
       </Typography>
-      <Divider sx={{ mb: 1.5, borderBottom: "1px solid #848484" }} />
+      <Divider sx={{ mb: 1.5, borderBottom: `1px solid ${theme.palette.divider}` }} />
       <List
         disablePadding
         sx={{
@@ -67,13 +70,13 @@ const CategoryList = ({ items, selected = 0, onSelect }: Props) => {
               borderRadius: 3,
               px: 2,
               "&.Mui-selected": {
-                backgroundColor: "#2B1631",
+                backgroundColor: theme.palette.action.selected,
               },
               "&.Mui-selected:hover": {
-                backgroundColor: "#733E97",
+                backgroundColor: theme.palette.action.hover,
               },
               "&:hover": {
-                backgroundColor: "#733E97",
+                backgroundColor: theme.palette.action.hover,
               },
             }}
           >

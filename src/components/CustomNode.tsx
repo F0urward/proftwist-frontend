@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { Box, Typography, Tooltip } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { Handle, Position } from "@xyflow/react";
 import { NodeProgressStatus } from "../types/nodeProgressStatus";
 import { progressMeta } from "../types/nodeProgressStatus";
@@ -55,16 +56,18 @@ export const CustomNode = ({
   progress,
   selected,
 }: NodeProps) => {
+  const theme = useTheme();
+
   const background = useMemo(() => {
     switch (type) {
       case "primary":
-        return "#FF89DC";
+        return theme.palette.secondary.main;
       case "secondary":
-        return "#D596FF";
+        return theme.palette.primary.main;
       case "root":
-        return "linear-gradient(90deg, #D596FF 0%, #FF89DC 100%)";
+        return `linear-gradient(90deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`;
     }
-  }, [type]);
+  }, [type, theme.palette.primary.main, theme.palette.secondary.main]);
 
   const status = progress?.status ?? dataProgress?.status;
   const canShow = Boolean(showProgress) && Boolean(status);
@@ -95,7 +98,7 @@ export const CustomNode = ({
 
           "&:hover": {
             transform: "scale(1.06)",
-            boxShadow: "0 0 18px rgba(188, 87, 255, 0.65)",
+            boxShadow: `0 0 18px ${theme.palette.primary.main}A6`,
             zIndex: 10,
           },
         }}

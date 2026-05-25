@@ -1,5 +1,5 @@
 import { Avatar, Box, Chip, Stack, Typography } from "@mui/material";
-import { alpha } from "@mui/material/styles";
+import { alpha, useTheme } from "@mui/material/styles";
 
 export type UserLite = {
   id: string;
@@ -77,6 +77,7 @@ type Props = {
 };
 
 const MessagesList = ({ chat, messages, currentUserId }: Props) => {
+  const theme = useTheme();
   const byId = new Map(chat.participants.map((u) => [u.id, u] as const));
   const groups = groupByDate(messages);
 
@@ -87,7 +88,7 @@ const MessagesList = ({ chat, messages, currentUserId }: Props) => {
           <Box sx={{ display: "flex", justifyContent: "center", mb: 1 }}>
             <Chip
               label={formatDateHeader(items[0].createdAt)}
-              sx={{ bgcolor: alpha("#fff", 0.08), color: "#fff" }}
+              sx={{ bgcolor: alpha(theme.palette.text.primary, 0.08), color: "text.primary" }}
             />
           </Box>
 

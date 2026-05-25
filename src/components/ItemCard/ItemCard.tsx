@@ -1,4 +1,5 @@
 import { Paper, Box, Typography } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { East } from "@mui/icons-material";
 import { Link as RouterLink } from "react-router-dom";
 
@@ -10,6 +11,8 @@ type Props = {
 };
 
 const ItemCard = ({ title, description, to = "#", state}: Props) => {
+  const theme = useTheme();
+
   return (
     <Paper
         variant="outlined"
@@ -24,14 +27,14 @@ const ItemCard = ({ title, description, to = "#", state}: Props) => {
             px: 2.5,
             py: 2,
             borderRadius: 4,
-            borderColor: "#848484",
+            borderColor: theme.palette.divider,
             transition: "border-color .2s, background-color .2s",
             "&:hover": {
-                backgroundColor: "#2B1631",
-                borderColor: "#BC57FF",
+                backgroundColor: theme.palette.action.hover,
+                borderColor: theme.palette.primary.main,
             },
             "&:hover .arrow-box": {
-                color: "#BC57FF",
+                color: theme.palette.primary.main,
             },
         }}
     >
@@ -42,7 +45,7 @@ const ItemCard = ({ title, description, to = "#", state}: Props) => {
             <Typography
                 variant="body2"
                 sx={{
-                    color: "#BFBFBF",
+                    color: "text.secondary",
                 }}
             >
                 {description}
@@ -55,7 +58,7 @@ const ItemCard = ({ title, description, to = "#", state}: Props) => {
             sx={{
                 width: 32,
                 height: 32,
-                color: "#ffffff",
+                color: "text.primary",
                 display: "grid",
                 placeItems: "center",
             }}

@@ -138,6 +138,7 @@ const ChatListItem = ({
   onSelect: () => void;
   currentUserId: string;
 }) => {
+  const theme = useTheme();
   const avatar = getChatAvatar(chat, currentUserId);
   const hasSrc = "src" in avatar;
 
@@ -146,7 +147,7 @@ const ChatListItem = ({
       disablePadding
       sx={{
         "&:not(:last-of-type) .MuiListItemButton-root": {
-          borderBottom: "1px solid rgba(255,255,255,.08)",
+          borderBottom: `1px solid ${theme.palette.divider}`,
         },
       }}
     >
@@ -157,7 +158,7 @@ const ChatListItem = ({
           alignItems: "center",
           gap: { md: 1.25 },
           minHeight: 76,
-          "&.Mui-selected": { bgcolor: alpha("#BC57FF", 0.08) },
+          "&.Mui-selected": { bgcolor: alpha(theme.palette.primary.main, 0.08) },
         }}
       >
         <ListItemAvatar sx={{ alignSelf: "center" }}>
@@ -165,7 +166,7 @@ const ChatListItem = ({
             overlap="circular"
             badgeContent={chat.unread || 0}
             invisible={!chat.unread}
-            sx={{ "& .MuiBadge-badge": { bgcolor: "#FF4DCA" } }}
+            sx={{ "& .MuiBadge-badge": { bgcolor: "secondary.main" } }}
           >
             <Avatar
               {...(hasSrc ? { src: avatar.src } : {})}
@@ -192,7 +193,7 @@ const ChatListItem = ({
           }}
           secondaryTypographyProps={{
             sx: {
-              color: alpha("#fff", 0.75),
+              color: alpha(theme.palette.text.primary, 0.75),
               fontSize: 13,
               display: "-webkit-box",
               WebkitLineClamp: 2,
@@ -225,7 +226,9 @@ const ChatSidebar = ({
   selectedChatId,
   onSelectChat,
   currentUserId,
-}: ChatSidebarProps) => (
+}: ChatSidebarProps) => {
+  const theme = useTheme();
+  return (
   <Paper
     variant="outlined"
     sx={{
@@ -237,7 +240,7 @@ const ChatSidebar = ({
       borderRadius: 5,
     }}
   >
-    <Box sx={{ borderBottom: "1px solid rgba(255,255,255,.08)" }}>
+    <Box sx={{ borderBottom: `1px solid ${theme.palette.divider}` }}>
       <Tabs
         value={tab}
         onChange={(_, value: TabValue) => onTabChange(value)}
@@ -245,14 +248,14 @@ const ChatSidebar = ({
         sx={{
           "& .MuiTabs-indicator": { display: "none" },
           "& .MuiTab-root": {
-            color: "#fff",
+            color: "text.primary",
             textTransform: "none",
             fontWeight: 600,
-            borderRight: "1px solid rgba(255,255,255,.08)",
+            borderRight: `1px solid ${theme.palette.divider}`,
             "&:last-of-type": { borderRight: "none" },
             "&.Mui-selected": {
-              color: "#fff",
-              bgcolor: "#733E97",
+              color: "text.primary",
+              bgcolor: theme.palette.action.selected,
             },
           },
         }}
@@ -273,7 +276,7 @@ const ChatSidebar = ({
           input: {
             startAdornment: (
               <InputAdornment position="start">
-                <SearchIcon fontSize="small" sx={{ color: "#fff" }} />
+                <SearchIcon fontSize="small" sx={{ color: "text.primary" }} />
               </InputAdornment>
             ),
             endAdornment: query ? (
@@ -282,7 +285,7 @@ const ChatSidebar = ({
                   aria-label="Очистить"
                   onClick={() => onQueryChange("")}
                   size="small"
-                  sx={{ color: "#fff" }}
+                  sx={{ color: "text.primary" }}
                 >
                   <ClearIcon fontSize="small" />
                 </IconButton>
@@ -291,12 +294,12 @@ const ChatSidebar = ({
           },
         }}
         sx={{
-          "& .MuiInputBase-root": { bgcolor: "#181818", borderRadius: 3 },
+          "& .MuiInputBase-root": { bgcolor: "background.default", borderRadius: 3 },
         }}
       />
     </Box>
 
-    <Divider sx={{ borderColor: "rgba(255,255,255,.08)" }} />
+    <Divider />
 
     <Box sx={{ flex: 1, overflowY: "auto" }}>
       <List disablePadding>
@@ -331,7 +334,8 @@ const ChatSidebar = ({
       </List>
     </Box>
   </Paper>
-);
+  );
+};
 
 const MessageComposer = ({
   draft,
@@ -342,6 +346,7 @@ const MessageComposer = ({
   onPickAttachment,
   onClearAttachment,
 }: MessageComposerProps) => {
+  const theme = useTheme();
   const MAX_MESSAGE_LEN = 256;
   const SHOW_COUNTER_FROM = 200;
 
@@ -352,14 +357,14 @@ const MessageComposer = ({
   const isTooLong = draft.length > MAX_MESSAGE_LEN;
 
   return (
-    <Box sx={{ px: 2, py: 2, borderTop: "1px solid rgba(255,255,255,.08)" }}>
+    <Box sx={{ px: 2, py: 2, borderTop: `1px solid ${theme.palette.divider}` }}>
       {attachment && (
         <Box sx={{ mb: 2 }}>
           <Chip
             label={attachment.name}
             onDelete={onClearAttachment}
             deleteIcon={<CloseIcon />}
-            sx={{ bgcolor: alpha("#fff", 0.08), color: "#fff" }}
+            sx={{ bgcolor: alpha(theme.palette.text.primary, 0.08), color: "text.primary" }}
           />
         </Box>
       )}
@@ -393,11 +398,11 @@ const MessageComposer = ({
             maxRows={4}
             sx={{
               "& .MuiInputBase-root": {
-                bgcolor: "#181818",
+                bgcolor: "background.default",
                 borderRadius: 3,
                 minHeight: 44,
               },
-              "& fieldset": { borderColor: alpha("#fff", 0.16) },
+              "& fieldset": { borderColor: alpha(theme.palette.text.primary, 0.16) },
             }}
           />
           {showCounter && (
@@ -427,9 +432,9 @@ const MessageComposer = ({
           sx={{
             height: 44,
             width: 44,
-            color: "#fff",
+            color: "text.primary",
             "&.Mui-disabled": {
-              color: "#fff",
+              color: "text.primary",
               opacity: 0.6,
             },
             "& .MuiButton-endIcon": { m: 0 },
@@ -453,6 +458,7 @@ const ChatWindow = ({
   onBack,
   isMobile,
 }: ChatWindowProps) => {
+  const theme = useTheme();
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -482,13 +488,13 @@ const ChatWindow = ({
           display: "flex",
           alignItems: "center",
           justifyContent: "flex-start",
-          borderBottom: "1px solid rgba(255,255,255,.08)",
+          borderBottom: `1px solid ${theme.palette.divider}`,
         }}
       >
         {isMobile && onBack && (
           <IconButton
             onClick={onBack}
-            sx={{ color: "#fff" }}
+            sx={{ color: "text.primary" }}
             aria-label="Назад к списку чатов"
           >
             <ArrowBackIcon />
@@ -525,7 +531,7 @@ const ChatWindow = ({
               variant="h6"
               sx={{
                 fontFamily: '"TDAText", "Lato", sans-serif',
-                backgroundImage: "linear-gradient(90deg, #BC57FF, #FF4DCA)",
+                backgroundImage: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
                 backgroundClip: "text",
                 color: "transparent",
                 WebkitBackgroundClip: "text",

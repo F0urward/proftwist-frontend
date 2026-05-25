@@ -348,7 +348,7 @@ export const CreatorPage = () => {
         sx={{
           flex: 1,
           height: "100%",
-          color: "#000",
+          color: "text.primary",
           minWidth: 0,
         }}
         ref={containerRef}
@@ -372,7 +372,7 @@ export const CreatorPage = () => {
         >
           <Controls position="center-left" showZoom={false}></Controls>
 
-          <Background color="#fff" bgColor="#000" />
+                <Background color={theme.palette.mode === "dark" ? "#fff" : theme.palette.text.secondary} bgColor="transparent" />
         </ReactFlow>
 
         {isMobile && roadmapInfoId && (
@@ -402,10 +402,10 @@ export const CreatorPage = () => {
               top: 70,
               zIndex: 20,
               color: "#fff",
-              background: "linear-gradient(90deg, #7E57FF, #BC57FF)",
+              background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
               boxShadow: "0 10px 24px rgba(0,0,0,0.25)",
               "&:hover": {
-                background: "linear-gradient(90deg, #6A49E6, #AA49E6)",
+                background: `linear-gradient(90deg, ${theme.palette.primary.dark}, ${theme.palette.secondary.main})`,
               },
               "&:active": {
                 boxShadow: "0 6px 14px rgba(0,0,0,0.35)",
@@ -426,10 +426,10 @@ export const CreatorPage = () => {
               top: 70,
               zIndex: 20,
               color: "#fff",
-              background: "linear-gradient(90deg, #7E57FF, #BC57FF)",
+              background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
               boxShadow: "0 10px 24px rgba(0,0,0,0.25)",
               "&:hover": {
-                background: "linear-gradient(90deg, #6A49E6, #AA49E6)",
+                background: `linear-gradient(90deg, ${theme.palette.primary.dark}, ${theme.palette.secondary.main})`,
               },
               "&:active": {
                 boxShadow: "0 6px 14px rgba(0,0,0,0.35)",
@@ -460,7 +460,7 @@ export const CreatorPage = () => {
           slotProps={{
             paper: {
               sx: {
-                bgcolor: "#222222ff",
+                bgcolor: "background.paper",
                 borderTopLeftRadius: 24,
                 borderTopRightRadius: 24,
                 maxHeight: "75vh",

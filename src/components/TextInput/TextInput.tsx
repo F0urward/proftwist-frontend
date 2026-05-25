@@ -23,7 +23,7 @@ const TextInput = forwardRef<HTMLInputElement, TextInputProps>((props, ref) => {
           edge="end"
           aria-label={show ? "Скрыть пароль" : "Показать пароль"}
           sx={{
-            color: "#fff",
+            color: "text.primary",
           }}
         >
           {show ? <VisibilityOff /> : <Visibility />}

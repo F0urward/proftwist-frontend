@@ -9,6 +9,7 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { materialsService } from "../../api/material.service";
 import { Material } from "../../types/material";
 import { parseModerationMessage } from "../../utils/parseModerationMessage";
@@ -39,6 +40,7 @@ const AddMaterialModal = ({
   onSave,
   notify,
 }: AddMaterialModalProps) => {
+  const theme = useTheme();
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
   const [error, setError] = useState("");
@@ -109,7 +111,7 @@ const AddMaterialModal = ({
           textAlign: "center",
           fontFamily: '"TDAText", "Lato", sans-serif',
           fontWeight: 900,
-          backgroundImage: "linear-gradient(90deg, #BC57FF, #FF4DCA)",
+          backgroundImage: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
           backgroundClip: "text",
           color: "transparent",
           WebkitBackgroundClip: "text",
