@@ -279,11 +279,11 @@ const RoadmapPage = () => {
     try {
       const roadmapInfoId = info.id;
       const newRoadmap = await roadmapinfoService.fork(roadmapInfoId);
-      showNotification("Форк роадмапа успешно создан!", "success");
+      showNotification("Копия роадмапа успешно создана!", "success");
       navigate(`/roadmaps/${newRoadmap.id}`);
     } catch (e) {
-      console.error("Ошибка при форке:", e);
-      showNotification("Не удалось сделать форк", "error");
+      console.error("Ошибка при создании копии:", e);
+      showNotification("Не удалось создать копию роадмапа", "error");
     }
   };
 
@@ -466,7 +466,7 @@ const RoadmapPage = () => {
                 onClick={handleFork}
                 startIcon={<CallSplitOutlinedIcon />}
               >
-                Сделать форк
+                Сделать копию
               </Button>
             </Tooltip>
           </Stack>
