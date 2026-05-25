@@ -2,6 +2,7 @@ import { useState } from "react";
 import {
   Box,
   Button,
+  CircularProgress,
   Drawer,
   IconButton,
   List,
@@ -119,6 +120,7 @@ const NodeSidebar = ({
     useState<NodeProgressStatus>(initialStatus);
 
   const [isSavingProgress, setIsSavingProgress] = useState(false);
+  const [isLoadingChat, setIsLoadingChat] = useState(false);
 
   const title = node?.data?.label ?? "Навык";
 
@@ -263,11 +265,13 @@ const NodeSidebar = ({
             <Button
               fullWidth
               variant="contained"
+              disabled={isLoadingChat}
               onClick={async () => {
                 if (!node?.id) {
                   alert("Идентификатор чата для этой ноды недоступен.");
                   return;
                 }
+                setIsLoadingChat(true);
                 try {
                   const { data } = await chatsService.getChatId(node.id);
                   const chatId =
@@ -325,10 +329,16 @@ const NodeSidebar = ({
                 } catch (error) {
                   console.error("Failed to open chat for this node.", error);
                   alert("Не удалось открыть чат для этой ноды.");
+                } finally {
+                  setIsLoadingChat(false);
                 }
               }}
             >
-              Перейти в чат
+              {isLoadingChat ? (
+                <CircularProgress size={20} sx={{ color: "#fff" }} />
+              ) : (
+                "Перейти в чат"
+              )}
             </Button>
           )}
 
