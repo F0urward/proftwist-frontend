@@ -248,7 +248,7 @@ export const Sidebar = ({
               navigate(`/roadmaps/${roadmapInfoId}`);
             }}
           >
-            К просмотру роадмапа
+            К просмотру дорожной карты
           </Button>
         )}
         {actions.map(({ Icon, title, handleClick, disabled, isLoading }) => (

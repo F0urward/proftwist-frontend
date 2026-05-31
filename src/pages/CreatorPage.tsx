@@ -284,7 +284,7 @@ export const CreatorPage = () => {
         setLeaveOpen(false);
       }
 
-      showNotification("Роадмап успешно сохранён!", "success");
+      showNotification("Дорожная карта успешно сохранена!", "success");
     } catch (e) {
       console.error("Ошибка при сохранении:", e);
       const serverMessage = e?.response?.data?.message;
@@ -302,7 +302,7 @@ export const CreatorPage = () => {
           "error",
         );
       } else {
-        showNotification("Ошибка при сохранении роадмапа", "error");
+        showNotification("Ошибка при сохранении дорожной карты", "error");
       }
     }
   }, [roadmap_id, nodes, edges, showNotification, blocker]);
@@ -504,7 +504,7 @@ export const CreatorPage = () => {
         title="Есть несохранённые изменения"
         message={
           <>
-            Вы изменили роадмап, но не сохранили изменения.
+            Вы изменили дорожную карту, но не сохранили изменения.
             <br />
             <strong>Если выйти сейчас — изменения будут потеряны.</strong>
           </>

@@ -255,10 +255,13 @@ const RoadmapPage = () => {
     try {
       const roadmapInfoId = info.id;
       await roadmapinfoService.subscribe(roadmapInfoId);
-      showNotification("Роадмап добавлен в избранное!", "success");
+      showNotification("Дорожная карта добавлена в избранное!", "success");
       setIsSubscribed(true);
     } catch (e) {
-      showNotification("Не удалось добавить роадмап в избранное", "error");
+      showNotification(
+        "Не удалось добавить дорожную карту в избранное",
+        "error",
+      );
     }
   };
 
@@ -267,10 +270,13 @@ const RoadmapPage = () => {
     try {
       const roadmapInfoId = info.id;
       await roadmapinfoService.unsubscribe(roadmapInfoId);
-      showNotification("Роадмап удалён из избранного", "success");
+      showNotification("Дорожная карта удалена из избранного", "success");
       setIsSubscribed(false);
     } catch (e) {
-      showNotification("Не удалось удалить роадмап из избранного", "error");
+      showNotification(
+        "Не удалось удалить дорожную карту из избранного",
+        "error",
+      );
     }
   };
 
@@ -279,11 +285,11 @@ const RoadmapPage = () => {
     try {
       const roadmapInfoId = info.id;
       const newRoadmap = await roadmapinfoService.fork(roadmapInfoId);
-      showNotification("Копия роадмапа успешно создана!", "success");
+      showNotification("Копия дорожной карты успешно создана!", "success");
       navigate(`/roadmaps/${newRoadmap.id}`);
     } catch (e) {
       console.error("Ошибка при создании копии:", e);
-      showNotification("Не удалось создать копию роадмапа", "error");
+      showNotification("Не удалось создать копию дорожной карты", "error");
     }
   };
 
@@ -296,11 +302,11 @@ const RoadmapPage = () => {
     if (!info?.id) return;
     try {
       const newInfo = await roadmapinfoService.publish(info.id);
-      showNotification("Роадмап успешно опубликован!", "success");
+      showNotification("Дорожная карта успешно опубликована!", "success");
 
       navigate(`/roadmaps/${newInfo.id}`);
     } catch (e) {
-      showNotification("Не удалось опубликовать роадмап", "error");
+      showNotification("Не удалось опубликовать дорожную карту", "error");
     } finally {
       setConfirmOpen(false);
     }
@@ -310,10 +316,10 @@ const RoadmapPage = () => {
     if (!info?.id) return;
     try {
       await roadmapinfoService.delete(info.id);
-      showNotification("Роадмап успешно удалён", "success");
+      showNotification("Дорожная карта успешно удалена", "success");
       navigate("/personal");
     } catch (e) {
-      showNotification("Не удалось удалить роадмап", "error");
+      showNotification("Не удалось удалить дорожную карту", "error");
     } finally {
       setDeleteOpen(false);
     }
@@ -367,7 +373,9 @@ const RoadmapPage = () => {
 
     const label = username.length > 0 ? username : "ProfTwist";
     const isOfficial = username.length === 0;
-    const finalLabel = isOfficial ? "ОФИЦИАЛЬНЫЙ РОАДМАП" : `АВТОР: ${label}`;
+    const finalLabel = isOfficial
+      ? "ОФИЦИАЛЬНАЯ ДОРОЖНАЯ КАРТА"
+      : `АВТОР: ${label}`;
 
     return (
       <Box
@@ -435,7 +443,7 @@ const RoadmapPage = () => {
             {!isSubscribed && !isAuthor && (
               <Tooltip
                 arrow
-                title="Добавить роадмап в избранное для быстрого доступа и отслеживания прогресса"
+                title="Добавить дорожную карту в избранное для быстрого доступа и отслеживания прогресса"
               >
                 <Button
                   variant="contained"
@@ -447,7 +455,7 @@ const RoadmapPage = () => {
               </Tooltip>
             )}
             {isSubscribed && (
-              <Tooltip arrow title="Дайте этому роадмапу ещё один шанс :)">
+              <Tooltip arrow title="Дайте этой дорожной карте ещё один шанс :)">
                 <Button
                   variant="contained"
                   onClick={handleUnsubscribe}
@@ -459,7 +467,7 @@ const RoadmapPage = () => {
             )}
             <Tooltip
               arrow
-              title="Создать копию роадмапа, чтобы редактировать под себя"
+              title="Создать копию дорожной карты, чтобы редактировать под себя"
             >
               <Button
                 variant="contained"
@@ -511,7 +519,7 @@ const RoadmapPage = () => {
               <Typography variant="body1">
                 Прогресс: {progress.done}/{progress.total} ({progress.percent}%)
               </Typography>
-              <LinearProgress variant="determinate" value={progress.percent} 
+              <LinearProgress variant="determinate" value={progress.percent}
               sx={{
                 height: 10,
                 borderRadius: 5,
@@ -542,11 +550,11 @@ const RoadmapPage = () => {
                 }
               }}
             >
-              Редактировать роадмап
+              Редактировать дорожную карту
             </Button>
             <Tooltip
               arrow
-              title="После публикации роадмап нельзя будет редактировать"
+              title="После публикации дорожной карты нельзя будет редактировать"
             >
               <Button
                 variant="contained"
@@ -577,7 +585,7 @@ const RoadmapPage = () => {
               </DialogTitle>
               <DialogContent>
                 <Typography>
-                  Вы уверены, что хотите опубликовать роадмап?
+                  Вы уверены, что хотите опубликовать дорожную карту?
                   <br />
                   <strong>
                     После публикации его нельзя будет редактировать.
@@ -611,11 +619,11 @@ const RoadmapPage = () => {
             fullWidth
           >
             <DialogTitle sx={{ textAlign: "center" }}>
-              Удаление роадмапа
+              Удаление дорожной карты
             </DialogTitle>
             <DialogContent>
               <Typography>
-                Вы уверены, что хотите удалить этот роадмап?
+                Вы уверены, что хотите удалить эту дорожную карту?
                 <br />
                 Это действие <strong>нельзя будет отменить</strong>.
               </Typography>
@@ -634,37 +642,37 @@ const RoadmapPage = () => {
 
   const backLink = useMemo(() => {
     if (type === "owned" || type === "fork") {
-      return { to: "/personal", label: "К моим роадмапам" };
+      return { to: "/personal", label: "К моим дорожным картам" };
     }
 
     if (type === "saved" || type === "public") {
       if (from === "personal") {
-        return { to: "/personal", label: "К моим роадмапам" };
+        return { to: "/personal", label: "К моим дорожным картам" };
       } else {
-        return { to: "/roadmaps", label: "Ко всем роадмапам" };
+        return { to: "/roadmaps", label: "Ко всем дорожным картам" };
       }
     }
 
-    return { to: "/roadmaps", label: "Ко всем роадмапам" };
+    return { to: "/roadmaps", label: "Ко всем дорожным картам" };
   }, [type, from]);
 
   const titleText = notFound
-    ? "Роадмап не найден"
+    ? "Дорожная карта не найдена"
     : info?.name ||
       (type === "public"
-        ? "Официальный роадмап"
+        ? "Официальная дорожная карта"
         : type === "owned"
-          ? "Мой роадмап"
-          : "Сохранённый роадмап");
+          ? "Моя дорожная карта"
+          : "Сохранённая дорожная карта");
 
   const subtitleText = notFound
-    ? "На странице роадмапов вы точно найдете то, что ищете"
+    ? "На странице дорожных карт вы точно найдете то, что ищете"
     : info?.description ||
       (type === "public"
         ? "Изучите профессию по проверенному плану"
         : type === "owned"
           ? "Ваш персональный план: можно редактировать и отслеживать прогресс"
-          : "Вы сохранили этот роадмап и отслеживаете прогресс");
+          : "Вы сохранили эту дорожную карту и отслеживаете прогресс");
 
   const showFlow = !notFound && (nodes.length > 0 || edges.length > 0);
 
@@ -811,8 +819,7 @@ const RoadmapPage = () => {
                   overflow: "hidden",
                   "& .MuiLinearProgress-bar": {
                     borderRadius: 999,
-                    background:
-                      `linear-gradient(90deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+                    background: `linear-gradient(90deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
                     boxShadow: `0 0 18px ${theme.palette.secondary.main}59`,
                   },
                 }}
@@ -866,7 +873,7 @@ const RoadmapPage = () => {
             leaveTouchDelay={4000}
             title={
               <>
-                <b>Как управлять роадмапом:</b>
+                <b>Как управлять дорожной картой:</b>
                 <br /> Масштабирование: pinch (телефон, тачпад) / Ctrl + колесо
                 мыши <br />
                 Перемещение карты:

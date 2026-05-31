@@ -33,7 +33,7 @@ const RoadmapsDropdown = () => {
         variant={inRoadmapsSection ? "contained" : "text"}
         onClick={handleOpen}
       >
-        Роадмапы
+        Дорожные карты
       </Button>
 
       <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
@@ -48,14 +48,14 @@ const RoadmapsDropdown = () => {
           <ListItemIcon>
             <Map fontSize="small" sx={{ color: "primary.main" }} />
           </ListItemIcon>
-          <ListItemText primary="Официальные роадмапы" />
+          <ListItemText primary="Официальные дорожные карты" />
         </MenuItem>
 
         <MenuItem component={NavLink} to="/personal" onClick={handleClose}>
           <ListItemIcon>
             <Person fontSize="small" sx={{ color: "primary.main" }} />
           </ListItemIcon>
-          <ListItemText primary="Мои роадмапы" />
+          <ListItemText primary="Мои дорожные карты" />
         </MenuItem>
       </Menu>
     </>

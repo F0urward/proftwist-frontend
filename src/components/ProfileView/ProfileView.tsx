@@ -227,7 +227,7 @@ const ProfileView = () => {
             }}
           >
             <GroupIcon sx={{ fontSize: 18 }} />
-            <Typography>Мои роадмапы</Typography>
+            <Typography>Мои дорожные карты</Typography>
             <East
               className="arrow"
               sx={{

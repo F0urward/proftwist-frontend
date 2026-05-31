@@ -215,7 +215,7 @@ const Navbar = () => {
               </Button>
 
               <Button variant="text" onClick={() => setIsCreateModalOpen(true)}>
-                Создать роадмап
+                Создать дорожную карту
               </Button>
             </Box>
 
@@ -250,7 +250,7 @@ const Navbar = () => {
                   <ListItemIcon>
                     <MapIcon fontSize="small" sx={{ color: "primary.main" }} />
                   </ListItemIcon>
-                  <ListItemText primary="Роадмапы" />
+                  <ListItemText primary="Дорожные карты" />
                 </MenuItem>
 
                 <MenuItem
@@ -262,7 +262,7 @@ const Navbar = () => {
                   <ListItemIcon>
                     <Person fontSize="small" sx={{ color: "primary.main" }} />
                   </ListItemIcon>
-                  <ListItemText primary="Мои роадмапы" />
+                  <ListItemText primary="Мои дорожные карты" />
                 </MenuItem>
 
                 <MenuItem
@@ -301,7 +301,7 @@ const Navbar = () => {
                   <ListItemIcon>
                     <AddIcon fontSize="small" sx={{ color: "primary.main" }} />
                   </ListItemIcon>
-                  <ListItemText primary="Создать роадмап" />
+                  <ListItemText primary="Создать дорожную карту" />
                 </MenuItem>
               </Menu>
             </Box>
@@ -316,7 +316,7 @@ const Navbar = () => {
             }}
           >
             <Button variant="text" component={NavLink} to="/roadmaps">
-              Роадмапы
+              Дорожные карты
             </Button>
           </Box>
         )}

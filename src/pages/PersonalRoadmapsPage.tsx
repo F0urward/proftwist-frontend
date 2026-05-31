@@ -27,11 +27,11 @@ const PersonalRoadmapsPage = () => {
 
   const categoryNames = useMemo(
     () => [
-      "Все мои роадмапы",
+      "Все мои дорожные карты",
       "Избранное",
-      "Созданные роадмапы",
-      "Копии чужих роадмапов",
-      "Опубликованные роадмапы",
+      "Созданные дорожные карты",
+      "Копии чужих дорожных карт",
+      "Опубликованные дорожные карты",
     ],
     [],
   );
@@ -106,7 +106,7 @@ const PersonalRoadmapsPage = () => {
   return (
     <BaseLayout>
       <TitlePaper
-        title="Мои роадмапы"
+        title="Мои дорожные карты"
         subtitle="Изучите свою профессию быстрее вместе с нами"
       >
         <>
@@ -115,7 +115,7 @@ const PersonalRoadmapsPage = () => {
             startIcon={<AddCircleOutlineIcon />}
             onClick={() => setModalOpen(true)}
           >
-            Создать свой роадмап
+            Создать свою дорожную карту
           </Button>
         </>
       </TitlePaper>

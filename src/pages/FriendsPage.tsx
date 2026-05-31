@@ -946,7 +946,7 @@ const FriendsPage = () => {
                             {friend.focus}
                           </Typography>
                           <Chip
-                            label={`${friend.sharedRoadmaps} общих роадмапов`}
+                            label={`${friend.sharedRoadmaps} общих дорожных карт`}
                             size="small"
                             variant="outlined"
                             sx={{ alignSelf: "flex-start" }}

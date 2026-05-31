@@ -107,7 +107,7 @@ const CreateRoadmapInfoModal = ({
         onClose();
       }
     } catch (e) {
-      console.error("Ошибка при создании роадмапа:", e);
+      console.error("Ошибка при создании дорожной карты:", e);
 
       const serverMessage = e?.response?.data?.message;
 
@@ -123,8 +123,8 @@ const CreateRoadmapInfoModal = ({
             : "Модерация не пройдена",
         );
       } else {
-        if (isEdit) setError("Не удалось сохранить изменения о роадмапе");
-        else setError("Не удалось создать роадмап");
+        if (isEdit) setError("Не удалось сохранить изменения о дорожной карте");
+        else setError("Не удалось создать дорожную карту");
       }
     } finally {
       setLoading(false);
@@ -149,8 +149,8 @@ const CreateRoadmapInfoModal = ({
         }}
       >
         {isEdit
-          ? "Редактировать информацию о роадмапе"
-          : "Создать новый роадмап"}
+          ? "Редактировать информацию о дорожной карте"
+          : "Создать новую дорожную карту"}
       </DialogTitle>
       <DialogContent>
         <Stack spacing={3} sx={{ paddingTop: "10px" }}>
