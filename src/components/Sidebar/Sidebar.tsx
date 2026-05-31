@@ -7,6 +7,7 @@ import {
   DialogTitle,
   Stack,
   TextField,
+  Tooltip,
 } from "@mui/material";
 
 import Crop75Icon from "@mui/icons-material/Crop75";
@@ -45,6 +46,7 @@ interface Actions {
   title: string;
   handleClick: () => void;
   disabled?: boolean;
+  disabledReason?: string;
   isLoading?: boolean;
 }
 
@@ -60,6 +62,7 @@ export const Sidebar = ({
   const navigate = useNavigate();
 
   const nodes = useAppSelector((state: RootState) => state.editor.nodes);
+  const hasRootNode = nodes.some((n) => n.data.type === "root");
   const edges = useAppSelector((state: RootState) => state.editor.edges);
   const [roadmapInfoId, setRoadmapInfoId] = useState<string | null>(null);
   const [isGeneratingRoadmap, setIsGeneratingRoadmap] = useState(false);
@@ -153,6 +156,8 @@ export const Sidebar = ({
       Icon: Crop75Icon,
       title: "Корневая нода",
       handleClick: () => addNode("root"),
+      disabled: hasRootNode,
+      disabledReason: "Корневая нода уже добавлена",
     },
     {
       Icon: Crop75Icon,
@@ -251,23 +256,45 @@ export const Sidebar = ({
             К просмотру дорожной карты
           </Button>
         )}
-        {actions.map(({ Icon, title, handleClick, disabled, isLoading }) => (
-          <Button
-            key={title}
-            startIcon={
-              isLoading ? (
-                <CircularProgress size={18} color="inherit" />
-              ) : (
-                <Icon />
-              )
+        {actions.map(
+          ({
+            Icon,
+            title,
+            handleClick,
+            disabled,
+            disabledReason,
+            isLoading,
+          }) => {
+            const button = (
+              <Button
+                key={title}
+                startIcon={
+                  isLoading ? (
+                    <CircularProgress size={18} color="inherit" />
+                  ) : (
+                    <Icon />
+                  )
+                }
+                variant="contained"
+                onClick={handleClick}
+                disabled={Boolean(disabled)}
+                sx={{ width: "100%" }}
+              >
+                {title}
+              </Button>
+            );
+
+            if (disabled && disabledReason) {
+              return (
+                <Tooltip key={title} title={disabledReason}>
+                  <div>{button}</div>
+                </Tooltip>
+              );
             }
-            variant="contained"
-            onClick={handleClick}
-            disabled={Boolean(disabled)}
-          >
-            {title}
-          </Button>
-        ))}
+
+            return button;
+          },
+        )}
 
         <input
           ref={fileInputRef}

@@ -210,6 +210,7 @@ export const CreatorPage = () => {
 
   const addNode = (type: "root" | "primary" | "secondary" | "text") => {
     if (!containerRef.current) return;
+    if (type === "root" && nodes.some((n) => n.data.type === "root")) return;
 
     const rect = containerRef.current.getBoundingClientRect();
     const centerX = rect.width / 2;
