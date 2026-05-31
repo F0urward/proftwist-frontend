@@ -8,6 +8,7 @@ import {
   Button,
   Stack,
   MenuItem,
+  CircularProgress,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
@@ -194,7 +195,13 @@ const CreateRoadmapInfoModal = ({
       <DialogActions>
         <Button onClick={onClose}>Отмена</Button>
         <Button variant="contained" onClick={handleSubmit} disabled={loading}>
-          {isEdit ? "Сохранить" : "Создать"}
+          {loading ? (
+            <CircularProgress size={24} color="inherit" />
+          ) : isEdit ? (
+            "Сохранить"
+          ) : (
+            "Создать"
+          )}
         </Button>
       </DialogActions>
     </Dialog>
