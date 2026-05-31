@@ -1,89 +1,23 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { chatsService } from "../api";
 import type { Chat, ChatMessage } from "../types/chat";
 import {
   CURRENT_USER_ID,
-  extractChatList,
-  extractMessageList,
-  formatChatTime,
-  mapChatFromApi,
   mapMessageFromApi,
 } from "../utils/chat-utils";
-
-type ActiveChatResolver = () => string | null;
+import { useChatList } from "./useChatList";
+import { useChatSelection } from "./useChatSelection";
+import { useMessageCommit } from "./useMessageCommit";
+import { useMessagesStore } from "./useMessagesStore";
 
 const MAX_MESSAGE_LENGTH = 512;
-
-const sortMessagesByDate = (items: ChatMessage[]): ChatMessage[] =>
-  [...items].sort(
-    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-  );
-
-const useMessagesStore = (resolveActiveChat: ActiveChatResolver) => {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-
-  const replaceMessages = useCallback((incoming: ChatMessage[]) => {
-    setMessages(sortMessagesByDate(incoming));
-  }, []);
-
-  const upsertMessageForActiveChat = useCallback(
-    (message: ChatMessage) => {
-      setMessages((prev) => {
-        if (resolveActiveChat() !== message.chatId) return prev;
-        const exists = prev.some((item) => item.id === message.id);
-        const next = exists
-          ? prev.map((item) => (item.id === message.id ? message : item))
-          : [...prev, message];
-        return sortMessagesByDate(next);
-      });
-    },
-    [resolveActiveChat],
-  );
-
-  const removeMessageForActiveChat = useCallback(
-    (chatId: string, messageId: string) => {
-      setMessages((prev) => {
-        if (resolveActiveChat() !== chatId) return prev;
-        return prev.filter((item) => item.id !== messageId);
-      });
-    },
-    [resolveActiveChat],
-  );
-
-  const patchMessageForActiveChat = useCallback(
-    (messageId: string, patch: Record<string, unknown>) => {
-      setMessages((prev) => {
-        if (resolveActiveChat() !== patch.chatId) return prev;
-        return prev.map((m) =>
-          m.id === messageId ? { ...m, ...patch as Partial<ChatMessage> } : m,
-        );
-      });
-    },
-    [resolveActiveChat],
-  );
-
-  const clearMessages = useCallback(() => setMessages([]), []);
-
-  return {
-    messages,
-    replaceMessages,
-    upsertMessageForActiveChat,
-    removeMessageForActiveChat,
-    patchMessageForActiveChat,
-    clearMessages,
-  };
-};
-
-type FetchOptions = {
-  silent?: boolean;
-};
 
 type UseChatManagerResult = {
   currentUserId: string;
   chats: Chat[];
   chatsLoading: boolean;
   chatsError: string | null;
-  refreshChats: (options?: FetchOptions) => Promise<void>;
+  refreshChats: (options?: { silent?: boolean }) => Promise<void>;
   selectedChat: Chat | null;
   selectedChatId: string | null;
   selectChat: (chatId: string) => void;
@@ -116,36 +50,28 @@ export const useChatManager = (
   preferredUserId?: string,
 ): UseChatManagerResult => {
   const currentUserId = preferredUserId ?? CURRENT_USER_ID;
-  const [chats, setChats] = useState<Chat[]>([]);
-  const [chatsLoading, setChatsLoading] = useState(false);
-  const [chatsError, setChatsError] = useState<string | null>(null);
 
-  const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
-  const [messagesLoading, setMessagesLoading] = useState(false);
-  const [messagesError, setMessagesError] = useState<string | null>(null);
+  // Chat list
+  const {
+    chats,
+    chatsLoading,
+    chatsError,
+    fetchChats,
+    updateChatPreview,
+    syncParticipantFromMessage,
+  } = useChatList(currentUserId);
 
-  const [draft, setDraft] = useState("");
-  const [isSending, setIsSending] = useState(false);
-  const [attachment, setAttachment] = useState<File | null>(null);
+  // Chat selection
+  const {
+    selectedChatId,
+    selectedChat,
+    selectedChatType,
+    selectChat: setSelectedId,
+    chatTypeFor,
+    selectedIdRef,
+  } = useChatSelection(chats);
 
-  const [threadMessages, setThreadMessages] = useState<ChatMessage[]>([]);
-  const [currentThreadRootId, setCurrentThreadRootId] = useState<string | null>(null);
-  const [threadDraft, setThreadDraft] = useState("");
-  const [isSendingThread, setIsSendingThread] = useState(false);
-  const [threadMessagesLoading, setThreadMessagesLoading] = useState(false);
-  const [threadMessagesError, setThreadMessagesError] = useState<string | null>(null);
-
-  const wsRef = useRef<WebSocket | null>(null);
-  const [wsReady, setWsReady] = useState(false);
-  const selectedIdRef = useRef<string | null>(null);
-  const chatTypeFor = useCallback(
-    (chatId: string | null): "direct" | "group" => {
-      if (!chatId) return "direct";
-      const chat = chats.find((item) => item.id === chatId);
-      return chat?.type === "group" ? "group" : "direct";
-    },
-    [chats],
-  );
+  // Message store
   const resolveActiveChat = useCallback(() => selectedIdRef.current, []);
   const {
     messages,
@@ -155,234 +81,82 @@ export const useChatManager = (
     patchMessageForActiveChat,
     clearMessages,
   } = useMessagesStore(resolveActiveChat);
-  const currentChatRef = useRef<string | null>(null);
-  const pendingJoinRef = useRef<string | null>(null);
-  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
-  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const isTypingRef = useRef(false);
-  const [connectRequested, setConnectRequested] = useState(false);
-  const currentThreadRootIdRef = useRef<string | null>(null);
-  const typingIndicatorTimeoutRef = useRef<ReturnType<
-    typeof setTimeout
-  > | null>(null);
+
+  // Message commit coordination
   const [typingNotice, setTypingNotice] = useState<string | null>(null);
+  const { commitMessage, dropMessage } = useMessageCommit(
+    syncParticipantFromMessage,
+    upsertMessageForActiveChat,
+    updateChatPreview,
+    removeMessageForActiveChat,
+    setTypingNotice,
+    selectedIdRef,
+  );
+
+  // Message loading
+  const [messagesLoading, setMessagesLoading] = useState(false);
+  const [messagesError, setMessagesError] = useState<string | null>(null);
 
   const clearMessagesError = useCallback(() => setMessagesError(null), []);
 
-  const updateChatPreview = useCallback(
-    (message: ChatMessage) => {
-      setChats((prev) =>
-        prev.map((chat) =>
-          chat.id === message.chatId
-            ? {
-                ...chat,
-                lastMessage: message.text,
-                time: formatChatTime(message.createdAt),
-              }
-            : chat,
-        ),
-      );
-    },
-    [setChats],
-  );
+  // Draft / Composition
+  const [draft, setDraft] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const [attachment, setAttachment] = useState<File | null>(null);
 
-  const syncParticipantFromMessage = useCallback((message: ChatMessage) => {
-    if (!message.senderId) return;
-    const hasProfileInfo = Boolean(
-      message.senderName || message.senderNickname || message.senderAvatar,
-    );
-    if (!hasProfileInfo) return;
+  // Thread state
+  const [threadMessages, setThreadMessages] = useState<ChatMessage[]>([]);
+  const [currentThreadRootId, setCurrentThreadRootId] = useState<string | null>(null);
+  const [threadDraft, setThreadDraft] = useState("");
+  const [isSendingThread, setIsSendingThread] = useState(false);
+  const [threadMessagesLoading, setThreadMessagesLoading] = useState(false);
+  const [threadMessagesError, setThreadMessagesError] = useState<string | null>(null);
+  const currentThreadRootIdRef = useRef<string | null>(null);
 
-    setChats((prev) =>
-      prev.map((chat) => {
-        if (chat.id !== message.chatId) return chat;
-        const existing = chat.participants.find(
-          (participant) => participant.id === message.senderId,
-        );
-        if (existing) {
-          const nextParticipant = {
-            ...existing,
-            name: message.senderName ?? existing.name,
-            nickname: message.senderNickname ?? existing.nickname,
-            avatar: message.senderAvatar ?? existing.avatar,
-          };
-          if (
-            nextParticipant.name === existing.name &&
-            nextParticipant.nickname === existing.nickname &&
-            nextParticipant.avatar === existing.avatar
-          ) {
-            return chat;
-          }
-          return {
-            ...chat,
-            participants: chat.participants.map((participant) =>
-              participant.id === message.senderId
-                ? nextParticipant
-                : participant,
-            ),
-          };
-        }
+  // WebSocket refs
+  const wsRef = useRef<WebSocket | null>(null);
+  const [wsReady, setWsReady] = useState(false);
+  const currentChatRef = useRef<string | null>(null);
+  const pendingJoinRef = useRef<string | null>(null);
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [connectRequested, setConnectRequested] = useState(false);
 
-        return {
-          ...chat,
-          participants: [
-            ...chat.participants,
-            {
-              id: message.senderId,
-              name:
-                message.senderName ?? message.senderNickname ?? "Пользователь",
-              nickname: message.senderNickname,
-              avatar: message.senderAvatar,
-            },
-          ],
-        };
-      }),
-    );
-  }, []);
+  // Typing refs
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isTypingRef = useRef(false);
+  const typingIndicatorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const commitMessage = useCallback(
-    (message: ChatMessage) => {
-      syncParticipantFromMessage(message);
-      upsertMessageForActiveChat(message);
-      updateChatPreview(message);
-      if (selectedIdRef.current === message.chatId) {
-        setTypingNotice(null);
-      }
-    },
-    [syncParticipantFromMessage, upsertMessageForActiveChat, updateChatPreview],
-  );
+  useEffect(() => {
+    currentThreadRootIdRef.current = currentThreadRootId;
+  }, [currentThreadRootId]);
 
-  const dropMessage = useCallback(
-    (chatId: string, messageId: string) => {
-      removeMessageForActiveChat(chatId, messageId);
-    },
-    [removeMessageForActiveChat],
-  );
-
-  const sendWsMessage = useCallback((type: string, data: unknown) => {
-    const ws = wsRef.current;
-    if (!ws || ws.readyState !== WebSocket.OPEN) return false;
-
-    try {
-      ws.send(
-        JSON.stringify({
-          type,
-          data,
-          timestamp: new Date().toISOString(),
-        }),
-      );
-      return true;
-    } catch (err) {
-      console.error("Failed to send WS message", err);
-      return false;
+  useEffect(() => {
+    if (selectedChatId && !chats.some((chat) => chat.id === selectedChatId)) {
+      setSelectedId("");
+      setTypingNotice(null);
     }
-  }, []);
+  }, [chats, selectedChatId, setSelectedId]);
 
   const requestMessages = useCallback(
     async (chatId: string, chatType: "direct" | "group", limit = 50) => {
       const { data } = await chatsService.getMessages(
         chatId,
-        {
-          limit,
-          offset: 0,
-        },
+        { limit, offset: 0 },
         chatType,
       );
+      const { extractMessageList } = await import("../utils/chat-utils");
       const list = extractMessageList(data);
       return list
-        .map((item) => mapMessageFromApi(item, chatId))
+        .map((item: any) => mapMessageFromApi(item, chatId))
         .sort(
-          (a, b) =>
+          (a: ChatMessage, b: ChatMessage) =>
             new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
         );
     },
     [],
   );
 
-  const fetchLatestMessagePreview = useCallback(
-    async (chatId: string, chatType: "direct" | "group") => {
-      try {
-        const items = await requestMessages(chatId, chatType, 1);
-        const last = items[items.length - 1];
-        if (last) {
-          syncParticipantFromMessage(last);
-          updateChatPreview(last);
-        }
-      } catch (err) {
-        console.warn(`Failed to fetch preview for chat ${chatId}`, err);
-      }
-    },
-    [requestMessages, syncParticipantFromMessage, updateChatPreview],
-  );
-
-  const fetchChats = useCallback(
-    async ({ silent }: FetchOptions = {}) => {
-      if (!silent) {
-        setChatsLoading(true);
-        setChatsError(null);
-      }
-
-      try {
-        const [directResponse, groupResponse] = await Promise.all([
-          chatsService.listDirectChats(),
-          chatsService.listGroupChats(),
-        ]);
-        const directChats = extractChatList(directResponse?.data);
-        const groupChats = extractChatList(groupResponse?.data);
-        const normalized = [
-          ...directChats.map((item) =>
-            mapChatFromApi(item, currentUserId, "personal"),
-          ),
-          ...groupChats.map((item) =>
-            mapChatFromApi(item, currentUserId, "group"),
-          ),
-        ];
-        setChats(normalized);
-        normalized.forEach((chat) => {
-          const chatType = chat.type === "group" ? "group" : "direct";
-          void fetchLatestMessagePreview(chat.id, chatType);
-        });
-      } catch (err) {
-        console.error("Failed to load chats", err);
-        if (!silent) setChatsError("Не удалось загрузить список чатов");
-      } finally {
-        if (!silent) setChatsLoading(false);
-      }
-    },
-    [currentUserId, fetchLatestMessagePreview],
-  );
-
-  useEffect(() => {
-    fetchChats();
-  }, [fetchChats]);
-
-  useEffect(() => {
-    if (selectedChatId && !chats.some((chat) => chat.id === selectedChatId)) {
-      setSelectedChatId(null);
-      setTypingNotice(null);
-    }
-  }, [chats, selectedChatId]);
-
-  useEffect(() => {
-    selectedIdRef.current = selectedChatId;
-  }, [selectedChatId]);
-
-  useEffect(() => {
-    currentThreadRootIdRef.current = currentThreadRootId;
-  }, [currentThreadRootId]);
-
-  const selectedChat = useMemo(
-    () => chats.find((chat) => chat.id === selectedChatId) ?? null,
-    [chats, selectedChatId],
-  );
-  const selectedChatType: "direct" | "group" | null = selectedChat
-    ? selectedChat.type === "group"
-      ? "group"
-      : "direct"
-    : null;
-
+  // Load messages when chat changes
   useEffect(() => {
     if (!selectedChatId) {
       clearMessages();
@@ -404,7 +178,7 @@ export const useChatManager = (
 
     const chatType = selectedChatType ?? "direct";
     requestMessages(selectedChatId, chatType)
-      .then((items) => {
+      .then((items: ChatMessage[]) => {
         if (!active) return;
         replaceMessages(items);
         items.forEach(syncParticipantFromMessage);
@@ -413,7 +187,7 @@ export const useChatManager = (
           updateChatPreview(last);
         }
       })
-      .catch((err) => {
+      .catch((err: Error) => {
         if (!active) return;
         console.error(
           `Failed to load messages for chat ${selectedChatId}`,
@@ -439,6 +213,27 @@ export const useChatManager = (
     updateChatPreview,
   ]);
 
+  // WebSocket send
+  const sendWsMessage = useCallback((type: string, data: unknown) => {
+    const ws = wsRef.current;
+    if (!ws || ws.readyState !== WebSocket.OPEN) return false;
+
+    try {
+      ws.send(
+        JSON.stringify({
+          type,
+          data,
+          timestamp: new Date().toISOString(),
+        }),
+      );
+      return true;
+    } catch (err) {
+      console.error("Failed to send WS message", err);
+      return false;
+    }
+  }, []);
+
+  // Chat join/leave effect
   useEffect(() => {
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
@@ -477,6 +272,7 @@ export const useChatManager = (
     }
   }, [selectedChatId, wsReady, sendWsMessage]);
 
+  // WebSocket connection effect
   useEffect(() => {
     if (!connectRequested) return;
 
@@ -753,8 +549,11 @@ export const useChatManager = (
     sendWsMessage,
     commitMessage,
     currentUserId,
+    patchMessageForActiveChat,
+    selectedIdRef,
   ]);
 
+  // Typing indicator effect
   useEffect(() => {
     const trimmed = draft.trim();
 
@@ -812,7 +611,7 @@ export const useChatManager = (
         isTypingRef.current = false;
       }
     }, 2000);
-  }, [draft, selectedChatId, wsReady, sendWsMessage, chatTypeFor]);
+  }, [draft, selectedChatId, wsReady, sendWsMessage, chatTypeFor, selectedIdRef]);
 
   useEffect(
     () => () => {
@@ -823,6 +622,7 @@ export const useChatManager = (
     [],
   );
 
+  // Draft handlers
   const handleDraftChange = useCallback((value: string) => {
     setDraft(value.slice(0, MAX_MESSAGE_LENGTH));
     setMessagesError(null);
@@ -906,15 +706,17 @@ export const useChatManager = (
     } finally {
       setIsSending(false);
     }
-  }, [attachment, draft, isSending, sendWsMessage, commitMessage, chatTypeFor]);
+  }, [attachment, draft, isSending, sendWsMessage, commitMessage, chatTypeFor, selectedIdRef]);
 
+  // Chat selection wrapper
   const selectChat = useCallback((chatId: string) => {
     pendingJoinRef.current = chatId;
-    setSelectedChatId(chatId);
+    setSelectedId(chatId);
     setTypingNotice(null);
     setConnectRequested(true);
-  }, []);
+  }, [setSelectedId]);
 
+  // Thread functions
   const openThread = useCallback(async (rootMessageId: string) => {
     setCurrentThreadRootId(rootMessageId);
     currentThreadRootIdRef.current = rootMessageId;
@@ -1012,7 +814,7 @@ export const useChatManager = (
     } finally {
       setIsSendingThread(false);
     }
-  }, [threadDraft, isSendingThread, sendWsMessage, attachment]);
+  }, [threadDraft, isSendingThread, sendWsMessage, attachment, selectedIdRef]);
 
   const closeConnection = useCallback(() => {
     const ws = wsRef.current;

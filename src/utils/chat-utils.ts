@@ -1,4 +1,4 @@
-import { Chat, ChatMessage, ChatUser } from "../types/chat";
+import { Chat, ChatMessage, ChatUser, FriendshipUiState } from "../types/chat";
 
 export const CURRENT_USER_ID = "me";
 
@@ -129,6 +129,61 @@ export const initialsFrom = (value: string): string =>
     .slice(0, 2)
     .map((segment) => segment[0]?.toUpperCase() ?? "")
     .join("") || "П";
+
+export const normalizeUserId = (value: unknown): string | null => {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return String(value);
+  }
+  return null;
+};
+
+export const getFriendshipUiState = (
+  user: ChatUser,
+  hasLocalPending: boolean,
+): FriendshipUiState => {
+  if (hasLocalPending) {
+    return { status: "pending", isSender: true };
+  }
+  if (!user.friendshipStatus) return { status: "none" };
+  const { status, isSender } = user.friendshipStatus;
+  if (status === "accepted") return { status: "accepted", isSender };
+  if (status === "rejected") return { status: "rejected", isSender };
+  if (status === "pending") return { status: "pending", isSender };
+  return { status: "none" };
+};
+
+export type StatusMetaColor = "success" | "warning" | "info" | "secondary" | "error";
+
+export type StatusMeta = {
+  label: string;
+  color: StatusMetaColor;
+};
+
+export const getStatusMeta = (state: FriendshipUiState): StatusMeta | null => {
+  if (state.status === "accepted") {
+    return { label: "В друзьях", color: "success" };
+  }
+  if (state.status === "pending") {
+    return state.isSender
+      ? { label: "Заявка отправлена", color: "info" }
+      : { label: "Входящая заявка", color: "warning" };
+  }
+  if (state.status === "rejected") {
+    return state.isSender
+      ? { label: "Вы подписаны", color: "info" }
+      : { label: "Подписан на вас", color: "warning" };
+  }
+  return null;
+};
+
+export const sortMessagesByDate = (items: ChatMessage[]): ChatMessage[] =>
+  [...items].sort(
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+  );
 
 export const sameDay = (a: Date, b: Date) =>
   a.getFullYear() === b.getFullYear() &&

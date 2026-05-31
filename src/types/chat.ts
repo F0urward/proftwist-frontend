@@ -26,6 +26,12 @@ export type Chat = {
   unread?: number;
 };
 
+export type FriendshipUiState =
+  | { status: "none" }
+  | { status: "pending"; isSender?: boolean }
+  | { status: "rejected"; isSender?: boolean }
+  | { status: "accepted"; isSender?: boolean };
+
 export type ChatMessage = {
   id: string;
   chatId: string;
