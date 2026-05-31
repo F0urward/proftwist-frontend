@@ -1,5 +1,6 @@
-import { Avatar, Box, Chip, Stack, Typography } from "@mui/material";
+import { Avatar, Box, Chip, IconButton, Stack, Typography } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
+import ReplyIcon from "@mui/icons-material/Reply";
 
 export type UserLite = {
   id: string;
@@ -20,6 +21,8 @@ export type MessageLite = {
   text: string;
   kind?: "text" | "system";
   createdAt: string;
+  threadRootId?: string;
+  replyCount?: number;
 };
 
 const FALLBACK_USER: UserLite = { id: "unknown", name: "Пользователь" };
@@ -31,6 +34,15 @@ const initialsFrom = (s: string) =>
     .slice(0, 2)
     .map((w) => w[0]?.toUpperCase() ?? "")
     .join("") || "П";
+
+const pluralize = (n: number, forms: [string, string, string]): string => {
+  const abs = Math.abs(n) % 100;
+  const n1 = abs % 10;
+  if (abs > 10 && abs < 20) return forms[2];
+  if (n1 > 1 && n1 < 5) return forms[1];
+  if (n1 === 1) return forms[0];
+  return forms[2];
+};
 
 const formatTime = (iso: string) =>
   new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -74,9 +86,10 @@ type Props = {
   chat: ChatLite;
   messages: MessageLite[];
   currentUserId: string;
+  onOpenThread?: (messageId: string) => void;
 };
 
-const MessagesList = ({ chat, messages, currentUserId }: Props) => {
+const MessagesList = ({ chat, messages, currentUserId, onOpenThread }: Props) => {
   const theme = useTheme();
   const byId = new Map(chat.participants.map((u) => [u.id, u] as const));
   const groups = groupByDate(messages);
@@ -117,65 +130,112 @@ const MessagesList = ({ chat, messages, currentUserId }: Props) => {
               }
 
               return (
-                <Stack
-                  key={m.id}
-                  direction="row"
-                  justifyContent={mine ? "flex-end" : "flex-start"}
-                  alignItems="flex-end"
-                  spacing={1}
+                <Box
+                  sx={{
+                    "&:hover .reply-btn": { opacity: 1 },
+                  }}
                 >
-                  {!mine && chat.type === "group" && (
-                    <Avatar
-                      {...(sender.avatar ? { src: sender.avatar } : {})}
-                      alt={senderAlt}
-                      sx={{ width: 32, height: 32 }}
-                    >
-                      {!sender.avatar && senderInitials}
-                    </Avatar>
-                  )}
-
                   <Stack
-                    spacing={0.5}
-                    sx={{
-                      maxWidth: "70%",
-                      justifyContent: mine ? "end" : "start",
-                    }}
+                    direction="row"
+                    justifyContent={mine ? "flex-end" : "flex-start"}
+                    alignItems="flex-end"
+                    spacing={1}
                   >
-                    <Box
-                      sx={{
-                        px: 1.5,
-                        py: 1,
-                        borderRadius: 3,
-                        bgcolor: mine
-                          ? "rgba(188,87,255,0.18)"
-                          : "rgba(255,255,255,0.06)",
-                        display: "flex",
-                        flexDirection: "column",
-                      }}
-                    >
-                      {!mine && chat.type === "group" && (
-                        <Typography
-                          variant="caption"
-                          sx={{ opacity: 0.7, display: "block" }}
-                        >
-                          {sender.nickname || sender.name || "Пользователь"}
-                        </Typography>
-                      )}
-                      <Typography sx={{ overflowWrap: "break-word" }}>
-                        {m.text}
-                      </Typography>
-                      <Typography
-                        variant="caption"
+                    {!mine && chat.type === "group" && (
+                      <Avatar
+                        {...(sender.avatar ? { src: sender.avatar } : {})}
+                        alt={senderAlt}
+                        sx={{ width: 32, height: 32 }}
+                      >
+                        {!sender.avatar && senderInitials}
+                      </Avatar>
+                    )}
+
+                    <Box sx={{ position: "relative", maxWidth: "70%" }}>
+                      <Stack
+                        spacing={0.5}
                         sx={{
-                          opacity: 0.65,
-                          alignSelf: mine ? "flex-end" : "flex-start",
+                          alignItems: mine ? "flex-end" : "flex-start",
                         }}
                       >
-                        {formatTime(m.createdAt)}
-                      </Typography>
+                        <Box
+                          sx={{
+                            px: 1.5,
+                            py: 1,
+                            borderRadius: 3,
+                            bgcolor: mine
+                              ? "rgba(188,87,255,0.18)"
+                              : "rgba(255,255,255,0.06)",
+                            display: "flex",
+                            flexDirection: "column",
+                          }}
+                        >
+                          {!mine && chat.type === "group" && (
+                            <Typography
+                              variant="caption"
+                              sx={{ opacity: 0.7, display: "block" }}
+                            >
+                              {sender.nickname || sender.name || "Пользователь"}
+                            </Typography>
+                          )}
+                          <Typography sx={{ overflowWrap: "break-word" }}>
+                            {m.text}
+                          </Typography>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              opacity: 0.65,
+                              alignSelf: mine ? "flex-end" : "flex-start",
+                            }}
+                          >
+                            {formatTime(m.createdAt)}
+                          </Typography>
+                          {chat.type === "group" && typeof m.replyCount === "number" && m.replyCount > 0 && (
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                opacity: 0.5,
+                                fontSize: 11,
+                                mt: 0.5,
+                                alignSelf: mine ? "flex-end" : "flex-start",
+                              }}
+                            >
+                              {m.replyCount} {pluralize(m.replyCount, ["ответ", "ответа", "ответов"])}
+                            </Typography>
+                          )}
+                        </Box>
+                      </Stack>
+
+                      {chat.type === "group" && (
+                        <IconButton
+                          className="reply-btn"
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onOpenThread?.(m.id);
+                          }}
+                          sx={{
+                            position: "absolute",
+                            bottom: -12,
+                            right: -12,
+                            width: 28,
+                            height: 28,
+                            opacity: 0,
+                            transition: "opacity 0.15s",
+                            bgcolor: "background.paper",
+                            border: 1,
+                            borderColor: "divider",
+                            boxShadow: 1,
+                            zIndex: 1,
+                            "&:hover": { bgcolor: "action.hover" },
+                          }}
+                        >
+                          <ReplyIcon sx={{ width: 14, height: 14 }} />
+                        </IconButton>
+                      )}
                     </Box>
                   </Stack>
-                </Stack>
+                </Box>
               );
             })}
           </Stack>

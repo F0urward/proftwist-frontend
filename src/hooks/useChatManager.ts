@@ -50,6 +50,18 @@ const useMessagesStore = (resolveActiveChat: ActiveChatResolver) => {
     [resolveActiveChat],
   );
 
+  const patchMessageForActiveChat = useCallback(
+    (messageId: string, patch: Record<string, unknown>) => {
+      setMessages((prev) => {
+        if (resolveActiveChat() !== patch.chatId) return prev;
+        return prev.map((m) =>
+          m.id === messageId ? { ...m, ...patch as Partial<ChatMessage> } : m,
+        );
+      });
+    },
+    [resolveActiveChat],
+  );
+
   const clearMessages = useCallback(() => setMessages([]), []);
 
   return {
@@ -57,6 +69,7 @@ const useMessagesStore = (resolveActiveChat: ActiveChatResolver) => {
     replaceMessages,
     upsertMessageForActiveChat,
     removeMessageForActiveChat,
+    patchMessageForActiveChat,
     clearMessages,
   };
 };
@@ -87,6 +100,16 @@ type UseChatManagerResult = {
   clearAttachment: () => void;
   typingNotice: string | null;
   closeConnection: () => void;
+  threadMessages: ChatMessage[];
+  currentThreadRootId: string | null;
+  threadMessagesLoading: boolean;
+  threadMessagesError: string | null;
+  openThread: (rootMessageId: string) => Promise<void>;
+  closeThread: () => void;
+  threadDraft: string;
+  handleThreadDraftChange: (value: string) => void;
+  sendThreadMessage: () => Promise<void>;
+  isSendingThread: boolean;
 };
 
 export const useChatManager = (
@@ -105,6 +128,13 @@ export const useChatManager = (
   const [isSending, setIsSending] = useState(false);
   const [attachment, setAttachment] = useState<File | null>(null);
 
+  const [threadMessages, setThreadMessages] = useState<ChatMessage[]>([]);
+  const [currentThreadRootId, setCurrentThreadRootId] = useState<string | null>(null);
+  const [threadDraft, setThreadDraft] = useState("");
+  const [isSendingThread, setIsSendingThread] = useState(false);
+  const [threadMessagesLoading, setThreadMessagesLoading] = useState(false);
+  const [threadMessagesError, setThreadMessagesError] = useState<string | null>(null);
+
   const wsRef = useRef<WebSocket | null>(null);
   const [wsReady, setWsReady] = useState(false);
   const selectedIdRef = useRef<string | null>(null);
@@ -122,6 +152,7 @@ export const useChatManager = (
     replaceMessages,
     upsertMessageForActiveChat,
     removeMessageForActiveChat,
+    patchMessageForActiveChat,
     clearMessages,
   } = useMessagesStore(resolveActiveChat);
   const currentChatRef = useRef<string | null>(null);
@@ -132,6 +163,7 @@ export const useChatManager = (
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isTypingRef = useRef(false);
   const [connectRequested, setConnectRequested] = useState(false);
+  const currentThreadRootIdRef = useRef<string | null>(null);
   const typingIndicatorTimeoutRef = useRef<ReturnType<
     typeof setTimeout
   > | null>(null);
@@ -337,6 +369,10 @@ export const useChatManager = (
     selectedIdRef.current = selectedChatId;
   }, [selectedChatId]);
 
+  useEffect(() => {
+    currentThreadRootIdRef.current = currentThreadRootId;
+  }, [currentThreadRootId]);
+
   const selectedChat = useMemo(
     () => chats.find((chat) => chat.id === selectedChatId) ?? null,
     [chats, selectedChatId],
@@ -357,6 +393,10 @@ export const useChatManager = (
       setTypingNotice(null);
       return;
     }
+
+    setCurrentThreadRootId(null);
+    currentThreadRootIdRef.current = null;
+    setThreadMessages([]);
 
     let active = true;
     setMessagesLoading(true);
@@ -487,7 +527,24 @@ export const useChatManager = (
           if (eventType === "message_sent" || eventType === "message_updated") {
             if (chatId) {
               const message = mapMessageFromApi(payload, chatId);
-              commitMessage(message);
+              if (message.threadRootId) {
+                patchMessageForActiveChat(message.threadRootId, {
+                  replyCount: message.replyCount,
+                  chatId,
+                });
+                if (currentThreadRootIdRef.current === message.threadRootId) {
+                  setThreadMessages((prev) => {
+                    const exists = prev.some((m) => m.id === message.id);
+                    if (exists) return prev.map((m) => (m.id === message.id ? message : m));
+                    return [...prev, message].sort(
+                      (a, b) =>
+                        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+                    );
+                  });
+                }
+              } else {
+                commitMessage(message);
+              }
             }
           } else if (eventType === "message_deleted") {
             if (chatId && payload?.message_id) {
@@ -858,6 +915,105 @@ export const useChatManager = (
     setConnectRequested(true);
   }, []);
 
+  const openThread = useCallback(async (rootMessageId: string) => {
+    setCurrentThreadRootId(rootMessageId);
+    currentThreadRootIdRef.current = rootMessageId;
+    setThreadMessagesLoading(true);
+    setThreadMessagesError(null);
+    setThreadMessages([]);
+    setThreadDraft("");
+
+    try {
+      const { data } = await chatsService.getThreadMessages(
+        selectedIdRef.current!,
+        rootMessageId,
+      );
+      const list = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.messages)
+          ? data.messages
+          : Array.isArray(data?.data)
+            ? data.data
+            : Array.isArray(data?.items)
+              ? data.items
+              : [];
+      const mapped = list
+        .map((item: any) => mapMessageFromApi(item, selectedIdRef.current!))
+        .sort(
+          (a: ChatMessage, b: ChatMessage) =>
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+        );
+      setThreadMessages(mapped);
+    } catch (err) {
+      console.error("Failed to load thread messages", err);
+      setThreadMessagesError("Не удалось загрузить ответы");
+    } finally {
+      setThreadMessagesLoading(false);
+    }
+  }, []);
+
+  const closeThread = useCallback(() => {
+    setCurrentThreadRootId(null);
+    currentThreadRootIdRef.current = null;
+    setThreadMessages([]);
+    setThreadDraft("");
+    setThreadMessagesError(null);
+  }, []);
+
+  const handleThreadDraftChange = useCallback((value: string) => {
+    setThreadDraft(value.slice(0, MAX_MESSAGE_LENGTH));
+  }, []);
+
+  const sendThreadMessage = useCallback(async () => {
+    if (!selectedIdRef.current || !currentThreadRootIdRef.current || isSendingThread) return;
+
+    const chatId = selectedIdRef.current;
+    const threadRootId = currentThreadRootIdRef.current;
+    if (!chatId || !threadRootId) return;
+
+    const trimmed = threadDraft.trim();
+    if (!trimmed) return;
+    if (trimmed.length > MAX_MESSAGE_LENGTH) {
+      setThreadMessagesError(
+        `Message is too long. Maximum ${MAX_MESSAGE_LENGTH} characters.`,
+      );
+      return;
+    }
+
+    if (attachment) {
+      setThreadMessagesError("Отправка файлов пока не поддерживается.");
+      return;
+    }
+
+    setIsSendingThread(true);
+    setThreadMessagesError(null);
+    setThreadDraft("");
+
+    const payload = {
+      chat_id: chatId,
+      chat_type: "group" as const,
+      content: trimmed,
+      metadata: { type: "text" },
+      thread_root_id: threadRootId,
+    };
+
+    const sentViaWs = sendWsMessage("send_message", payload);
+    if (sentViaWs) {
+      setIsSendingThread(false);
+      return;
+    }
+
+    try {
+      await chatsService.sendMessage(chatId, { text: trimmed });
+    } catch (err) {
+      console.error("Failed to send thread message", err);
+      setThreadMessagesError("Не удалось отправить сообщение");
+      setThreadDraft(trimmed);
+    } finally {
+      setIsSendingThread(false);
+    }
+  }, [threadDraft, isSendingThread, sendWsMessage, attachment]);
+
   const closeConnection = useCallback(() => {
     const ws = wsRef.current;
     if (ws) {
@@ -891,5 +1047,15 @@ export const useChatManager = (
     clearAttachment,
     typingNotice,
     closeConnection,
+    threadMessages,
+    currentThreadRootId,
+    threadMessagesLoading,
+    threadMessagesError,
+    openThread,
+    closeThread,
+    threadDraft,
+    handleThreadDraftChange,
+    sendThreadMessage,
+    isSendingThread,
   };
 };

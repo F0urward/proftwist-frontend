@@ -100,4 +100,7 @@ export const chatsService = {
 
   sendMessage: (chatId: string, payload: SendMessagePayload) =>
     api.post(`/chats/${chatId}/messages`, payload),
+
+  getThreadMessages: (chatId: string, threadRootId: string) =>
+    api.get(`/chats/group/${chatId}/threads/${threadRootId}`),
 };

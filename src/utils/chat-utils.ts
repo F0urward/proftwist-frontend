@@ -340,6 +340,17 @@ export const mapMessageFromApi = (
     ? new Date().toISOString()
     : parsed.toISOString();
 
+  const threadRootId = optionalString(
+    pickFirstDefined(message?.thread_root_id, message?.threadRootId),
+  );
+
+  const replyCount =
+    typeof message?.reply_count === "number"
+      ? message.reply_count
+      : typeof message?.replyCount === "number"
+        ? message.replyCount
+        : undefined;
+
   return {
     id: ensureString(
       pickFirstDefined(message?.id, message?.message_id, message?.uuid),
@@ -352,6 +363,8 @@ export const mapMessageFromApi = (
     senderName,
     senderNickname,
     senderAvatar,
+    threadRootId,
+    replyCount,
   };
 };
 

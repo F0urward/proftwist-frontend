@@ -36,4 +36,6 @@ export type ChatMessage = {
   senderName?: string;
   senderNickname?: string;
   senderAvatar?: string;
+  threadRootId?: string;
+  replyCount?: number;
 };

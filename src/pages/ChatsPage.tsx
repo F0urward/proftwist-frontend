@@ -43,6 +43,7 @@ import { alpha } from "@mui/material/styles";
 import { useSearchParams } from "react-router-dom";
 import BaseLayout from "../components/BaseLayout/BaseLayout";
 import MessagesList from "../components/MessageList/MessageList";
+import ThreadPanel from "../components/ThreadPanel/ThreadPanel";
 import { useChatManager } from "../hooks/useChatManager";
 import {
   getChatAvatar,
@@ -88,6 +89,7 @@ type ChatWindowProps = {
   typingNotice: string | null;
   composerProps: MessageComposerProps;
   onShowParticipants: () => void;
+  onOpenThread: (messageId: string) => void;
   isMobile?: boolean;
   onBack?: () => void;
 };
@@ -455,6 +457,7 @@ const ChatWindow = ({
   typingNotice,
   composerProps,
   onShowParticipants,
+  onOpenThread,
   onBack,
   isMobile,
 }: ChatWindowProps) => {
@@ -588,6 +591,7 @@ const ChatWindow = ({
                 chat={selectedChat}
                 messages={messages}
                 currentUserId={currentUserId}
+                onOpenThread={onOpenThread}
               />
             )}
           </>
@@ -636,6 +640,16 @@ const ChatsPage = () => {
     typingNotice,
     refreshChats,
     closeConnection,
+    threadMessages,
+    currentThreadRootId,
+    threadMessagesLoading,
+    threadMessagesError,
+    openThread,
+    closeThread,
+    threadDraft,
+    handleThreadDraftChange,
+    sendThreadMessage,
+    isSendingThread,
   } = useChatManager(authUserId ?? undefined);
   const resolvedUserId = authUserId ?? currentUserId;
 
@@ -720,6 +734,11 @@ const ChatsPage = () => {
     onPickAttachment: pickAttachment,
     onClearAttachment: clearAttachment,
   };
+
+  const threadRootMessage = useMemo(
+    () => messages.find((m) => m.id === currentThreadRootId) ?? null,
+    [messages, currentThreadRootId],
+  );
 
   const handleOpenParticipants = useCallback(async () => {
     if (!selectedChat) return;
@@ -923,11 +942,27 @@ const ChatsPage = () => {
             typingNotice={typingNotice}
             composerProps={composerProps}
             onShowParticipants={handleOpenParticipants}
+            onOpenThread={openThread}
             isMobile={isMobile}
             onBack={() => {
               clearChatParam();
               setMobileView("list");
             }}
+          />
+        )}
+
+        {currentThreadRootId && (
+          <ThreadPanel
+            rootMessage={threadRootMessage}
+            messages={threadMessages}
+            loading={threadMessagesLoading}
+            error={threadMessagesError}
+            currentUserId={resolvedUserId}
+            onClose={closeThread}
+            draft={threadDraft}
+            onDraftChange={handleThreadDraftChange}
+            onSend={sendThreadMessage}
+            isSending={isSendingThread}
           />
         )}
 
