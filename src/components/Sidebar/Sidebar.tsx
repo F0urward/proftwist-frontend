@@ -154,10 +154,10 @@ export const Sidebar = ({
   const actions: Actions[] = [
     {
       Icon: Crop75Icon,
-      title: "Корневая нода",
+      title: "Корневой узел",
       handleClick: () => addNode("root"),
       disabled: hasRootNode,
-      disabledReason: "Корневая нода уже добавлена",
+      disabledReason: "Корневой узел уже добавлен",
     },
     {
       Icon: Crop75Icon,
@@ -222,8 +222,8 @@ export const Sidebar = ({
     {
       Icon: AutoAwesomeIcon,
       title: isGeneratingRoadmap
-        ? "Генерация roadmap..."
-        : "Создать roadmap с AI",
+        ? "Генерация дорожной карты..."
+        : "Создать дорожную карту с ИИ",
       handleClick: () => setIsAiDialogOpen(true),
       disabled: isGeneratingRoadmap,
       isLoading: isGeneratingRoadmap,
@@ -235,7 +235,7 @@ export const Sidebar = ({
       <Stack
         gap="10px"
         sx={{
-          width: isSheet ? "100%" : "300px",
+          width: isSheet ? "100%" : "fit-content",
           padding: "10px",
           background: "transparent",
           height: "100%",
@@ -314,7 +314,7 @@ export const Sidebar = ({
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle>Создать roadmap с AI</DialogTitle>
+        <DialogTitle>Создать дорожную карту с ИИ</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
@@ -322,8 +322,8 @@ export const Sidebar = ({
             multiline
             minRows={4}
             margin="dense"
-            label="Каким должен быть roadmap?"
-            placeholder="Например: roadmap для изучения React с нуля до продвинутого уровня"
+            label="Каким должна быть дорожная карта?"
+            placeholder="Например: дорожная карта для изучения React с нуля"
             value={aiRoadmapPrompt}
             onChange={(event) => setAiRoadmapPrompt(event.target.value)}
             disabled={isGeneratingRoadmap}

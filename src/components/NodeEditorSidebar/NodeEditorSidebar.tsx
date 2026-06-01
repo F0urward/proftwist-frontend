@@ -28,7 +28,7 @@ type NodeEditorSidebarProps = {
 };
 
 const NODE_TYPE_RU: Record<NodeType, string> = {
-  root: "Корневая нода",
+  root: "Корневой узел",
   primary: "Тема",
   secondary: "Подтема",
 };
@@ -43,8 +43,7 @@ export const NodeEditorSidebar = ({
   onDelete,
 }: NodeEditorSidebarProps) => {
   const theme = useTheme();
-  const [isGeneratingDescription, setIsGeneratingDescription] =
-    useState(false);
+  const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
   const label = useMemo(() => (node?.data as any)?.label ?? "", [node]);
   const description = useMemo(() => (node as any)?.description ?? "", [node]);
   const nodeType = useMemo(
@@ -53,8 +52,8 @@ export const NodeEditorSidebar = ({
   );
   const nodeTypeRu = useMemo(() => {
     const rawType = nodeType;
-    if (!rawType) return "Нода";
-    return NODE_TYPE_RU[rawType] ?? "Нода";
+    if (!rawType) return "Узел";
+    return NODE_TYPE_RU[rawType] ?? "Узел";
   }, [nodeType]);
 
   const handleGenerateDescription = async () => {
@@ -105,10 +104,7 @@ export const NodeEditorSidebar = ({
             justifyContent="space-between"
           >
             <Box>
-              <Typography
-                variant="overline"
-                sx={{ color: "text.secondary" }}
-              >
+              <Typography variant="overline" sx={{ color: "text.secondary" }}>
                 {nodeTypeRu}
               </Typography>
               <Typography variant="h5" sx={{ fontWeight: 700 }}>
@@ -193,12 +189,14 @@ export const NodeEditorSidebar = ({
                 background: `linear-gradient(90deg, ${theme.palette.primary.dark}, ${theme.palette.secondary.main})`,
               },
               "&.Mui-disabled": {
-                color: theme.palette.mode === "dark"
-                  ? "rgba(255,255,255,0.42)"
-                  : "rgba(44,24,16,0.38)",
-                background: theme.palette.mode === "dark"
-                  ? "rgba(255,255,255,0.1)"
-                  : "rgba(0,0,0,0.1)",
+                color:
+                  theme.palette.mode === "dark"
+                    ? "rgba(255,255,255,0.42)"
+                    : "rgba(44,24,16,0.38)",
+                background:
+                  theme.palette.mode === "dark"
+                    ? "rgba(255,255,255,0.1)"
+                    : "rgba(0,0,0,0.1)",
               },
             })}
           >

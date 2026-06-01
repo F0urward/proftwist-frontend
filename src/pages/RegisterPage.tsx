@@ -90,7 +90,7 @@ const RegisterPage = () => {
             </Alert>
           )}
           <TextInput
-            label="Никнейм"
+            label="Имя пользователя"
             placeholder="Придумайте свой ник"
             autoComplete="username"
             {...register("username")}

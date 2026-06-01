@@ -222,7 +222,7 @@ export const CreatorPage = () => {
       id: uuidv4(),
       type: type === "text" ? "text" : "custom",
       position: flowPosition,
-      data: { label: `Нода новая`, type },
+      data: { label: `Новый узел`, type },
     };
 
     dispatch(editorSliceActions.addNode(newNode));
@@ -373,7 +373,14 @@ export const CreatorPage = () => {
         >
           <Controls position="center-left" showZoom={false}></Controls>
 
-                <Background color={theme.palette.mode === "dark" ? "#fff" : theme.palette.text.secondary} bgColor="transparent" />
+          <Background
+            color={
+              theme.palette.mode === "dark"
+                ? "#fff"
+                : theme.palette.text.secondary
+            }
+            bgColor="transparent"
+          />
         </ReactFlow>
 
         {isMobile && roadmapInfoId && (

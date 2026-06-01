@@ -270,7 +270,7 @@ const NodeSidebar = ({
               disabled={isLoadingChat}
               onClick={async () => {
                 if (!node?.id) {
-                  alert("Идентификатор чата для этой ноды недоступен.");
+                  alert("Идентификатор чата для этого узла недоступен.");
                   return;
                 }
                 setIsLoadingChat(true);
@@ -326,11 +326,11 @@ const NodeSidebar = ({
                       throw joinError;
                     }
                   } else {
-                    alert("Идентификатор чата для этой ноды недоступен.");
+                    alert("Идентификатор чата для этого узла недоступен.");
                   }
                 } catch (error) {
                   console.error("Failed to open chat for this node.", error);
-                  alert("Не удалось открыть чат для этой ноды.");
+                  alert("Не удалось открыть чат для этого узла.");
                 } finally {
                   setIsLoadingChat(false);
                 }

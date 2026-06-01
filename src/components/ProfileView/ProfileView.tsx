@@ -147,7 +147,14 @@ const ProfileView = () => {
           Настройки
         </Button>
       </Box>
-      <Divider sx={{ ml: 2.5, mr: 2.5, borderBottom: "1px solid", borderColor: "divider" }} />
+      <Divider
+        sx={{
+          ml: 2.5,
+          mr: 2.5,
+          borderBottom: "1px solid",
+          borderColor: "divider",
+        }}
+      />
 
       <Box sx={{ p: 3 }}>
         <Grid container spacing={3} alignItems="center">
@@ -173,7 +180,14 @@ const ProfileView = () => {
         </Grid>
       </Box>
 
-      <Divider sx={{ mx: 2.5, mb: 1.5, borderBottom: "1px solid", borderColor: "divider" }} />
+      <Divider
+        sx={{
+          mx: 2.5,
+          mb: 1.5,
+          borderBottom: "1px solid",
+          borderColor: "divider",
+        }}
+      />
 
       <Box sx={{ px: 3, pb: 3 }}>
         <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
@@ -275,8 +289,8 @@ const ProfileView = () => {
               </Stack>
 
               <TextInput
-                label="Никнейм"
-                placeholder="Введите никнейм"
+                label="Имя пользователя"
+                placeholder="Введите имя пользователя"
                 {...register("username")}
                 error={!!errors.username}
                 helperText={errors.username?.message}
