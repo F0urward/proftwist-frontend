@@ -35,6 +35,9 @@ import { useAppDispatch } from "../../store";
 const ProfileView = () => {
   const user = useAppSelector((state: RootState) => state.auth.user);
   const [open, setOpen] = useState(false);
+  const [pendingAvatar, setPendingAvatar] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const fileRef = useRef<HTMLInputElement | null>(null);
   const { showNotification, Notification } = useNotification();
   const dispatch = useAppDispatch();
@@ -55,36 +58,57 @@ const ProfileView = () => {
     },
   });
 
+  const watchedUsername = watch("username");
+  const watchedEmail = watch("email");
+  const isDirty =
+    pendingAvatar !== null ||
+    watchedUsername !== (user?.username ?? "") ||
+    watchedEmail !== (user?.email ?? "");
+
   const openDialog = () => {
     setOpen(true);
   };
 
-  const handlePickAvatar = async (e: ChangeEvent<HTMLInputElement>) => {
+  const clearAvatarPreview = () => {
+    if (avatarPreview) URL.revokeObjectURL(avatarPreview);
+    setAvatarPreview(null);
+  };
+
+  const handleCloseDialog = () => {
+    setOpen(false);
+    setPendingAvatar(null);
+    clearAvatarPreview();
+  };
+
+  const handlePickAvatar = (e: ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.length) return;
-    const file = e.target.files[0];
-    try {
-      await authService.uploadAvatar(file);
-      const me = await authService.getMe();
-      dispatch(checkIfAuthenticated());
-      showNotification("Аватар успешно обновлён", "success");
-    } catch {
-      showNotification("Ошибка загрузки аватара", "error");
-    }
+    setPendingAvatar(e.target.files[0]);
+    clearAvatarPreview();
+    setAvatarPreview(URL.createObjectURL(e.target.files[0]));
+    e.target.value = "";
   };
 
   const onSubmit = async (data: ProfileFormData) => {
+    if (isSaving) return;
+    setIsSaving(true);
     try {
-      const result = await authService.update({
+      if (pendingAvatar) {
+        await authService.uploadAvatar(pendingAvatar);
+      }
+      await authService.update({
         username: data.username,
         email: data.email,
       });
-      const me = await authService.getMe();
       dispatch(checkIfAuthenticated());
       showNotification("Профиль успешно обновлён", "success");
+      setPendingAvatar(null);
+      clearAvatarPreview();
       setOpen(false);
     } catch (err) {
       console.error(err);
       showNotification("Не удалось сохранить изменения", "error");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -254,7 +278,7 @@ const ProfileView = () => {
 
       <Dialog
         open={open}
-        onClose={() => setOpen(false)}
+        onClose={handleCloseDialog}
         maxWidth="sm"
         fullWidth
       >
@@ -265,7 +289,7 @@ const ProfileView = () => {
               <Stack direction="row" spacing={2} alignItems="center">
                 <Avatar
                   alt={user ? user.username.charAt(0).toUpperCase() : ""}
-                  src={user?.image}
+                  src={avatarPreview || user?.image}
                   sx={{
                     width: 72,
                     height: 72,
@@ -329,10 +353,14 @@ const ProfileView = () => {
             </Stack>
           </DialogContent>
           <DialogActions sx={{ p: 3, gap: 1 }}>
-            <Button variant="text" onClick={() => setOpen(false)}>
+            <Button variant="text" onClick={handleCloseDialog} disabled={isSaving}>
               Отмена
             </Button>
-            <Button variant="contained" type="submit">
+            <Button
+              variant="contained"
+              type="submit"
+              disabled={!isDirty || isSaving}
+            >
               Сохранить
             </Button>
           </DialogActions>
