@@ -141,7 +141,11 @@ const mapFriendRequestSummary = (
 
   const username =
     pickStringField(relatedProfiles, ["username", "handle"], name) ?? name;
-  const avatar = pickStringField(relatedProfiles, [
+  const avatarProfiles =
+    direction === "outgoing"
+      ? [toProfile, raw]
+      : [fromProfile, raw];
+  const avatar = pickStringField(avatarProfiles, [
     "avatar_url",
     "avatar",
     "photo",
