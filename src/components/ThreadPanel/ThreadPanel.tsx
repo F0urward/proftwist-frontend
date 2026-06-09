@@ -91,13 +91,23 @@ const ThreadPanel = ({
                 initialsFrom(rootMessage.senderName || "П")}
             </Avatar>
             <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Typography variant="caption" sx={{ fontWeight: 600, opacity: 0.8 }}>
-                {rootMessage.senderNickname || rootMessage.senderName || "Пользователь"}
+              <Typography
+                variant="caption"
+                sx={{ fontWeight: 600, opacity: 0.8 }}
+              >
+                {rootMessage.senderNickname ||
+                  rootMessage.senderName ||
+                  "Пользователь"}
               </Typography>
-              <Typography sx={{ fontSize: 14, mt: 0.5, overflowWrap: "break-word" }}>
+              <Typography
+                sx={{ fontSize: 14, mt: 0.5, overflowWrap: "break-word" }}
+              >
                 {rootMessage.text}
               </Typography>
-              <Typography variant="caption" sx={{ opacity: 0.6, mt: 0.5, display: "block" }}>
+              <Typography
+                variant="caption"
+                sx={{ opacity: 0.6, mt: 0.5, display: "block" }}
+              >
                 {formatTime(rootMessage.createdAt)}
               </Typography>
             </Box>
@@ -159,11 +169,16 @@ const ThreadPanel = ({
                     }}
                   >
                     {!mine && (
-                      <Typography variant="caption" sx={{ opacity: 0.7, display: "block" }}>
+                      <Typography
+                        variant="caption"
+                        sx={{ opacity: 0.7, display: "block" }}
+                      >
                         {m.senderNickname || m.senderName || "Пользователь"}
                       </Typography>
                     )}
-                    <Typography sx={{ overflowWrap: "break-word", fontSize: 14 }}>
+                    <Typography
+                      sx={{ overflowWrap: "break-word", fontSize: 14 }}
+                    >
                       {m.text}
                     </Typography>
                     <Typography
@@ -238,10 +253,14 @@ const ThreadPanel = ({
     return (
       <Dialog open onClose={onClose} fullScreen>
         <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <IconButton edge="start" onClick={onClose} sx={{ color: "text.primary" }}>
+          <IconButton
+            edge="start"
+            onClick={onClose}
+            sx={{ color: "text.primary" }}
+          >
             <CloseIcon />
           </IconButton>
-          <Typography variant="h6">Thread</Typography>
+          <Typography variant="h6">Подтема</Typography>
         </DialogTitle>
         <DialogContent sx={{ p: 0, display: "flex", flexDirection: "column" }}>
           {content}
@@ -274,9 +293,13 @@ const ThreadPanel = ({
         }}
       >
         <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-          Thread
+          Подтема
         </Typography>
-        <IconButton size="small" onClick={onClose} sx={{ color: "text.primary" }}>
+        <IconButton
+          size="small"
+          onClick={onClose}
+          sx={{ color: "text.primary" }}
+        >
           <CloseIcon fontSize="small" />
         </IconButton>
       </Box>

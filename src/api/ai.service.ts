@@ -60,7 +60,7 @@ export const aiService = {
   async generateRoadmap(payload: GenerateRoadmapPayload): Promise<Roadmap> {
     const { data } = await api.post("/ai/roadmap", payload, {
       responseType: "text",
-      timeout: 30000,
+      timeout: 100000,
     });
 
     return extractRoadmap(data);

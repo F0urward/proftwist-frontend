@@ -132,7 +132,7 @@ const RegisterPage = () => {
           >
             {loading ? "Загрузка..." : "Зарегистрироваться"}
           </Button>
-          <Button
+          {/*<Button
             className=""
             onClick={handleVKIDAuthClick}
             sx={{
@@ -142,7 +142,7 @@ const RegisterPage = () => {
             }}
           >
             Зарегистрироваться через VK
-          </Button>
+          </Button>*/}
           <Typography variant="body1" sx={{ textAlign: "center" }}>
             Уже есть аккаунт?{" "}
             <Link

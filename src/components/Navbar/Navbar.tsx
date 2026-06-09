@@ -321,13 +321,13 @@ const Navbar = () => {
           </Box>
         )}
 
-        <IconButton
+        {/*<IconButton
           onClick={() => dispatch(toggleTheme())}
           sx={{ color: "primary.main", mr: 1 }}
           aria-label="toggle theme"
         >
           {themeMode === "dark" ? <LightModeIcon /> : <DarkModeIcon />}
-        </IconButton>
+        </IconButton>*/}
 
         {isLoggedIn ? (
           <>
